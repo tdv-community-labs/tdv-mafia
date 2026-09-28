@@ -31,6 +31,7 @@ import { BailiffConsole } from '../../../components/admin/BailiffConsole';
 import { GameBoard } from '../../../components/game/GameBoard';
 import { PhaseTransitionOverlay } from '../../../components/game/PhaseTransitionOverlay';
 import { RoleRevealOverlay } from '../../../components/game/RoleRevealOverlay';
+import { CinematicVignette } from '../../../components/ui/CinematicVignette';
 import { ExecutionOverlay } from '../../../components/game/ExecutionOverlay';
 import { FactionChat } from '../../../components/game/FactionChat';
 import { GhostChat } from '../../../components/game/GhostChat';
@@ -982,6 +983,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             );
           })()}
 
+          <CinematicVignette phase={lobbyState.phase} />
           <PhaseTransitionOverlay phase={lobbyState.phase} />
           <ExecutionOverlay lynchedPlayerName={lastLynchedName} lynchedRole={lastLynchedRole} />
 
