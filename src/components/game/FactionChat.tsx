@@ -1,14 +1,6 @@
-'use client';
-
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Send, X, ChevronDown, ChevronUp, Users } from 'lucide-react';
-
-interface FactionMessage {
-  readonly senderName: string;
-  readonly senderId: string;
-  readonly text: string;
-  readonly timestamp: number;
-}
+import { ChatMessage } from '../../types/game';
 
 interface FactionChatProps {
   readonly currentUserId: string;
@@ -17,10 +9,9 @@ interface FactionChatProps {
   readonly lobbyId: string;
   readonly factionMates: ReadonlyArray<{ userId: string; username: string }>;
   readonly phase: string;
+  readonly messages: ChatMessage[];
+  readonly onSendMessage: (content: string) => void;
 }
-
-// Simple in-memory chat store (persists only for session, not across page reloads)
-const factionChatStore: Record<string, FactionMessage[]> = {};
 
 export const FactionChat: React.FC<FactionChatProps> = ({
   currentUserId,
@@ -29,46 +20,38 @@ export const FactionChat: React.FC<FactionChatProps> = ({
   lobbyId,
   factionMates,
   phase,
+  messages,
+  onSendMessage,
 }) => {
-  const [messages, setMessages] = useState<FactionMessage[]>([]);
   const [input, setInput] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(false);
+  const [prevMsgCount, setPrevMsgCount] = useState(messages.length);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const storeKey = `${lobbyId}_${faction}`;
 
-  // Poll local store for new messages every second
   useEffect(() => {
-    const interval = setInterval(() => {
-      const stored = factionChatStore[storeKey] ?? [];
-      if (stored.length !== messages.length) {
-        setMessages([...stored]);
-        if (!isOpen) setHasNewMessage(true);
-      }
-    }, 500);
-    return () => clearInterval(interval);
-  }, [storeKey, messages.length, isOpen]);
+    if (messages.length > prevMsgCount) {
+      if (!isOpen) setHasNewMessage(true);
+      setPrevMsgCount(messages.length);
+    }
+  }, [messages.length, prevMsgCount, isOpen]);
 
   useEffect(() => {
     if (isOpen) {
       setHasNewMessage(false);
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [isOpen, messages]);
+  }, [isOpen, messages.length]);
 
   const sendMessage = () => {
-    if (!input.trim()) return;
+    const txt = input.trim();
+    if (!txt) return;
 
-    const msg: FactionMessage = {
-      senderName: currentUsername,
-      senderId: currentUserId,
-      text: input.trim(),
-      timestamp: Date.now(),
-    };
+    let finalTxt = txt;
+    if (txt === '/roll') finalTxt = `🎲 zər atdı: ${Math.floor(Math.random() * 6) + 1}`;
+    if (txt === '/flip') finalTxt = `🪙 qəpik atdı: ${Math.random() > 0.5 ? 'Xət (Heads)' : 'Yazı (Tails)'}`;
 
-    if (!factionChatStore[storeKey]) factionChatStore[storeKey] = [];
-    factionChatStore[storeKey].push(msg);
-    setMessages([...factionChatStore[storeKey]]);
+    onSendMessage(finalTxt);
     setInput('');
   };
 
@@ -92,15 +75,13 @@ export const FactionChat: React.FC<FactionChatProps> = ({
 
   return (
     <div className="fixed bottom-6 right-24 z-40 flex flex-col items-end gap-3">
-      {/* Chat Panel */}
       {isOpen && (
         <div
           className={`w-80 sm:w-96 rounded-2xl border bg-gradient-to-b ${factionColor} ring-1 shadow-2xl flex flex-col overflow-hidden animate-slideUp`}
         >
-          {/* Header */}
           <div className={`px-4 py-3 flex items-center justify-between border-b border-white/10`}>
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full bg-red-500 animate-pulse`}></div>
+              <div className={`w-2 h-2 rounded-full ${isNightPhase ? 'bg-red-500 animate-pulse' : 'bg-zinc-500'}`}></div>
               <span className={`text-sm font-black tracking-wider uppercase ${accentColor}`}>
                 {factionLabel} Şifrəli Kanal
               </span>
@@ -110,88 +91,79 @@ export const FactionChat: React.FC<FactionChatProps> = ({
                 <Users className="w-3 h-3" />
                 {factionMates.length + 1}
               </div>
-              <button onClick={() => setIsOpen(false)} className="text-zinc-400 hover:text-white transition-colors">
-                <ChevronDown className="w-4 h-4" />
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1 rounded hover:bg-white/10 text-zinc-400 transition-colors"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
-
-          {/* Night notice */}
-          {isNightPhase && (
-            <div className="px-3 py-1.5 bg-red-950/50 border-b border-red-900/30 text-[10px] text-red-400 font-bold uppercase tracking-widest text-center animate-pulse">
-              🔇 Gecə Əməliyyatı — Koordinasiya Aktiv
-            </div>
-          )}
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 max-h-64 min-h-[120px]">
+          <div className="flex-1 p-4 overflow-y-auto custom-scrollbar flex flex-col gap-3 min-h-[200px] max-h-[300px]">
             {messages.length === 0 ? (
-              <div className="text-center text-xs text-zinc-600 italic py-4">
-                Heç bir mesaj yoxdur. Koordinasiyanı başladın.
+              <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50">
+                <MessageSquare className="w-8 h-8 mb-2 opacity-50" />
+                <p className="text-xs uppercase tracking-wider font-bold">Heç bir mesaj yoxdur</p>
+                <p className="text-[10px] mt-1">/roll və /flip komandalarını sınayın</p>
               </div>
             ) : (
-              messages.map((msg, i) => (
-                <div key={i} className={`flex flex-col ${msg.senderId === currentUserId ? 'items-end' : 'items-start'}`}>
-                  <div className={`text-[10px] font-bold mb-0.5 ${accentColor} opacity-70`}>
-                    {msg.senderId === currentUserId ? 'Siz' : msg.senderName}
+              messages.map((msg, i) => {
+                const isMe = msg.senderId === currentUserId;
+                return (
+                  <div key={i} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-fadeIn`}>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-0.5">
+                      {isMe ? 'Siz' : msg.senderName}
+                    </span>
+                    <div
+                      className={`px-3 py-2 rounded-xl text-sm leading-relaxed max-w-[85%] ${
+                        isMe
+                          ? `bg-white/10 text-white rounded-tr-sm`
+                          : `bg-black/40 text-zinc-200 rounded-tl-sm`
+                      }`}
+                    >
+                      {msg.content}
+                    </div>
                   </div>
-                  <div
-                    className={`px-3 py-1.5 rounded-xl text-sm max-w-[80%] break-words ${
-                      msg.senderId === currentUserId
-                        ? 'bg-red-700/60 text-white rounded-br-sm'
-                        : 'bg-zinc-800/60 text-zinc-200 rounded-bl-sm'
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
             <div ref={bottomRef} />
           </div>
-
-          {/* Input */}
-          <div className="px-3 py-2 border-t border-white/10 flex items-center gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-              placeholder="Şifrəli mesaj..."
-              maxLength={200}
-              className="flex-1 bg-zinc-900/50 border border-zinc-700/50 rounded-lg px-3 py-1.5 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-red-500/50 transition-colors"
-            />
-            <button
-              onClick={sendMessage}
-              disabled={!input.trim()}
-              className={`w-8 h-8 rounded-lg ${btnColor} text-white flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed ring-1`}
-            >
-              <Send className="w-4 h-4" />
-            </button>
+          <div className="p-3 border-t border-white/10 bg-black/20">
+            <div className="flex items-center gap-2 relative">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                placeholder="Mesaj yazın... (Gecə vaxtı)"
+                disabled={!isNightPhase}
+                maxLength={200}
+                className="flex-1 bg-black/40 border border-white/10 rounded-lg pl-3 pr-10 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-white/20 transition-all disabled:opacity-50"
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!input.trim() || !isNightPhase}
+                className={`absolute right-1.5 p-1.5 rounded-md ${btnColor} text-white transition-all disabled:opacity-50 disabled:active:scale-100 active:scale-95`}
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}
-
-      {/* Toggle Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`relative w-14 h-14 rounded-2xl ${btnColor} text-white flex items-center justify-center shadow-2xl ring-2 transition-all duration-200 hover:scale-105 active:scale-95`}
-      >
-        <MessageSquare className="w-6 h-6" />
-        {hasNewMessage && !isOpen && (
-          <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-amber-500 text-black text-[10px] font-black rounded-full flex items-center justify-center animate-bounce">
-            !
-          </span>
-        )}
-      </button>
-
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes slideUp {
-          from { transform: translateY(16px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        .animate-slideUp { animation: slideUp 0.25s ease-out forwards; }
-      `}} />
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          title="Mafiya Çatı"
+          className={`relative p-3 rounded-full bg-red-900/90 hover:bg-red-800 text-red-100 shadow-[0_0_20px_rgba(153,27,27,0.5)] border border-red-500/30 transition-transform hover:scale-110 active:scale-95`}
+        >
+          {hasNewMessage && (
+            <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 border-2 border-red-900 rounded-full animate-ping" />
+          )}
+          <MessageSquare className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 };

@@ -1,14 +1,6 @@
-'use client';
-
-import React, { useState, useRef, useEffect } from 'react';
-import { Ghost, Send, Eye, EyeOff } from 'lucide-react';
-
-interface GhostMessage {
-  readonly senderName: string;
-  readonly senderId: string;
-  readonly text: string;
-  readonly timestamp: number;
-}
+import React, { useState, useEffect, useRef } from 'react';
+import { Ghost, Send, X, Users, Skull } from 'lucide-react';
+import { ChatMessage } from '../../types/game';
 
 interface GhostChatProps {
   readonly currentUserId: string;
@@ -17,10 +9,9 @@ interface GhostChatProps {
   readonly lobbyId: string;
   readonly deadPlayerNames: ReadonlyArray<{ userId: string; username: string }>;
   readonly phase: string;
+  readonly messages: ChatMessage[];
+  readonly onSendMessage: (content: string) => void;
 }
-
-// In-memory ghost chat store per lobby
-const ghostChatStore: Record<string, GhostMessage[]> = {};
 
 export const GhostChat: React.FC<GhostChatProps> = ({
   currentUserId,
@@ -29,179 +20,130 @@ export const GhostChat: React.FC<GhostChatProps> = ({
   lobbyId,
   deadPlayerNames,
   phase,
+  messages,
+  onSendMessage,
 }) => {
-  const [messages, setMessages] = useState<GhostMessage[]>([]);
   const [input, setInput] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  const [hasNew, setHasNew] = useState(false);
-  const [spectatorMode, setSpectatorMode] = useState(false);
+  const [hasNewMessage, setHasNewMessage] = useState(false);
+  const [prevMsgCount, setPrevMsgCount] = useState(messages.length);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const storeKey = `ghost_${lobbyId}`;
 
-  // Poll local store
   useEffect(() => {
-    const interval = setInterval(() => {
-      const stored = ghostChatStore[storeKey] ?? [];
-      if (stored.length !== messages.length) {
-        setMessages([...stored]);
-        if (!isOpen) setHasNew(true);
-      }
-    }, 500);
-    return () => clearInterval(interval);
-  }, [storeKey, messages.length, isOpen]);
+    if (messages.length > prevMsgCount) {
+      if (!isOpen) setHasNewMessage(true);
+      setPrevMsgCount(messages.length);
+    }
+  }, [messages.length, prevMsgCount, isOpen]);
 
   useEffect(() => {
     if (isOpen) {
-      setHasNew(false);
-      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+      setHasNewMessage(false);
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [isOpen, messages]);
+  }, [isOpen, messages.length]);
 
   const sendMessage = () => {
-    if (!input.trim() || isAlive) return;
+    const txt = input.trim();
+    if (!txt || isAlive) return;
 
-    const msg: GhostMessage = {
-      senderName: currentUsername,
-      senderId: currentUserId,
-      text: input.trim(),
-      timestamp: Date.now(),
-    };
+    let finalTxt = txt;
+    if (txt === '/roll') finalTxt = `🎲 zər atdı: ${Math.floor(Math.random() * 6) + 1}`;
+    if (txt === '/flip') finalTxt = `🪙 qəpik atdı: ${Math.random() > 0.5 ? 'Xət (Heads)' : 'Yazı (Tails)'}`;
 
-    if (!ghostChatStore[storeKey]) ghostChatStore[storeKey] = [];
-    ghostChatStore[storeKey].push(msg);
-    setMessages([...ghostChatStore[storeKey]]);
+    onSendMessage(finalTxt);
     setInput('');
   };
 
-  // If alive — only show if there are ghost messages (spectator read-only mode)
-  const canSeeGhosts = !isAlive || (isAlive && spectatorMode && messages.length > 0);
-  
-  if (isAlive && messages.length === 0) return null;
-
-  const gameIsOver = phase === 'ENDED';
-
   return (
-    <div className={`fixed bottom-6 ${!isAlive ? 'right-24' : 'right-6'} z-40 flex flex-col items-end gap-3`}>
+    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
       {isOpen && (
-        <div className="w-80 sm:w-96 rounded-2xl border border-zinc-700/60 bg-gradient-to-b from-zinc-900/97 to-zinc-950/97 ring-1 ring-zinc-600/20 shadow-2xl flex flex-col overflow-hidden animate-slideUp">
-          {/* Header */}
-          <div className="px-4 py-3 flex items-center justify-between border-b border-white/10 bg-zinc-900/50">
+        <div className="w-80 sm:w-96 rounded-2xl border bg-gradient-to-b from-zinc-900/95 to-zinc-950/95 border-zinc-700/60 ring-1 ring-zinc-500/30 shadow-2xl flex flex-col overflow-hidden animate-slideUp">
+          <div className="px-4 py-3 flex items-center justify-between border-b border-white/10">
             <div className="flex items-center gap-2">
-              <Ghost className="w-4 h-4 text-zinc-400 animate-pulse" />
+              <Ghost className="w-4 h-4 text-zinc-400" />
               <span className="text-sm font-black tracking-wider uppercase text-zinc-400">
-                Kabus Çatı
+                Xəyalət Çatı
               </span>
-              {isAlive && (
-                <span className="text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                  Oxunur
-                </span>
-              )}
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-zinc-600">{deadPlayerNames.length + (isAlive ? 0 : 1)} ruh</span>
-              <button onClick={() => setIsOpen(false)} className="text-zinc-500 hover:text-zinc-300 transition-colors">
-                <EyeOff className="w-4 h-4" />
+              <div className="flex items-center gap-1 text-xs text-zinc-500">
+                <Skull className="w-3 h-3" />
+                {deadPlayerNames.length}
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1 rounded hover:bg-white/10 text-zinc-400 transition-colors"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
-
-          {/* Lore description */}
-          {!isAlive && (
-            <div className="px-3 py-1.5 bg-zinc-950/70 border-b border-zinc-800/50 text-[10px] text-zinc-500 italic text-center">
-              Ölülər burada danışır. Dirilər eşitmir.
-            </div>
-          )}
-
-          {isAlive && (
-            <div className="px-3 py-1.5 bg-amber-950/30 border-b border-amber-900/20 text-[10px] text-amber-600 font-bold uppercase tracking-wider text-center">
-              👁 Siz yalnız izləyirsiniz — yazı yazmaq olmaz
-            </div>
-          )}
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 max-h-64 min-h-[120px]">
+          <div className="flex-1 p-4 overflow-y-auto custom-scrollbar flex flex-col gap-3 min-h-[200px] max-h-[300px]">
             {messages.length === 0 ? (
-              <div className="text-center text-xs text-zinc-700 italic py-4">
-                Sükut... hələ heç kim danışmır.
+              <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50">
+                <Ghost className="w-8 h-8 mb-2 opacity-30" />
+                <p className="text-xs uppercase tracking-wider font-bold">Burada hələ kimsə yoxdur</p>
+                <p className="text-[10px] mt-1">Sakitlikdir...</p>
               </div>
             ) : (
-              messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`flex flex-col ${msg.senderId === currentUserId ? 'items-end' : 'items-start'}`}
-                >
-                  <div className="text-[10px] font-bold mb-0.5 text-zinc-500 opacity-70">
-                    👻 {msg.senderId === currentUserId ? 'Siz' : msg.senderName}
+              messages.map((msg, i) => {
+                const isMe = msg.senderId === currentUserId;
+                return (
+                  <div key={i} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-fadeIn`}>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-0.5">
+                      {isMe ? 'Siz' : msg.senderName}
+                    </span>
+                    <div
+                      className={`px-3 py-2 rounded-xl text-sm leading-relaxed max-w-[85%] ${
+                        isMe
+                          ? 'bg-zinc-700/50 text-zinc-200 rounded-tr-sm'
+                          : 'bg-black/40 text-zinc-400 rounded-tl-sm'
+                      }`}
+                    >
+                      {msg.content}
+                    </div>
                   </div>
-                  <div
-                    className={`px-3 py-1.5 rounded-xl text-sm max-w-[80%] break-words italic ${
-                      msg.senderId === currentUserId
-                        ? 'bg-zinc-800/80 text-zinc-300 rounded-br-sm'
-                        : 'bg-zinc-900/60 text-zinc-400 rounded-bl-sm border border-zinc-800/50'
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
             <div ref={bottomRef} />
           </div>
-
-          {/* Input — only for dead players */}
-          {!isAlive && (
-            <div className="px-3 py-2 border-t border-zinc-800/50 flex items-center gap-2">
+          <div className="p-3 border-t border-white/10 bg-black/20">
+            <div className="flex items-center gap-2 relative">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Ruhunuzu ifadə edin..."
+                placeholder={isAlive ? "Canlılar buraya yaza bilməz" : "Mesaj yazın..."}
+                disabled={isAlive}
                 maxLength={200}
-                className="flex-1 bg-zinc-950/80 border border-zinc-800/50 rounded-lg px-3 py-1.5 text-sm text-zinc-400 placeholder-zinc-700 italic focus:outline-none focus:border-zinc-600 transition-colors"
+                className="flex-1 bg-black/40 border border-white/10 rounded-lg pl-3 pr-10 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-500 transition-all disabled:opacity-50"
               />
               <button
                 onClick={sendMessage}
-                disabled={!input.trim()}
-                className="w-8 h-8 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-zinc-300 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed ring-1 ring-zinc-600/40"
+                disabled={!input.trim() || isAlive}
+                className="absolute right-1.5 p-1.5 rounded-md bg-zinc-700 hover:bg-zinc-600 ring-zinc-500/30 text-white transition-all disabled:opacity-50 disabled:active:scale-100 active:scale-95"
               >
                 <Send className="w-4 h-4" />
               </button>
             </div>
-          )}
+          </div>
         </div>
       )}
-
-      {/* Toggle Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`relative w-14 h-14 rounded-2xl text-zinc-300 flex items-center justify-center shadow-xl ring-1 transition-all duration-200 hover:scale-105 active:scale-95 ${
-          isAlive
-            ? 'bg-zinc-800/80 ring-zinc-700/50 hover:bg-zinc-700/80'
-            : 'bg-zinc-900 ring-zinc-700/60 hover:bg-zinc-800'
-        }`}
-        title={isAlive ? 'Ölü Oyunçuların Mesajlarına Bax' : 'Kabus Çatı'}
-      >
-        <Ghost className="w-6 h-6 opacity-80" />
-        {hasNew && !isOpen && (
-          <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-zinc-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
-            !
-          </span>
-        )}
-        {isAlive && messages.length > 0 && !isOpen && (
-          <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-zinc-600 text-zinc-200 text-[9px] font-black rounded-full flex items-center justify-center">
-            {messages.length}
-          </span>
-        )}
-      </button>
-
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes slideUp {
-          from { transform: translateY(16px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        .animate-slideUp { animation: slideUp 0.25s ease-out forwards; }
-      `}} />
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          title="Xəyalət Çatı"
+          className="relative p-3 rounded-full bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 shadow-[0_0_20px_rgba(39,39,42,0.5)] border border-zinc-500/30 transition-transform hover:scale-110 active:scale-95"
+        >
+          {hasNewMessage && (
+            <span className="absolute top-0 right-0 w-3 h-3 bg-zinc-400 border-2 border-zinc-900 rounded-full animate-pulse" />
+          )}
+          <Ghost className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 };

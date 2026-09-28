@@ -1174,6 +1174,8 @@ export default function LobbyPage({ params }: LobbyPageProps) {
           deadPlayerNames={Object.values(lobbyState.players)
             .filter(p => !p.isAlive)
             .map(p => ({ userId: p.userId, username: p.username }))}
+          messages={lobbyState.chatMessages?.filter(m => m.channel === 'DEAD') || []}
+          onSendMessage={(content) => dispatchAction({ action: 'SEND_MESSAGE', content, channel: 'DEAD' })}
         />
       )}
 
@@ -1190,6 +1192,8 @@ export default function LobbyPage({ params }: LobbyPageProps) {
               p.displayRole?.formatted?.toLowerCase().includes('mafia')
             ))
             .map(p => ({ userId: p.userId, username: p.username }))}
+          messages={lobbyState.chatMessages?.filter(m => m.channel === 'MAFIA') || []}
+          onSendMessage={(content) => dispatchAction({ action: 'SEND_MESSAGE', content, channel: 'MAFIA' })}
         />
       )}
 
