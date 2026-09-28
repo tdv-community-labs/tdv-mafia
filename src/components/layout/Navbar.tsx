@@ -28,11 +28,13 @@ import { LeaderboardModal } from '../modals/LeaderboardModal';
 import { AchievementsModal } from '../modals/AchievementsModal';
 import { GameModesCatalogModal } from '../modals/GameModesCatalogModal';
 import { CreateRoomModal } from '../modals/CreateRoomModal';
+import { ProfileModal } from '../modals/ProfileModal';
 import { GameMode } from '../../types/packs';
 import { isSoundMuted, toggleSound, subscribeSound, playCard } from '../../utils/sfx';
 
 export const Navbar: React.FC = () => {
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [authInitialTab, setAuthInitialTab] = useState<'login' | 'register'>('login');
   const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState<boolean>(false);
@@ -592,6 +594,21 @@ export const Navbar: React.FC = () => {
         }}
       />
 
+
+      <ProfileModal 
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        currentUsername={currentUser?.username || ''}
+        onUpdateUsername={(name) => {
+          if (currentUser) {
+            setCurrentUser({ ...currentUser, username: name });
+            localStorage.setItem('mafia_username', name);
+            window.dispatchEvent(new CustomEvent('update_username', { detail: name }));
+          }
+        }}
+        tier={currentUser?.tier || 'TIER_1'}
+        totalXp={0}
+      />
       <CreateRoomModal
         isOpen={isCreateRoomOpen}
         defaultMode={catalogSelectedMode}
