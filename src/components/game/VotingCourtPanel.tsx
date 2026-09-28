@@ -9,6 +9,7 @@ import { AZ_DISTRICTS, AZ_UI } from '../../config/i18n/az';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { getTheme } from '../../config/themes.config';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export interface VotingCourtPanelProps {
   readonly lobbyState: LobbyState;
