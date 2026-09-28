@@ -30,6 +30,7 @@ import { ArchitectConsole } from '../../../components/admin/ArchitectConsole';
 import { BailiffConsole } from '../../../components/admin/BailiffConsole';
 import { GameBoard } from '../../../components/game/GameBoard';
 import { PhaseTransitionOverlay } from '../../../components/game/PhaseTransitionOverlay';
+import { RoleRevealOverlay } from '../../../components/game/RoleRevealOverlay';
 import { ExecutionOverlay } from '../../../components/game/ExecutionOverlay';
 import { FactionChat } from '../../../components/game/FactionChat';
 import { GhostChat } from '../../../components/game/GhostChat';
