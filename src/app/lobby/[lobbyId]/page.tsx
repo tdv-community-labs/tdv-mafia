@@ -418,6 +418,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
   const [isCompactView, setIsCompactView] = useState<boolean>(false);
   const [isGameOverDismissed, setIsGameOverDismissed] = useState<boolean>(false);
   const [isArchiveOpen, setIsArchiveOpen] = useState<boolean>(false);
+  const [isGraveyardOpen, setIsGraveyardOpen] = useState<boolean>(false);
   
   const submitLastWill = (text: string) => {
     dispatchAction({ action: 'SUBMIT_LAST_WILL', text });
