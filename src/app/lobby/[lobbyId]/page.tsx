@@ -34,7 +34,7 @@ import { RoleRevealOverlay } from '../../../components/game/RoleRevealOverlay';
 import { ExecutionOverlay } from '../../../components/game/ExecutionOverlay';
 import { FactionChat } from '../../../components/game/FactionChat';
 import { GhostChat } from '../../../components/game/GhostChat';
-import { AchievementToastSystem } from '../../../components/ui/AchievementToast';
+import { AchievementToastSystem, unlockAchievement } from '../../../components/ui/AchievementToast';
 import { AchievementShowcaseModal } from '../../../components/modals/AchievementShowcaseModal';
 import { ProfileModal } from '../../../components/modals/ProfileModal';
 import { RulesModal } from '../../../components/modals/RulesModal';
@@ -505,6 +505,41 @@ export default function LobbyPage({ params }: LobbyPageProps) {
       }
     }
   }, [lobbyState.phase]);
+
+
+  const eloRecordedRef = React.useRef(false);
+  useEffect(() => {
+    if (lobbyState.phase === 'ENDED' && lobbyState.winnerResult && !eloRecordedRef.current && currentUserId) {
+      eloRecordedRef.current = true;
+      const me = lobbyState.players[currentUserId];
+      const isWinner = lobbyState.winnerResult.winnerPlayerIds.includes(currentUserId);
+      const isMafia = me?.allInIdentity?.layer1Faction === 'MAFIA';
+      const isJester = me?.allInIdentity?.layer1Faction === 'NEUTRAL_EVIL';
+      const isSK = me?.allInIdentity?.layer1Faction === 'NEUTRAL_KILLER';
+
+      recordGameResult(
+        currentUserId,
+        lobbyId,
+        isWinner,
+        me?.allInIdentity?.layer1Faction || 'TOWN'
+      );
+
+      if (isWinner) {
+        setTimeout(() => {
+          unlockAchievement({
+            id: 'first_win_' + Date.now(),
+            title: "İlk Qələbə!",
+            description: "Mafiya oyununda uğurla qalib gəldin.",
+            category: 'MASTERY',
+            tier: 'BRONZE',
+            icon: 'fa-trophy',
+            xp: 50,
+            coinReward: 20
+          });
+        }, 1500); // Slight delay for dramatic effect
+      }
+    }
+  }, [lobbyState.phase, lobbyState.winnerResult, currentUserId]);
 
   // Derived state for Newspaper, Investigations, and Winner Modal
   const fallbackNewspaper: MorningNewspaper = {
