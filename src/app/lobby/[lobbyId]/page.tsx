@@ -23,7 +23,7 @@ import {
   Check,
   Link as LinkIcon,
   Bot, Play, Sliders, ChevronUp, ChevronDown, Eye,
-  BookOpen
+  BookOpen, User
 } from 'lucide-react';
 import { AdminDualLockPanel } from '../../../components/admin/AdminDualLockPanel';
 import { ArchitectConsole } from '../../../components/admin/ArchitectConsole';
