@@ -5,7 +5,7 @@ import {
   Clock,
   Skull,
   Newspaper,
-  Shield,
+  Shield, Ghost,
   Zap,
   Flame,
   AlertTriangle,
@@ -420,6 +420,35 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         </div>
       )}
 
+      
+      {/* ─── OBJECTIVE BANNER ────────────────────────────────────────── */}
+      {currentUser && (
+        <div className={`p-4 rounded-xl border ${
+          currentUser.allInIdentity?.layer1Faction === 'MAFIA' ? 'bg-red-950/20 border-red-900/30' :
+          currentUser.allInIdentity?.layer1Faction === 'NEUTRAL_EVIL' ? 'bg-fuchsia-950/20 border-fuchsia-900/30' :
+          currentUser.allInIdentity?.layer1Faction === 'NEUTRAL_KILLER' ? 'bg-purple-950/20 border-purple-900/30' :
+          'bg-emerald-950/20 border-emerald-900/30'
+        } flex flex-col gap-2 relative overflow-hidden`}>
+          <div className="flex items-center gap-2 relative z-10">
+            <span className="font-black text-xs uppercase tracking-[0.2em] opacity-60">MƏQSƏD</span>
+          </div>
+          <p className="text-sm font-bold relative z-10">
+            {currentUser.displayRole?.originalRoleName === 'Jester'
+              ? "Özünü hər kəsə qatil kimi göstər və Gündüz Səsverməsində (Məhkəmədə) özünü asdır!"
+              : currentUser.allInIdentity?.layer1Faction === 'NEUTRAL_KILLER'
+              ? "Gecələr hər kəsi qətlə yetir və şəhərdə sağ qalan ən sonuncu şəxs ol."
+              : currentUser.allInIdentity?.layer1Faction === 'MAFIA'
+              ? "Şəhər əhalisini aradan qaldır və Mafiya üçün səs çoxluğunu ələ keçir."
+              : "Şəhərə sızmış bütün Mafiya və Təhlükəli qüvvələri tapıb edam et."}
+          </p>
+          <div className="absolute right-0 top-0 bottom-0 opacity-10 pointer-events-none w-32 flex items-center justify-end pr-4">
+             {currentUser.allInIdentity?.layer1Faction === 'MAFIA' ? <Skull className="w-16 h-16 text-red-500" /> :
+              currentUser.allInIdentity?.layer1Faction?.includes('NEUTRAL') ? <Ghost className="w-16 h-16 text-fuchsia-500" /> :
+              <Shield className="w-16 h-16 text-emerald-500" />}
+          </div>
+        </div>
+      )}
+
       {/* ─── VOTING COURT PANEL (WHEN IN DAY_VOTING) ────────────────── */}
       {phase === 'DAY_VOTING' && onCastVote && onRetractVote && (
         <VotingCourtPanel
@@ -547,6 +576,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               voterUsernames={canSeeVotes ? Object.entries(lobbyState.liveVotes || {}).filter(([voterId, targetId]) => targetId === player.userId).map(([voterId]) => lobbyState.players[voterId]?.username || voterId) : []}
               isSpeaking={speakingIds?.has(player.userId) ?? false}
               isViewerMafia={isMafia}
+              activeEmote={lobbyState.activeEmotes?.[player.userId]?.emote}
               isGameOver={lobbyState.phase === 'ENDED'}
               isLobbyPhase={lobbyState.phase === 'LOBBY'}
               onSelect={handleCardClick}

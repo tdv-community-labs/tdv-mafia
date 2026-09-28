@@ -67,6 +67,7 @@ export class InMemoryLobbyStore {
       phaseTimeRemaining: metadata.defaultTimings.dayCentralAssemblySeconds,
       phaseEndsAt: null,
       nightJitterDelaySeconds: this.computeNightJitter(),
+      activeEmotes: {},
       liveVotes: {},
       speakerQueue: [],
       bufferedNightActions: [],
@@ -301,6 +302,26 @@ export class InMemoryLobbyStore {
   }
 
   /** Retract vote atomically */
+  public addEmote(lobbyId: string, userId: string, emote: string): LobbyState | null {
+    return this.updateLobby(lobbyId, (lobby) => {
+      const activeEmotes = { ...(lobby.activeEmotes || {}) };
+      activeEmotes[userId] = { emote, expiresAt: Date.now() + 3000 };
+      
+      // Cleanup expired emotes
+      const now = Date.now();
+      Object.keys(activeEmotes).forEach(id => {
+        if (activeEmotes[id].expiresAt < now) {
+          delete activeEmotes[id];
+        }
+      });
+      
+      return {
+        ...lobby,
+        activeEmotes
+      };
+    });
+  }
+
   public retractVote(lobbyId: string, voterId: string): LobbyState | null {
     return this.updateLobby(lobbyId, (lobby) => {
       const votes = { ...lobby.liveVotes };

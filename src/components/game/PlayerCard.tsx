@@ -27,6 +27,7 @@ export interface PlayerCardProps {
   readonly onKick?: () => void;
   readonly targetIntent?: 'KILL' | 'PROTECT' | 'INVESTIGATE' | 'BLOCK' | 'MISDIRECT';
   readonly isCompact?: boolean;
+  readonly activeEmote?: string;
   readonly style?: React.CSSProperties;
 }
 

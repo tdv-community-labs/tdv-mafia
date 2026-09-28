@@ -638,6 +638,11 @@ export async function POST(request: Request, context: RouteContext) {
         lobby = await progressLobbyPhase(lobbyId);
       }
 
+    } else if (action === 'EMOTE') {
+      const emote = String(body.emote || '👍').substring(0, 10);
+      inMemoryLobbyStore.addEmote(lobbyId, userId, emote);
+      lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+
     } else if (action === 'RETRACT_VOTE') {
       inMemoryLobbyStore.retractVote(lobbyId, userId);
       lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;

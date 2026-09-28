@@ -92,6 +92,7 @@ export interface LobbyState {
   /** Random jitter delay between 3-7s applied at dawn to disguise bot vs human responses */
   readonly nightJitterDelaySeconds: number;
   /** Voter player ID -> Nominated / Target player ID */
+  readonly activeEmotes?: Record<string, { emote: string; expiresAt: number }>;
   readonly liveVotes: Readonly<Record<string, string>>;
   /** Ordered player IDs with current or upcoming speaking floor */
   readonly speakerQueue: readonly string[];
