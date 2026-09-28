@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import {  Crown, Bot, Check, Clock, Mic, Shield, Sparkles, Target, Gavel , WifiOff } from 'lucide-react';
+import {  Crown, Bot, Check, Clock, Mic, Shield, Sparkles, Target, Gavel , WifiOff, Ghost } from 'lucide-react';
 import { PlayerSession } from '../../types/game';
 import { ScrubbedPlayerView } from '../../types/engine';
 import { AllInDistrict, CivicOfficeType } from '../../types/roles';
@@ -133,6 +133,17 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
     >
       
 
+
+      {/* Bloody Scratch Overlay for Dead Players */}
+      {!isLobbyPhase && !isAlive && (
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden rounded-[20px] mix-blend-multiply dark:mix-blend-overlay opacity-60">
+           <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full text-red-700/80 fill-current">
+              <path d="M 10 20 L 40 80 L 30 90 L 0 30 Z" />
+              <path d="M 40 10 L 80 90 L 70 100 L 30 20 Z" />
+              <path d="M 70 0 L 100 70 L 90 80 L 60 10 Z" />
+           </svg>
+        </div>
+      )}
       {/* Eliminated Stamp */}
       {!isLobbyPhase && !isAlive && (
         <div className="absolute top-3 right-[-10px] rotate-12 bg-red-600 text-white px-5 py-0.5 text-[10px] font-black tracking-widest uppercase border border-red-400 shadow-lg z-10 pointer-events-none">
@@ -190,7 +201,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
                 : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-700'
             }`}
           >
-            {isBot ? <Bot className="w-5 h-5" /> : player.username.charAt(0).toUpperCase()}
+            {!isAlive ? <Ghost className="w-5 h-5 opacity-70" /> : isBot ? <Bot className="w-5 h-5" /> : player.username.charAt(0).toUpperCase()}
           </div>
 
           <div className="flex flex-col min-w-0">
