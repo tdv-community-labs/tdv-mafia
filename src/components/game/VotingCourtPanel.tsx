@@ -154,6 +154,11 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
               const percentage = Math.min(100, (suspect.count / majorityThreshold) * 100);
               const isDanger = suspect.count >= majorityThreshold - 1;
               
+              // Find who voted for this suspect
+              const voters = Object.entries(lobbyState.liveVotes || {})
+                .filter(([voterId, targetId]) => targetId === suspect.id)
+                .map(([voterId]) => lobbyState.players[voterId]);
+              
               return (
                 <div key={suspect.id} className="flex flex-col gap-1.5 relative">
                   <div className="flex items-center justify-between text-sm">
@@ -161,9 +166,26 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
                       <span className="text-zinc-400 font-mono text-xs">#{idx + 1}</span>
                       {suspect.player?.username ?? suspect.id}
                     </span>
-                    <span className={`font-black font-mono ${isDanger ? 'text-red-500 animate-pulse' : 'text-zinc-500'}`}>
-                      {suspect.count} / {majorityThreshold}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      {/* Voters Avatars */}
+                      {voters.length > 0 && (
+                        <div className="flex -space-x-2">
+                          {voters.slice(0, 5).map(v => (
+                            <div key={v.userId} title={v.username} className="w-5 h-5 rounded-full border border-zinc-300 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-[8px] font-bold text-zinc-600 dark:text-zinc-300 shadow-sm z-10 hover:z-20 relative hover:scale-125 transition-transform">
+                              {v.username.charAt(0).toUpperCase()}
+                            </div>
+                          ))}
+                          {voters.length > 5 && (
+                            <div className="w-5 h-5 rounded-full border border-zinc-300 dark:border-zinc-800 bg-zinc-300 dark:bg-zinc-800 flex items-center justify-center text-[8px] font-bold text-zinc-600 dark:text-zinc-400 shadow-sm z-10">
+                              +{voters.length - 5}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <span className={`font-black font-mono ${isDanger ? 'text-red-500 animate-pulse' : 'text-zinc-500'}`}>
+                        {suspect.count} / {majorityThreshold}
+                      </span>
+                    </div>
                   </div>
                   <div className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                     <div 
