@@ -247,9 +247,19 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
           ) : (
             <>
               {voteCount > 0 && (
-                <Badge tone="red" className="text-xs font-black px-2 py-0.5 shadow-sm">
-                  {voteCount} səs
-                </Badge>
+                <div className="relative group/tooltip">
+                  <Badge tone="red" className="text-xs font-black px-2 py-0.5 shadow-sm cursor-help hover:scale-105 transition-transform">
+                    {voteCount} səs
+                  </Badge>
+                  
+                  {/* Custom Voter Tooltip */}
+                  {voterUsernames && voterUsernames.length > 0 && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-3 py-1.5 bg-zinc-900 text-white text-[10px] font-bold tracking-widest uppercase rounded-lg shadow-2xl border border-zinc-700 pointer-events-none opacity-0 group-hover/tooltip:opacity-100 transition-opacity z-50">
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-900 border-b border-r border-zinc-700 rotate-45" />
+                      SƏS VERƏNLƏR: {voterUsernames.join(', ')}
+                    </div>
+                  )}
+                </div>
               )}
               <Badge tone={isAlive ? 'emerald' : 'red'}>
                 {isAlive ? AZ_UI.alive : AZ_UI.eliminated}
