@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Trophy, Star, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import { Achievement, AchievementTier } from '../../types/achievements';
 
 interface AchievementToast {

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Trophy, Swords, Shield, Skull, Medal, TrendingUp, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { PlayerStats, getPlayerStats, getTitleForLevel } from '../../utils/stats';
 
 interface PlayerProfileCardProps {
@@ -25,8 +26,26 @@ export const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ userId, us
 
   const title = getTitleForLevel(stats.level);
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring' } }
+  };
+
   return (
-    <div className="w-full bg-zinc-900/80 border border-zinc-700/50 rounded-[24px] p-6 shadow-2xl backdrop-blur-md relative overflow-hidden group hover:border-amber-500/30 transition-colors">
+    <motion.div 
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="w-full bg-zinc-900/80 border border-zinc-700/50 rounded-[24px] p-6 shadow-2xl backdrop-blur-md relative overflow-hidden group hover:border-amber-500/30 transition-colors"
+    >
       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
         <Trophy className="w-32 h-32 text-amber-500" />
       </div>
@@ -104,6 +123,6 @@ export const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ userId, us
 
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

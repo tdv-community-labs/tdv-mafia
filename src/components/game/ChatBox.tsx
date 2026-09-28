@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, MessageSquare } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { playMessagePing } from '../../utils/sfx';
 import { ChatMessage, ChatChannel } from '../../types/game';
 
@@ -116,12 +117,17 @@ export const ChatBox = React.memo(({ messages, currentUserId, onSendMessage, ava
           channelMessages.map(m => {
             const isMe = m.senderId === currentUserId;
             return (
-              <div key={m.id} className={`flex flex-col max-w-[85%] ${isMe ? 'self-end items-end' : 'self-start items-start'}`}>
+              <motion.div 
+                key={m.id} 
+                initial={{ opacity: 0, y: 10, scale: 0.95 }} 
+                animate={{ opacity: 1, y: 0, scale: 1, transition: { type: 'spring', damping: 25, stiffness: 300 } }}
+                className={`flex flex-col max-w-[85%] ${isMe ? 'self-end items-end' : 'self-start items-start'}`}
+              >
                 <span className="text-[10px] text-zinc-500 mb-0.5 px-1">{m.senderName}</span>
                 <div className={`px-3 py-2 rounded-2xl text-sm ${isMe ? 'bg-blue-600 text-white rounded-tr-sm' : (activeChannel === 'MAFIA' ? 'bg-red-950/50 text-red-100 border border-red-900/50 rounded-tl-sm' : activeChannel === 'DEAD' ? 'bg-zinc-800 text-zinc-200 rounded-tl-sm' : 'bg-zinc-800 text-zinc-100 rounded-tl-sm')}`}>
                   {m.content}
                 </div>
-              </div>
+              </motion.div>
             );
           })
         )}
