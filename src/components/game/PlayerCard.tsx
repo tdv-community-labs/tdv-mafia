@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Crown, Bot, Check, Clock, Mic, Shield, Sparkles, Target, Gavel } from 'lucide-react';
+import {  Crown, Bot, Check, Clock, Mic, Shield, Sparkles, Target, Gavel , WifiOff } from 'lucide-react';
 import { PlayerSession } from '../../types/game';
 import { ScrubbedPlayerView } from '../../types/engine';
 import { AllInDistrict, CivicOfficeType } from '../../types/roles';

@@ -430,3 +430,135 @@ export function playMessagePing(): void {
     // Ignore
   }
 }
+
+
+// ─── AMBIENT AUDIO ENGINE ─────────────────────────────────────────────────────
+
+let currentAmbientOsc: OscillatorNode | null = null;
+let currentAmbientNoise: AudioBufferSourceNode | null = null;
+let currentAmbientGain: GainNode | null = null;
+let currentAmbientType: 'LOBBY' | 'DAY' | 'NIGHT' | 'ENDED' | null = null;
+
+export function stopAmbient(): void {
+  if (currentAmbientGain) {
+    // Fade out over 2 seconds
+    const ctx = getAudioContext();
+    if (ctx) {
+      currentAmbientGain.gain.cancelScheduledValues(ctx.currentTime);
+      currentAmbientGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2);
+      
+      const oldGain = currentAmbientGain;
+      const oldOsc = currentAmbientOsc;
+      const oldNoise = currentAmbientNoise;
+      
+      setTimeout(() => {
+        try { oldOsc?.stop(); } catch(e){}
+        try { oldNoise?.stop(); } catch(e){}
+        try { oldGain?.disconnect(); } catch(e){}
+      }, 2100);
+    }
+  }
+  currentAmbientOsc = null;
+  currentAmbientNoise = null;
+  currentAmbientGain = null;
+  currentAmbientType = null;
+}
+
+export function startAmbient(type: 'LOBBY' | 'DAY' | 'NIGHT' | 'ENDED'): void {
+  if (isSoundMuted()) {
+    stopAmbient();
+    return;
+  }
+  if (currentAmbientType === type) return; // Already playing this ambient
+  
+  stopAmbient(); // Stop previous
+  currentAmbientType = type;
+
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+  const mainGain = ctx.createGain();
+  mainGain.gain.setValueAtTime(0.001, now);
+  mainGain.connect(ctx.destination);
+  currentAmbientGain = mainGain;
+
+  if (type === 'NIGHT') {
+    // NIGHT AMBIENCE: Deep sub drone (ominous) + subtle wind
+    const subOsc = ctx.createOscillator();
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(45, now); // Low rumble
+
+    const subFilter = ctx.createBiquadFilter();
+    subFilter.type = 'lowpass';
+    subFilter.frequency.setValueAtTime(100, now);
+
+    const subGain = ctx.createGain();
+    subGain.gain.value = 0.6 * MASTER_VOLUME;
+
+    subOsc.connect(subFilter);
+    subFilter.connect(subGain);
+    subGain.connect(mainGain);
+    subOsc.start(now);
+    currentAmbientOsc = subOsc;
+
+    // Wind (Noise)
+    const bufferSize = ctx.sampleRate * 2;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1;
+    }
+    const whiteNoise = ctx.createBufferSource();
+    whiteNoise.buffer = noiseBuffer;
+    whiteNoise.loop = true;
+    
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.setValueAtTime(400, now); // Muffled wind
+    
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.value = 0.05 * MASTER_VOLUME; // Very quiet
+    
+    whiteNoise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(mainGain);
+    whiteNoise.start(now);
+    currentAmbientNoise = whiteNoise;
+
+    // Fade in over 3 seconds
+    mainGain.gain.exponentialRampToValueAtTime(1.0, now + 3);
+
+  } else if (type === 'DAY') {
+    // DAY AMBIENCE: Warm, slightly detuned pads (anxious but light)
+    const padOsc = ctx.createOscillator();
+    padOsc.type = 'triangle';
+    padOsc.frequency.setValueAtTime(130.81, now); // C3
+
+    const padOsc2 = ctx.createOscillator();
+    padOsc2.type = 'sine';
+    padOsc2.frequency.setValueAtTime(132, now); // Slightly detuned
+
+    const padFilter = ctx.createBiquadFilter();
+    padFilter.type = 'lowpass';
+    padFilter.frequency.setValueAtTime(300, now);
+
+    const padGain = ctx.createGain();
+    padGain.gain.value = 0.15 * MASTER_VOLUME;
+
+    padOsc.connect(padFilter);
+    padOsc2.connect(padFilter);
+    padFilter.connect(padGain);
+    padGain.connect(mainGain);
+    
+    padOsc.start(now);
+    padOsc2.start(now);
+    currentAmbientOsc = padOsc;
+
+    // Fade in over 3 seconds
+    mainGain.gain.exponentialRampToValueAtTime(1.0, now + 3);
+  } else if (type === 'LOBBY' || type === 'ENDED') {
+    // Silence for now
+    stopAmbient();
+  }
+}

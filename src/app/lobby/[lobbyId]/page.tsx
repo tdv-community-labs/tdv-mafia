@@ -57,7 +57,7 @@ import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { PACKS_CONFIG } from '../../../config/packs.config';
 import { getTheme } from '../../../config/themes.config';
-import { playCard, playElimination, playDay, playNight, isSoundMuted, toggleSound, subscribeSound } from '../../../utils/sfx';
+import { playCard, playElimination, playDay, playNight, isSoundMuted, toggleSound, subscribeSound, startAmbient, stopAmbient } from '../../../utils/sfx';
 
 interface LobbyPageProps {
   readonly params: {
