@@ -60,7 +60,7 @@ export const GraveyardModal: React.FC<GraveyardModalProps> = ({ isOpen, onClose,
                     : 'Bilinməyən Rol';
 
                 return (
-                  <div key={p.userId} className="flex items-center justify-between bg-zinc-950/50 border border-zinc-800/50 rounded-xl p-4 hover:border-red-500/30 transition-colors group">
+                  <React.Fragment key={p.userId}><div className={`flex items-center justify-between bg-zinc-950/50 border border-zinc-800/50 ${p.lastWill ? 'rounded-t-xl border-b-0' : 'rounded-xl'} p-4 hover:border-red-500/30 transition-colors group`}>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center text-zinc-500 font-black group-hover:border-red-500/50 transition-colors">
                         {p.username.charAt(0).toUpperCase()}
@@ -76,6 +76,18 @@ export const GraveyardModal: React.FC<GraveyardModalProps> = ({ isOpen, onClose,
                       </Badge>
                     )}
                   </div>
+                  {p.lastWill && (
+                    <div className="bg-amber-950/20 border-x border-b border-amber-900/30 rounded-b-xl px-4 py-3 -mt-2 mb-2">
+                      <div className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        Son Vəsiyyət
+                      </div>
+                      <p className="text-xs text-amber-200/80 italic font-serif leading-relaxed">
+                        &ldquo;{p.lastWill}&rdquo;
+                      </p>
+                    </div>
+                  )}
+                </React.Fragment>
                 );
               })}
             </div>

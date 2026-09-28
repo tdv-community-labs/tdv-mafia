@@ -18,6 +18,7 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 
 export interface UserSessionState {
+  readonly userId: string;
   readonly username: string;
   readonly tier: PlayerTier;
   readonly roleTitle: string;
@@ -148,7 +149,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     const effectiveTier = (matched.tier as PlayerTier) || selectedTier;
     const effectiveTitle = matched.roleTitle || (effectiveTier === 'TIER_3' ? 'Don' : effectiveTier === 'TIER_2' ? 'Kapo' : 'Əsgər');
 
-    const user: UserSessionState = {
+    const user: UserSessionState = { userId: "tdv-usr-" + Date.now().toString(36),
       username: matched.username || cleanUser,
       tier: effectiveTier,
       roleTitle: effectiveTitle,
@@ -258,7 +259,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       dispatchSSOBrokerState(ecoSession, regUsers);
     } catch {}
 
-    const user: UserSessionState = {
+    const user: UserSessionState = { userId: "tdv-usr-" + Date.now().toString(36),
       username: regUsername.trim(),
       tier: regTier,
       roleTitle: roleTitle,

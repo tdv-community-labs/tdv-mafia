@@ -142,7 +142,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                 <h3 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
                   {currentUser ? currentUser.username : 'Qonaq Oyunçu'}
                   {currentUser && (
-                    <Badge tone="indigo" size="sm">Siz</Badge>
+                    <Badge tone="purple">Siz</Badge>
                   )}
                 </h3>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">

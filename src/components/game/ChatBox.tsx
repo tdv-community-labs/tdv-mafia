@@ -129,6 +129,34 @@ export const ChatBox = React.memo(({ messages, currentUserId, onSendMessage, ava
       </div>
 
       {/* Input */}
+      {/* Quick Chat */}
+      <div className="flex gap-1.5 overflow-x-auto px-3 py-2 border-t border-zinc-800 bg-zinc-950/80 scroll-smooth custom-scrollbar snap-x">
+        {[
+          "Məncə mafiyadır!", 
+          "Mən şerifəm", 
+          "Məni qoruyun", 
+          "Təmizəm", 
+          "Səs verin asaq", 
+          "Tələsməyin!"
+        ].map((phrase, idx) => (
+          <button
+            key={idx}
+            type="button"
+            onClick={() => {
+              onSendMessage(phrase, activeChannel);
+              setTimeout(() => {
+                if (messagesEndRef.current) {
+                  messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+                }
+              }, 100);
+            }}
+            className="shrink-0 snap-start bg-zinc-800/80 hover:bg-indigo-600/80 text-zinc-300 hover:text-white text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full whitespace-nowrap transition-colors border border-zinc-700 hover:border-indigo-500 shadow-sm"
+          >
+            {phrase}
+          </button>
+        ))}
+      </div>
+
       <form onSubmit={handleSend} className="p-3 border-t border-zinc-800 bg-zinc-900/50 flex gap-2">
         <input 
           type="text" 
