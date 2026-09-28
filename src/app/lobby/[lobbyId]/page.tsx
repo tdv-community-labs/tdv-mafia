@@ -1304,6 +1304,27 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         pastNewspapers={lobbyState.pastNewspapers || []}
         playerNames={playerNames}
       />
+      <GraveyardModal
+        isOpen={isGraveyardOpen}
+        onClose={() => setIsGraveyardOpen(false)}
+        players={lobbyState.players}
+      />
+
+      <ProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        currentUsername={currentUsername}
+        onUpdateUsername={() => {}}
+        tier="TIER_1"
+        totalXp={100}
+        userId={currentUserId}
+      />
+
+      <AchievementShowcaseModal
+        isOpen={isShowcaseOpen}
+        onClose={() => setIsShowcaseOpen(false)}
+        userId={currentUserId}
+      />
 
     </div>
   );
