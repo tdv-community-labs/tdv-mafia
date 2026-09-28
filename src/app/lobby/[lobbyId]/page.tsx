@@ -32,6 +32,7 @@ import { GameBoard } from '../../../components/game/GameBoard';
 import { PhaseTransitionOverlay } from '../../../components/game/PhaseTransitionOverlay';
 import { RoleRevealOverlay } from '../../../components/game/RoleRevealOverlay';
 import { CinematicVignette } from '../../../components/ui/CinematicVignette';
+import confetti from 'canvas-confetti';
 import { ExecutionOverlay } from '../../../components/game/ExecutionOverlay';
 import { FactionChat } from '../../../components/game/FactionChat';
 import { GhostChat } from '../../../components/game/GhostChat';

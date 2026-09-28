@@ -7,6 +7,7 @@ import { ScrubbedPlayerView } from '../../types/engine';
 import { AllInDistrict, CivicOfficeType } from '../../types/roles';
 import { Badge, BadgeTone } from '../ui/Badge';
 import { AZ_CIVIC_OFFICES, AZ_DISTRICTS, AZ_UI } from '../../config/i18n/az';
+import { motion } from 'framer-motion';
 import { playCard } from '../../utils/sfx';
 
 export interface PlayerCardProps {
@@ -127,7 +128,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
     <div
       onClick={handleClick}
       className={`group relative rounded-[20px] ${isCompact ? "p-2 min-h-[60px]" : "p-4 min-h-[120px]"} border transition-all duration-300 flex flex-col justify-between gap-3 overflow-hidden select-none ${
-        onSelect ? 'cursor-pointer hover:-translate-y-1 hover:' : 'cursor-default'
+        onSelect ? 'cursor-pointer hover:' : 'cursor-default'
       } ${containerClasses}`}
     >
       

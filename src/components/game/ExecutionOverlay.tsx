@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Gavel, Skull } from 'lucide-react';
 import { playElimination } from '../../utils/sfx';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ExecutionOverlayProps {
   lynchedPlayerName: string | null;
@@ -21,47 +22,65 @@ const ExecutionOverlayComponent: React.FC<ExecutionOverlayProps> = ({ lynchedPla
 
   useEffect(() => {
     if (show) {
-      const timer = setTimeout(() => setShow(false), 4000);
+      const timer = setTimeout(() => setShow(false), 5000); // Wait 5 seconds
       return () => clearTimeout(timer);
     }
   }, [show]);
 
-  if (!show) return null;
-
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-red-950/80 backdrop-blur-sm backdrop-grayscale transition-opacity duration-500 pointer-events-none">
-      <div className="flex flex-col items-center gap-6 animate-[executeDrop_0.5s_cubic-bezier(0.25,1,0.5,1)_forwards]">
-        <div className="relative">
-          <Gavel className="w-32 h-32 text-red-500 drop-shadow-[0_0_30px_rgba(239,68,68,0.8)] z-10 relative animate-[gavelSmash_0.5s_ease-in_forwards]" strokeWidth={1} />
-          <Skull className="w-16 h-16 text-zinc-900 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 animate-[skullReveal_1s_ease-out_1s_forwards]" />
-        </div>
-        
-        <div className="text-center mt-4">
-          <h1 className="text-5xl sm:text-7xl font-black uppercase tracking-widest text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.6)]">
-            EDAM EDİLDİ
-          </h1>
-          <p className="text-white font-black tracking-widest uppercase mt-6 text-2xl sm:text-4xl bg-red-600/30 px-6 py-2 border-y-2 border-red-500/50 inline-block animate-pulse shadow-[0_0_20px_rgba(239,68,68,0.4)]">
-            {currentPlayer}
-          </p>
-        </div>
-      </div>
-      
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes executeDrop {
-          0% { transform: translateY(-100px) scale(1.2); opacity: 0; filter: blur(10px); }
-          100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0px); }
-        }
-        @keyframes gavelSmash {
-          0% { transform: rotate(-45deg) scale(1.5); }
-          100% { transform: rotate(0deg) scale(1); }
-        }
-        @keyframes skullReveal {
-          0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-          50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-          100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
-        }
-      `}} />
-    </div>
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, transition: { duration: 1 } }}
+          className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none"
+        >
+          {/* Bloody Backdrop Background */}
+          <motion.div 
+            initial={{ scale: 1.1, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1, transition: { duration: 0.8, ease: "easeOut" } }}
+            className="absolute inset-0 bg-gradient-to-t from-red-950 via-red-900/80 to-transparent"
+          />
+
+          <motion.div
+            initial={{ y: 50, scale: 0.9, opacity: 0 }}
+            animate={{ y: 0, scale: 1, opacity: 1, transition: { type: 'spring', damping: 20, stiffness: 100 } }}
+            exit={{ y: 20, opacity: 0 }}
+            className="relative bg-zinc-950/80 backdrop-blur-md p-10 border-t border-b border-red-600/50 shadow-2xl flex flex-col items-center justify-center w-full shadow-red-900/50"
+          >
+            <motion.div 
+              initial={{ rotate: -20, scale: 0 }}
+              animate={{ rotate: 0, scale: 1, transition: { type: 'spring', delay: 0.3 } }}
+              className="bg-red-900/40 p-4 rounded-full mb-4 shadow-[0_0_50px_rgba(220,38,38,0.3)]"
+            >
+              <Gavel className="w-16 h-16 text-red-500" />
+            </motion.div>
+            
+            <h2 className="text-xl font-bold text-red-400/80 uppercase tracking-[0.3em] mb-2">Şəhərin Qərarı</h2>
+            <h1 className="text-5xl md:text-7xl font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] mb-4 text-center">
+              {currentPlayer} <span className="text-red-500">ASILDI</span>
+            </h1>
+
+            {lynchedRole && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0, transition: { delay: 1.5, duration: 1 } }}
+                className="mt-6 flex flex-col items-center bg-black/40 px-6 py-4 rounded-2xl border border-red-500/20"
+              >
+                <div className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                  <Skull className="w-4 h-4"/>
+                  Əsl Rolu Məlum Oldu
+                </div>
+                <div className="text-2xl font-black text-red-400">
+                  {lynchedRole}
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

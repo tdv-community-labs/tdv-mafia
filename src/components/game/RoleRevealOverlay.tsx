@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CoreFaction, FormattedRoleDisplay } from '../../types/roles';
 import { Target, Shield, Heart, Skull, Search, Ghost, Swords, EyeOff } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface RoleRevealOverlayProps {
   readonly displayRole?: FormattedRoleDisplay;

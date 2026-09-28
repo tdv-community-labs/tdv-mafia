@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { GamePhase } from '../../types/game';
 import { Sun, Moon, Scale, Skull } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { playNight, playDay, playGavel } from '../../utils/sfx';
 
 interface PhaseTransitionOverlayProps {
@@ -76,27 +77,38 @@ const PhaseTransitionOverlayComponent: React.FC<PhaseTransitionOverlayProps> = (
   }
 
   return (
-    <div className={`fixed inset-0 z-[60] flex items-center justify-center ${bgClass} transition-opacity duration-500 pointer-events-none ${show ? 'opacity-100' : 'opacity-0'}`}>
-      <div className="flex flex-col items-center gap-6 animate-[scaleIn_0.5s_ease-out_forwards]">
-        <Icon className={`w-24 h-24 ${textClass} drop-shadow-[0_0_20px_currentColor] animate-pulse`} strokeWidth={1} />
-        <div className="text-center">
-          <h1 className={`text-5xl sm:text-7xl font-black uppercase tracking-widest ${textClass} drop-shadow-lg`}>
-            {title}
-          </h1>
-          <p className="text-zinc-300 font-medium tracking-widest uppercase mt-4 text-sm sm:text-base opacity-80">
-            {subtitle}
-          </p>
-        </div>
-      </div>
-      
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes scaleIn {
-          0% { transform: scale(0.85); opacity: 0; filter: blur(10px); }
-          50% { filter: blur(0px); }
-          100% { transform: scale(1); opacity: 1; }
-        }
-      `}} />
-    </div>
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, transition: { duration: 0.8 } }}
+          className={`fixed inset-0 z-[100] flex items-center justify-center pointer-events-none ${bgClass} backdrop-blur-sm`}
+        >
+          <motion.div 
+            initial={{ scale: 1.5, opacity: 0, y: 50 }}
+            animate={{ scale: 1, opacity: 1, y: 0, transition: { type: 'spring', damping: 20, stiffness: 100 } }}
+            exit={{ scale: 0.8, opacity: 0, transition: { duration: 0.5 } }}
+            className="flex flex-col items-center gap-4"
+          >
+            <motion.div 
+              initial={{ rotate: -180, scale: 0 }}
+              animate={{ rotate: 0, scale: 1, transition: { type: 'spring', delay: 0.2, damping: 15 } }}
+              className={`p-6 rounded-full bg-black/30 border border-white/10 shadow-2xl ${textClass}`}
+            >
+              <Icon className="w-24 h-24" />
+            </motion.div>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0, transition: { delay: 0.4 } }}
+              className={`text-5xl md:text-7xl font-black ${textClass} drop-shadow-xl uppercase tracking-widest text-center`}
+            >
+              {title}
+            </motion.h1>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
