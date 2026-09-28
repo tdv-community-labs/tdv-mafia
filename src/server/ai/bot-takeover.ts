@@ -28,6 +28,20 @@ import {
 import { CoreFaction, AllInPlayerIdentity } from '../../types/roles';
 import { inMemoryLobbyStore } from '../state/memory';
 
+function getBotPersonality(username: string): string {
+  const hash = Array.from(username).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const types = [
+    'Təcavüzkar və tez əsəbləşən (həmişə başqalarını günahlandırır, sərt danışır).',
+    'Analitik və məntiqli (sakitdir, faktlara əsaslanır, digərlərinin səsverməsini analiz edir).',
+    'Paranoik və qorxaq (həmişə öldürüləcəyindən qorxur, hər kəsdən şübhələnir, panik edir).',
+    'Lider ruhlu (qərarlıdır, insanları yönləndirməyə çalışır, özünə əmindir).',
+    'Sarkastik və zarafatcıl (vəziyyəti ələ salır, ciddi suallara istehzalı cavablar verir).',
+    'Şübhəli və az danışan (çox qısa və sirli cümlələr qurur, suallardan yayınır).'
+  ];
+  return types[hash % types.length];
+}
+
+
 // ─── Constants & AI Configuration ─────────────────────────────────────────────
 
 const BOT_TAKEOVER_TIMEOUT_MS = 75_000;
@@ -289,7 +303,7 @@ function buildDayChatPrompt(player: PlayerSession, lobby: LobbyState): string {
 
   return [
     `PHASE: DAY deliberation (Round ${lobby.roundNumber}).`,
-    `You are ${player.username}. Contribute ONE concise in-character statement to the conversation.`,
+    `You are ${player.username}. Your personality trait is: ${getBotPersonality(player.username)} Contribute ONE concise in-character statement reflecting this personality.`,
     `Recent chat history:`,
     recentChats ? recentChats : `(No recent messages)`,
     ``,

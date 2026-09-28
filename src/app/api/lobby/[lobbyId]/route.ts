@@ -695,7 +695,17 @@ export async function POST(request: Request, context: RouteContext) {
 
     } else if (action === 'SEND_MESSAGE') {
       const content = String(body.content || '').trim().slice(0, 300);
-      const channel = String(body.channel || 'LOBBY') as any;
+      let channel = String(body.channel || 'LOBBY') as any;
+      
+      const p = lobby?.players[userId];
+      if (p && !p.isAlive) {
+        // Dead players can only talk in DEAD channel
+        channel = 'DEAD';
+      } else if (p && p.isAlive && channel === 'DEAD') {
+        // Living players cannot talk in DEAD channel
+        channel = 'LOBBY';
+      }
+
       if (content) {
         inMemoryLobbyStore.addChatMessage(lobbyId, {
           id: Math.random().toString(36).substring(2, 9),
