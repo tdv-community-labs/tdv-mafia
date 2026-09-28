@@ -194,6 +194,7 @@ interface KillAttempt {
   readonly effectiveTargetId: string;
   readonly killerFaction: CoreFaction;
   readonly pierceProtection: boolean; // SILENCER_ATTACHMENT bypasses protection once
+  readonly signature?: string;
 }
 
 function applyKills(
@@ -227,7 +228,7 @@ function applyKills(
     const killerFaction = getFaction(actor);
     const pierceProtection = hasTrait(actor, 'SILENCER_ATTACHMENT');
 
-    rawAttempts.push({ actorId: action.actorPlayerId, effectiveTargetId: effectiveTarget, killerFaction, pierceProtection });
+    rawAttempts.push({ actorId: action.actorPlayerId, effectiveTargetId: effectiveTarget, killerFaction, pierceProtection, signature: action.signature });
   }
 
   // --- SYNDICATE CONSENSUS LOGIC (Probability-based Kill) ---
@@ -432,7 +433,7 @@ function applyKills(
     const isCleaned = false; // Night deaths uncleaned; cleaning handled in day phase
 
     playerMap[targetId] = { ...targetPlayer, isAlive: false };
-    deaths.push({ victimPlayerId: targetId, cause, killerFaction: factions.size === 1 ? targetAttempts[0]!.killerFaction : null, isCleaned });
+    deaths.push({ victimPlayerId: targetId, cause, killerFaction: factions.size === 1 ? targetAttempts[0]!.killerFaction : null, isCleaned, signature: targetAttempts[0]?.signature });
     killsThisNight++;
 
     // RETALIATION_FUSE: non-protected target, attacker still dies (kamikaze on hit)

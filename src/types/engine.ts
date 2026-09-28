@@ -47,6 +47,7 @@ export interface NightDeathRecord {
   readonly killerFaction: CoreFaction | null;
   /** True when the VIOLENCE circle cleaning applies (role card masked) */
   readonly isCleaned: boolean;
+  readonly signature?: string;
 }
 
 export interface InvestigationResult {

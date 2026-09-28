@@ -51,6 +51,7 @@ export interface NightActionBufferItem {
   readonly actionType: NightActionType;
   readonly priority: NightActionPriority;
   readonly timestamp: number; // Unix timestamp in ms
+  readonly signature?: string;
 }
 
 /** Dual-lock system state required strictly for All-In 40–50 lobbies */
