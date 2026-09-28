@@ -41,7 +41,7 @@ import { ArchiveModal } from '../../../components/modals/ArchiveModal';
 import { AmbientWeather } from '../../../components/game/AmbientWeather';
 import { GameIntroOverlay } from '../../../components/game/GameIntroOverlay';
 import { DetectiveNotebook } from '../../../components/game/DetectiveNotebook';
-import { LastWillModal } from '../../../components/ui/LastWillModal';
+import { LastWillModal } from '../../../components/modals/LastWillModal';
 import { GraveyardModal } from '../../../components/modals/GraveyardModal';
 import { MorningNewspaperModal } from '../../../components/game/MorningNewspaperModal';
 import { PlayerCard } from '../../../components/game/PlayerCard';
@@ -1241,11 +1241,12 @@ export default function LobbyPage({ params }: LobbyPageProps) {
 
       <LastWillModal
         isOpen={isLastWillOpen}
-        initialWill={''}
+        initialText={myPlayerSession?.lastWill || localStorage.getItem(`mafia_lastwill_${currentUserId}_${lobbyId}`) || ''}
+        isDead={!myPlayerSession?.isAlive}
         onClose={() => setIsLastWillOpen(false)}
         onSave={(text) => {
           localStorage.setItem(`mafia_lastwill_${currentUserId}_${lobbyId}`, text);
-          dispatchAction({ action: 'SUBMIT_LAST_WILL', willContent: text });
+          dispatchAction({ action: 'SUBMIT_LAST_WILL', text: text });
           setIsLastWillOpen(false);
           showToast('Son Vəsiyyət qeydə alındı.', 'success');
         }}
