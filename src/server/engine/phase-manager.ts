@@ -201,7 +201,7 @@ export function computePhaseDuration(
 
   switch (phase) {
     case 'DAY_REGIONAL_CAUCUS':
-      return { durationSeconds: timings.dayRegionalCaucusSeconds ?? 240, jitterMs: 0 };
+      return { durationSeconds: timings.dayRegionalCaucusSeconds ?? 90, jitterMs: 0 };
     case 'DAY_CENTRAL_ASSEMBLY':
       return { durationSeconds: timings.dayCentralAssemblySeconds, jitterMs: 0 };
     case 'DAY_VOTING':
@@ -209,7 +209,7 @@ export function computePhaseDuration(
     case 'NIGHT_BUFFER': {
       const jitterMs = computeCryptoJitterMs(3, 7);
       const jitterS  = Math.ceil(jitterMs / 1000);
-      return { durationSeconds: BASE_NIGHT_BUFFER_SECONDS + jitterS, jitterMs };
+      return { durationSeconds: (timings.nightBufferSeconds || BASE_NIGHT_BUFFER_SECONDS) + jitterS, jitterMs };
     }
     default:
       return { durationSeconds: 60, jitterMs: 0 };
