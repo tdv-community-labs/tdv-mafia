@@ -58,7 +58,7 @@ export function evaluateWinCondition(lobby: LobbyState): WinConditionResult {
   const { players, minigameSubStates } = lobby;
   const dante = minigameSubStates.dantesInferno;
 
-  // ── 1. Jester Lucifer's Shadow ─────────────────────────────────────────────
+  // ── 1. Jester Lucifer's Shadow (or Standard Jester) ──────────────────────
   if (dante?.luciferShadowWinnerUserId) {
     const jesterId = dante.luciferShadowWinnerUserId;
     return {
@@ -66,6 +66,15 @@ export function evaluateWinCondition(lobby: LobbyState): WinConditionResult {
       winningFaction:  'JESTER',
       winnerPlayerIds: [jesterId],
       reason:          'Jester was lynched during CIRCLE_9_TREACHERY and claimed Lucifer\'s Shadow victory.',
+    };
+  }
+  
+  if (lobby.lastLynchedUserId && players[lobby.lastLynchedUserId]?.allInIdentity?.layer1Faction === 'NEUTRAL_EVIL') {
+    return {
+      kind:            'JESTER_LUCIFER_SHADOW',
+      winningFaction:  'JESTER',
+      winnerPlayerIds: [lobby.lastLynchedUserId],
+      reason:          'Təlxək (Jester) səsvermə ilə edam edildi və oyunu qazandı!',
     };
   }
 

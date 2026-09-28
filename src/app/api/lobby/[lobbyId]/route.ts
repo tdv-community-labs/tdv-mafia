@@ -68,6 +68,7 @@ function distributeSecretRoles(lobby: LobbyState): LobbyState {
   const addT3 = () => roleDeck.push({ nickname: isInferno ? 'Sirena' : 'Gözbağlayıcı', base: 'Blocker', az: 'Gözbağlayıcı', faction: 'TOWN', office: 'CITY_NIGHTLIFE' });
 
   const addN1 = () => roleDeck.push({ nickname: isInferno ? 'Kafirlərin Lideri' : 'Dəli (Jester)', base: 'Jester', az: 'Dəli', faction: 'NEUTRAL_EVIL', office: 'PUBLIC_DEFENDER' });
+  const addNK1 = () => roleDeck.push({ nickname: isInferno ? 'İblisin Kölgəsi' : 'Manyak (Serial Killer)', base: 'SerialKiller', az: 'Manyak', faction: 'NEUTRAL_KILLER', office: 'PUBLIC_DEFENDER' });
 
   if (count <= 4) {
     addM1();
@@ -77,11 +78,11 @@ function distributeSecretRoles(lobby: LobbyState): LobbyState {
   } else if (count === 6) {
     addM1(); addN1(); addT1(); addT2();
   } else if (count === 7) {
-    addM1(); addM2(); addT1(); addT2();
+    addM1(); addM2(); addT1(); addT2(); addNK1();
   } else if (count === 8) {
-    addM1(); addM2(); addT1(); addT2(); addT3();
+    addM1(); addM2(); addT1(); addT2(); addT3(); addNK1();
   } else if (count === 9) {
-    addM1(); addM2(); addN1(); addT1(); addT2(); addT3();
+    addM1(); addM2(); addN1(); addNK1(); addT1(); addT2(); addT3();
   } else if (count >= 10) {
     addM1(); addM2(); addM3(); addT1(); addT2(); addT3();
     if (count >= 11) addN1();

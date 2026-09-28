@@ -232,6 +232,10 @@ function applyKills(
   // --- SYNDICATE CONSENSUS LOGIC (Probability-based Kill) ---
   const attempts: KillAttempt[] = [];
   
+  // Add SOLO Killers first
+  const soloKillers = rawAttempts.filter(a => a.killerFaction === 'NEUTRAL_KILLER' || a.killerFaction === 'VOID_CULT');
+  soloKillers.forEach(sk => attempts.push(sk));
+
   for (const faction of ['MAFIA', 'YAKUZA'] as CoreFaction[]) {
     const factionAttempts = rawAttempts.filter(a => a.killerFaction === faction);
     if (factionAttempts.length === 0) continue;
