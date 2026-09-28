@@ -244,7 +244,7 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
       inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({ ...l, winnerResult: win }));
       inMemoryLobbyStore.transitionPhase(lobbyId, 'ENDED', 0);
     } else {
-      inMemoryLobbyStore.transitionPhase(lobbyId, 'DAY_VOTING', 60);
+      inMemoryLobbyStore.transitionPhase(lobbyId, 'DAY_VOTING', lobby.phaseDurationSeconds > 0 ? lobby.phaseDurationSeconds : 60);
       await botTakeoverController.executeAllBotActions(lobbyId);
     }
     return inMemoryLobbyStore.getLobby(lobbyId) || lobby;
@@ -281,13 +281,13 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
       inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({ ...l, winnerResult: win }));
       inMemoryLobbyStore.transitionPhase(lobbyId, 'ENDED', 0);
     } else {
-      inMemoryLobbyStore.transitionPhase(lobbyId, 'NIGHT_BUFFER', 45);
+      inMemoryLobbyStore.transitionPhase(lobbyId, 'NIGHT_BUFFER', lobby.phaseDurationSeconds > 0 ? lobby.phaseDurationSeconds : 45);
       await botTakeoverController.executeAllBotActions(lobbyId);
     }
     return inMemoryLobbyStore.getLobby(lobbyId) || lobby;
 
   } else if (lobby.phase === 'DAY_REGIONAL_CAUCUS' || lobby.phase === 'DAY_CENTRAL_ASSEMBLY') {
-    inMemoryLobbyStore.transitionPhase(lobbyId, 'DAY_VOTING', 60);
+    inMemoryLobbyStore.transitionPhase(lobbyId, 'DAY_VOTING', lobby.phaseDurationSeconds > 0 ? lobby.phaseDurationSeconds : 60);
     await botTakeoverController.executeAllBotActions(lobbyId);
     return inMemoryLobbyStore.getLobby(lobbyId) || lobby;
   }

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Newspaper, X, Skull, AlertTriangle, Flame, Clock, Search, Mail } from 'lucide-react';
+import { Newspaper, X, Skull, AlertTriangle, Flame, Clock, Search, Mail, Shield, Heart } from 'lucide-react';
 import { MorningNewspaper, InvestigationResult } from '../../types/engine';
 import { MinigameSubStates } from '../../types/minigames';
 import { AZ_DEATH_CAUSES, AZ_UI, AZ_DANTE_CIRCLES } from '../../config/i18n/az';
@@ -83,6 +83,30 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
               Vətəndaşların səs çoxluğu ilə ittiham olunan{' '}
               <strong className="text-rose-600 dark:text-rose-400">{lastLynchedPlayerName}</strong>{' '}
               edam edildi.
+            </div>
+          </div>
+        )}
+
+        {/* Saved Victims Section */}
+        {newspaper.protectedIds && newspaper.protectedIds.length > 0 && (
+          <div className="mb-6 font-sans">
+            <div className="flex items-center gap-2 border-b border-emerald-300/50 dark:border-emerald-800/50 pb-2 mb-3">
+              <Shield className="w-5 h-5 text-emerald-600" />
+              <h2 className="text-base font-extrabold uppercase tracking-wide text-emerald-800 dark:text-emerald-500">
+                Gecə İnsidentləri
+              </h2>
+            </div>
+            <div className="flex flex-col gap-2">
+              {newspaper.protectedIds.map((id, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-lg">
+                  <div className="w-8 h-8 rounded-full bg-emerald-200 dark:bg-emerald-900/50 flex items-center justify-center shrink-0">
+                    <Heart className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                  </div>
+                  <div className="text-sm text-emerald-900 dark:text-emerald-300 leading-relaxed">
+                    <strong className="font-bold">{playerNames[id] || 'Kimsə'}</strong> gecə amansız hücuma məruz qaldı, lakin son anda <span className="font-bold underline decoration-emerald-500/50 underline-offset-2">Mühafizəçi</span> tərəfindən ölümdən xilas edildi!
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

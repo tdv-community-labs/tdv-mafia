@@ -203,12 +203,13 @@ function applyKills(
   globalNightKillCap: number,
   danteState: DantesInfernoState | undefined,
   roundNumber: number
-): { deaths: NightDeathRecord[]; updatedPlayers: Record<string, PlayerSession>; updatedFlags: Record<string, NightResolutionFlags>; mutinyActive?: boolean; mutineerIds?: string[] } {
+): { deaths: NightDeathRecord[]; updatedPlayers: Record<string, PlayerSession>; updatedFlags: Record<string, NightResolutionFlags>; mutinyActive?: boolean; mutineerIds?: string[]; protectedIds: string[] } {
   // Mutiny tracking
   let overallMutinyActive = false;
   let allMutineerIds: string[] = [];
 
   const deaths: NightDeathRecord[] = [];
+  const protectedIds: string[] = [];
   const playerMap: Record<string, PlayerSession> = { ...players };
   let killsThisNight = 0;
 
@@ -387,6 +388,7 @@ function applyKills(
 
     // Protected and not pierced → no kill
     if (targetFlags.isProtected && !piercePresent) {
+      if (!protectedIds.includes(targetId)) protectedIds.push(targetId);
       // Vest charge deduction when protection came from vest
       if (targetFlags.vestChargesRemaining > 0) {
         flags[targetId] = {
@@ -446,7 +448,7 @@ function applyKills(
     }
   }
 
-  return { deaths, updatedPlayers: playerMap, updatedFlags: flags, mutinyActive: overallMutinyActive, mutineerIds: allMutineerIds };
+  return { deaths, updatedPlayers: playerMap, updatedFlags: flags, mutinyActive: overallMutinyActive, mutineerIds: allMutineerIds, protectedIds };
 }
 
 // ─── Priority 5: FRAME / Deception ──────────────────────────────────────────
@@ -599,6 +601,7 @@ export function resolveNightActions(input: NightResolverInput): NightResolutionO
   const killResult = applyKills(actions, flags, players, globalNightKillCap, danteState, roundNumber);
   flags = killResult.updatedFlags;
   const killedPlayers = killResult.updatedPlayers;
+  const protectedIds = killResult.protectedIds;
   const publicDeaths: NightDeathRecord[] = killResult.deaths.map(d => ({
     ...d,
     isCleaned: violenceCleaningActive ? true : d.isCleaned,

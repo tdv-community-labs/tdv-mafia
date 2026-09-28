@@ -71,6 +71,8 @@ export interface MorningNewspaper {
   readonly jitterAppliedMs: number;
   /** Last Will messages written by dead players (keyed by userId). Populated from localStorage on the client. */
   readonly lastWills?: Readonly<Record<string, string>>;
+  /** IDs of players who were attacked but saved by a protector */
+  readonly protectedIds?: readonly string[];
 }
 
 export interface NightResolutionOutput {
