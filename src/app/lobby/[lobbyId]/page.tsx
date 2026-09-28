@@ -392,10 +392,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
   // Derive my faction for voice phase gating
   const myPlayerSession = lobbyState.players[currentUserId];
   const myFaction: string | null = myPlayerSession
-    ? myPlayerSession.displayRole?.formatted?.toLowerCase().includes('mafiya') ||
-      myPlayerSession.displayRole?.formatted?.toLowerCase().includes('mafia')
-      ? 'MAFIA'
-      : 'TOWN'
+    ? myPlayerSession.allInIdentity?.layer1Faction || 'TOWN'
     : null;
 
   // Voice-chat peers
