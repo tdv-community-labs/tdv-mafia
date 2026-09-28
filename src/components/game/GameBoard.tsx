@@ -76,6 +76,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const [showRoleReveal, setShowRoleReveal] = useState<boolean>(true);
   const [inspectedDeadPlayer, setInspectedDeadPlayer] = useState<any>(null);
   const [inspectedLastWill, setInspectedLastWill] = useState<string | null>(null);
+  const [inspectedProfileId, setInspectedProfileId] = useState<string | null>(null);
   
   useEffect(() => {
     if (showRoleReveal) {

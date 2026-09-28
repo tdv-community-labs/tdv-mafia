@@ -13,6 +13,7 @@ interface ProfileModalProps {
   readonly tier: string;
   readonly totalXp: number;
   readonly userId?: string;
+  readonly isReadOnly?: boolean;
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ 
@@ -20,7 +21,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   onClose, 
   currentUsername, 
   onUpdateUsername,
-  userId
+  userId,
+  isReadOnly
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(currentUsername);
