@@ -31,6 +31,7 @@ import { CreateRoomModal } from '../modals/CreateRoomModal';
 import { ProfileModal } from '../modals/ProfileModal';
 import { GameMode } from '../../types/packs';
 import { isSoundMuted, toggleSound, subscribeSound, playCard } from '../../utils/sfx';
+import { getPlayerStats, TITLES } from '../../utils/stats';
 
 export const Navbar: React.FC = () => {
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
@@ -608,6 +609,7 @@ export const Navbar: React.FC = () => {
         }}
         tier={currentUser?.tier || 'TIER_1'}
         totalXp={0}
+        userId={currentUser?.userId}
       />
       <CreateRoomModal
         isOpen={isCreateRoomOpen}
