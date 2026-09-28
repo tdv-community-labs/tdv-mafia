@@ -562,6 +562,12 @@ export async function POST(request: Request, context: RouteContext) {
       }
       lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
 
+    } else if (action === 'KICK_PLAYER') {
+      const targetUserId = String(body.targetUserId);
+      if (lobby && lobby.hostUserId === userId) {
+         inMemoryLobbyStore.removePlayer(lobbyId, targetUserId);
+         lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+      }
     } else if (action === 'REMOVE_BOT') {
       const botUserId = String(body.botUserId);
       if (lobby && lobby.players[botUserId]?.isAiBotControlled) {

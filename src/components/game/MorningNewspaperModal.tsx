@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Newspaper, X, Skull, AlertTriangle, Flame, Clock, Search, Mail, Shield, Heart } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MorningNewspaper, InvestigationResult } from '../../types/engine';
 import { MinigameSubStates } from '../../types/minigames';
 import { AZ_DEATH_CAUSES, AZ_UI, AZ_DANTE_CIRCLES } from '../../config/i18n/az';

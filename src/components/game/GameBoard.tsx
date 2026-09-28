@@ -51,6 +51,7 @@ export interface GameBoardProps {
   readonly onRetractVote?: () => void;
   readonly onTriggerAction?: (actionType: NightActionType, targetPlayerId: string) => void;
   readonly onTriggerKlaatuFreeze?: () => void;
+  readonly onKickPlayer?: (playerId: string) => void;
   readonly districtFinalists?: readonly string[];
   /** Set of player IDs currently speaking via voice chat */
   readonly speakingIds?: ReadonlySet<string>;
@@ -67,6 +68,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   onTriggerKlaatuFreeze,
   districtFinalists = [],
   speakingIds,
+  onKickPlayer,
 }) => {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [activeDistrictTab, setActiveDistrictTab] = useState<AllInDistrict | 'ALL'>('ALL');
@@ -579,6 +581,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               voterUsernames={canSeeVotes ? Object.entries(lobbyState.liveVotes || {}).filter(([voterId, targetId]) => targetId === player.userId).map(([voterId]) => lobbyState.players[voterId]?.username || voterId) : []}
               isSpeaking={speakingIds?.has(player.userId) ?? false}
               isViewerMafia={isMafia}
+              onKick={lobbyState.phase === 'LOBBY' && lobbyState.hostUserId === currentUserId && player.userId !== currentUserId && onKickPlayer ? () => onKickPlayer(player.userId) : undefined}
               activeEmote={lobbyState.activeEmotes?.[player.userId]?.emote}
               isGameOver={lobbyState.phase === 'ENDED'}
               isLobbyPhase={lobbyState.phase === 'LOBBY'}

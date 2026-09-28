@@ -359,6 +359,10 @@ export default function LobbyPage({ params }: LobbyPageProps) {
     dispatchAction({ action: 'VOTE', candidateId });
   };
 
+  const handleKickPlayer = (targetId: string) => {
+    dispatchAction({ action: 'KICK_PLAYER', targetUserId: targetId });
+  };
+
   const handleRetractVote = () => {
     dispatchAction({ action: 'RETRACT_VOTE' });
   };
@@ -996,6 +1000,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             onCastVote={handleCastVote}
             onRetractVote={handleRetractVote}
             onTriggerAction={handleTriggerAction}
+            onKickPlayer={handleKickPlayer}
             speakingIds={speakingIds}
           />
 

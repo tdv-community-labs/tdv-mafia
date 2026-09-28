@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import {  Crown, Bot, Check, Clock, Mic, Shield, Sparkles, Target, Gavel , WifiOff, Ghost } from 'lucide-react';
+import {  Crown, Bot, Check, Clock, Mic, Shield, Sparkles, Target, Gavel , WifiOff, Ghost, X } from 'lucide-react';
 import { PlayerSession } from '../../types/game';
 import { ScrubbedPlayerView } from '../../types/engine';
 import { AllInDistrict, CivicOfficeType } from '../../types/roles';
@@ -143,6 +143,17 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
               <path d="M 70 0 L 100 70 L 90 80 L 60 10 Z" />
            </svg>
         </div>
+      )}
+
+      {/* Kick Button for Host */}
+      {isLobbyPhase && onKick && !isSelf && (
+        <button 
+          onClick={(e) => { e.stopPropagation(); onKick(); }}
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-colors z-20"
+          title="Oyuncunu Masadan Çıxar"
+        >
+          <X className="w-3 h-3" />
+        </button>
       )}
       {/* Eliminated Stamp */}
       {!isLobbyPhase && !isAlive && (
