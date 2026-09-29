@@ -1,12 +1,10 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function CustomCursor() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [outlinePosition, setOutlinePosition] = useState({ x: 0, y: 0 });
-  const [trail1, setTrail1] = useState({ x: 0, y: 0 });
-  const [trail2, setTrail2] = useState({ x: 0, y: 0 });
   
   const [isHovering, setIsHovering] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
@@ -21,15 +19,10 @@ export default function CustomCursor() {
 
     let mouseX = window.innerWidth / 2;
     let mouseY = window.innerHeight / 2;
-    
     let outlineX = mouseX;
     let outlineY = mouseY;
-    let t1X = mouseX; let t1Y = mouseY;
-    let t2X = mouseX; let t2Y = mouseY;
-    
     let prevX = mouseX;
     let prevY = mouseY;
-
     let animationFrameId: number;
 
     const onMouseMove = (e: MouseEvent) => {
@@ -42,26 +35,18 @@ export default function CustomCursor() {
       // Calculate cursor speed and angle for squash/stretch
       const dx = mouseX - prevX;
       const dy = mouseY - prevY;
-      const speed = Math.min(Math.sqrt(dx * dx + dy * dy) * 0.01, 0.25); // Max squeeze 0.4
+      const speed = Math.min(Math.sqrt(dx * dx + dy * dy) * 0.01, 0.25);
       const angle = Math.atan2(dy, dx) * (180 / Math.PI);
       
       prevX = mouseX;
       prevY = mouseY;
       setVelocity({ speed, angle });
 
-      // Spring physics
+      // Clean, fast spring physics
       outlineX += (mouseX - outlineX) * 0.85;
       outlineY += (mouseY - outlineY) * 0.85;
-      
-      t1X += (outlineX - t1X) * 0.75;
-      t1Y += (outlineY - t1Y) * 0.75;
-
-      t2X += (t1X - t2X) * 0.65;
-      t2Y += (t1Y - t2Y) * 0.65;
 
       setOutlinePosition({ x: outlineX, y: outlineY });
-      setTrail1({ x: t1X, y: t1Y });
-      setTrail2({ x: t2X, y: t2Y });
 
       animationFrameId = requestAnimationFrame(animate);
     };
@@ -106,43 +91,11 @@ export default function CustomCursor() {
         @media (pointer: fine) {
           body, a, button, input, select, textarea { cursor: none !important; }
         }
-        @keyframes cyber-spin {
-          from { transform: translate(-50%, -50%) rotate(0deg); }
-          to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-        @keyframes cyber-pulse-ring {
-          0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
-          100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+        @keyframes cyber-spin-clean {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}} />
-      
-      {/* Ghost Trail 2 */}
-      <div 
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[999996]"
-        style={{ 
-          transform: `translate(${trail2.x}px, ${trail2.y}px) translate(-50%, -50%) scale(${isHovering ? 0 : 1})`,
-          width: '12px',
-          height: '12px',
-          backgroundColor: 'rgba(236, 72, 153, 0.3)', // Pinkish ghost
-          filter: 'blur(2px)',
-          transition: 'transform 0.1s linear',
-          willChange: 'transform'
-        }}
-      />
-
-      {/* Ghost Trail 1 */}
-      <div 
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[999997]"
-        style={{ 
-          transform: `translate(${trail1.x}px, ${trail1.y}px) translate(-50%, -50%) scale(${isHovering ? 0.5 : 1})`,
-          width: '20px',
-          height: '20px',
-          backgroundColor: 'rgba(168, 85, 247, 0.4)', // Purple ghost
-          filter: 'blur(3px)',
-          transition: 'transform 0.1s linear',
-          willChange: 'transform'
-        }}
-      />
 
       {/* The core dot - stays difference for perfect contrast over text */}
       <div 
@@ -175,26 +128,30 @@ export default function CustomCursor() {
           willChange: 'transform, width, height, border-radius',
         }}
       >
-        {/* Inner rotating dash (only visible on hover) */}
+        {/* Inner rotating dash (properly aligned) */}
         <div 
           className="absolute rounded-full pointer-events-none"
           style={{
             width: '100%',
             height: '100%',
+            top: 0,
+            left: 0,
             border: '2px dashed rgba(236, 72, 153, 0.8)',
             opacity: isHovering ? 1 : 0,
-            animation: isHovering ? 'cyber-spin 4s linear infinite' : 'none',
+            animation: isHovering ? 'cyber-spin-clean 4s linear infinite' : 'none',
             transition: 'opacity 0.3s ease',
             transformOrigin: 'center center'
           }}
         />
         
-        {/* Click Shockwave */}
+        {/* Click Shockwave (properly aligned) */}
         <div
           className="absolute rounded-full pointer-events-none"
           style={{
             width: '100%',
             height: '100%',
+            top: 0,
+            left: 0,
             border: '2px solid rgba(16, 185, 129, 0.8)',
             opacity: isClicking ? 0.8 : 0,
             transform: isClicking ? 'scale(1.5)' : 'scale(1)',
