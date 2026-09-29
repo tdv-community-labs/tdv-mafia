@@ -127,7 +127,7 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
               return (
                 <div
                   key={finalistId}
-                  className="p-3 rounded-lg border border-blue-500/20 bg-white dark:bg-zinc-900 border-l-4 border-l-blue-500"
+                  className="p-3 rounded-xl border border-blue-500/20 bg-white/80 dark:bg-zinc-900/40 backdrop-blur-md border-l-4 border-l-blue-500 shadow-md transition-transform hover:scale-105"
                 >
                   <div className="text-[10px] text-zinc-500 dark:text-zinc-400">{distName}</div>
                   <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
@@ -144,7 +144,7 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
       {/* Dynamic Top Suspects Leaderboard */}
 
       {canSeeVotes && topSuspects.length > 0 && !isTreacheryBlind && (
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-950/50">
+        <div className="p-4 rounded-xl border border-zinc-200 dark:border-white/5 bg-white/50 dark:bg-zinc-950/30 backdrop-blur-md shadow-inner">
           <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
             <Scale className="w-3 h-3 text-red-500" />
             Cari Məhkəmə Liderləri (Ən çox səs toplayanlar)

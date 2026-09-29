@@ -587,7 +587,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         />
       )}
       {/* ─── LOBBY HEADER BAR ───────────────────────────────────────── */}
-      <div className="p-6 rounded-[24px] border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all duration-200">
+      <div className="p-6 rounded-[24px] border border-black/10 dark:border-white/5 bg-white/90 dark:bg-zinc-950/70 backdrop-blur-3xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.4)] flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all duration-300 ring-1 ring-black/5 dark:ring-white/5">
         <div>
           <div className="flex items-center gap-2.5">
             <span
