@@ -224,9 +224,9 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full transition-colors duration-200">
+    <header className="sticky top-4 z-[100] w-full max-w-[85rem] mx-auto px-4 sm:px-6 transition-colors duration-200 pointer-events-none">
       {/* ─── MAIN AAA NAVBAR ─────────────────────────────────────────── */}
-      <nav className="w-full bg-white/95 dark:bg-zinc-950/95 backdrop-blur-[16px] border-b border-white/10 dark:border-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-sm dark:shadow-2xl dark:shadow-red-950/20">
+      <nav className="w-full pointer-events-auto bg-white/70 dark:bg-zinc-950/60 backdrop-blur-3xl border border-white/20 dark:border-white/10 px-4 sm:px-6 py-3 flex items-center justify-between gap-3 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(168,85,247,0.15)] rounded-[24px]">
         
         {/* ─── LEFT: BRAND & LIVE NODE INDICATORS ──────────────────── */}
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
