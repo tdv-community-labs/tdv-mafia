@@ -79,9 +79,9 @@ export const ChatBox = React.memo(({ messages, currentUserId, onSendMessage, ava
   }
 
   return (
-    <div className="fixed top-0 right-0 bottom-0 w-full sm:w-80 bg-zinc-950/95 sm:border-l border-zinc-800 z-50 flex flex-col shadow-2xl  animate-[slideInRight_0.3s_ease-out]">
+    <div className="fixed top-0 right-0 bottom-0 w-full sm:w-80 bg-zinc-950/80 backdrop-blur-3xl sm:border-l border-white/10 z-50 flex flex-col shadow-[-10px_0_50px_rgba(0,0,0,0.5)] animate-[slideInRight_0.3s_ease-out] ring-1 ring-white/5">
       {/* Header */}
-      <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
+      <div className="p-5 border-b border-white/10 flex justify-between items-center bg-zinc-900/40 backdrop-blur-md">
         <h3 className="font-bold text-white flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-blue-400" />
           Gizli Söhbət
