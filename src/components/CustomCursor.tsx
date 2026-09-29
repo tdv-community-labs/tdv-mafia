@@ -50,14 +50,14 @@ export default function CustomCursor() {
       setVelocity({ speed, angle });
 
       // Spring physics
-      outlineX += (mouseX - outlineX) * 0.6;
-      outlineY += (mouseY - outlineY) * 0.6;
+      outlineX += (mouseX - outlineX) * 0.85;
+      outlineY += (mouseY - outlineY) * 0.85;
       
-      t1X += (outlineX - t1X) * 0.4;
-      t1Y += (outlineY - t1Y) * 0.4;
+      t1X += (outlineX - t1X) * 0.75;
+      t1Y += (outlineY - t1Y) * 0.75;
 
-      t2X += (t1X - t2X) * 0.3;
-      t2Y += (t1Y - t2Y) * 0.3;
+      t2X += (t1X - t2X) * 0.65;
+      t2Y += (t1Y - t2Y) * 0.65;
 
       setOutlinePosition({ x: outlineX, y: outlineY });
       setTrail1({ x: t1X, y: t1Y });
