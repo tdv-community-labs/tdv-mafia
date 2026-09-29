@@ -9,6 +9,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        zinc: {
+          700: '#222222',
+          800: '#111111',
+          900: '#070707',
+          950: '#030303',
+        },
         background: 'var(--background)',
         foreground: 'var(--foreground)',
         card: {
