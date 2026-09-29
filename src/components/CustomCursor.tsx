@@ -67,13 +67,13 @@ export default function CustomCursor() {
         className="fixed top-0 left-0 pointer-events-none z-[999998]"
         style={{ 
           transform: `translate(${position.x}px, ${position.y}px) translate(-50%, -50%)`,
-          width: isHovering ? '60px' : '36px',
-          height: isHovering ? '60px' : '36px',
-          borderRadius: isHovering ? '12px' : '50%',
-          backgroundColor: isHovering ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
+          width: isHovering ? '48px' : '36px',
+          height: isHovering ? '48px' : '36px',
+          borderRadius: isHovering ? '10px' : '50%',
+          backgroundColor: isHovering ? 'rgba(168, 85, 247, 0.25)' : 'transparent',
           border: '2px solid rgba(168, 85, 247, 0.8)',
-          boxShadow: '0 0 15px rgba(168, 85, 247, 0.4)',
-          transition: 'transform 0.25s ease-out, width 0.3s ease, height 0.3s ease, border-radius 0.3s ease, background-color 0.3s ease',
+          boxShadow: isHovering ? '0 0 20px rgba(168, 85, 247, 0.6), inset 0 0 12px rgba(168, 85, 247, 0.3)' : '0 0 15px rgba(168, 85, 247, 0.4)',
+          transition: 'transform 0.25s ease-out, width 0.2s cubic-bezier(0.2, 0, 0, 1), height 0.2s cubic-bezier(0.2, 0, 0, 1), border-radius 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s ease, box-shadow 0.2s ease',
           willChange: 'transform, width, height, border-radius',
         }}
       />
