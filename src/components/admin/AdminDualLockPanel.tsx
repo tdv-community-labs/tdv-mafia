@@ -44,7 +44,7 @@ export const AdminDualLockPanel: React.FC<AdminDualLockPanelProps> = ({
   const canBailiffUnlock = isBailiff && !unlockState.bailiffUnlocked;
 
   return (
-    <div className="p-5 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm flex flex-col gap-5 transition-colors duration-200">
+    <div className="p-5 sm:p-6 rounded-2xl border border-purple-500/20 dark:border-purple-500/10 bg-white/50 dark:bg-zinc-950/80 backdrop-blur-xl shadow-[0_0_30px_rgba(168,85,247,0.15)] flex flex-col gap-5 transition-colors duration-200">
       {/* Header & Lock State */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>

@@ -38,9 +38,9 @@ export const Notebook: React.FC<NotebookProps> = ({ lobbyId, userId, isOpen, onC
   if (!isOpen) return null;
 
   return (
-    <div className="fixed top-24 right-4 sm:right-10 w-72 sm:w-80 bg-amber-50 dark:bg-amber-950/90 border border-amber-200 dark:border-amber-900 rounded-lg shadow-2xl z-50 flex flex-col overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+    <div className="fixed top-24 right-4 sm:right-10 w-72 sm:w-80 bg-amber-50/90 dark:bg-amber-950/70 backdrop-blur-2xl border border-amber-500/20 rounded-2xl shadow-[0_20px_60px_rgba(245,158,11,0.15)] z-50 flex flex-col overflow-hidden animate-[fadeIn_0.2s_ease-out] ring-1 ring-amber-500/10">
       {/* Header */}
-      <div className="bg-amber-200 dark:bg-amber-900/80 p-2 flex items-center justify-between border-b border-amber-300 dark:border-amber-900">
+      <div className="bg-amber-100/50 dark:bg-amber-900/40 p-3 flex items-center justify-between border-b border-amber-500/20 backdrop-blur-sm">
         <div className="flex items-center gap-2 text-amber-900 dark:text-amber-100 font-bold text-sm">
           <BookOpen className="w-4 h-4" />
           Şəxsi Qeyd Dəftəri

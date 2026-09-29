@@ -76,7 +76,7 @@ export const ArchitectConsole: React.FC<ArchitectConsoleProps> = ({
       </div>
 
       {/* Phase Override Controls */}
-      <div className="p-2.5 rounded-[8px] border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 flex flex-col gap-3 min-h-[44px]">
+      <div className="p-2.5 rounded-[8px] border border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20 backdrop-blur-md flex flex-col gap-3 min-h-[44px]">
         <div className="text-xs font-bold text-zinc-800 dark:text-zinc-200 uppercase tracking-wider tabular-nums tracking-tight">
           Mərhələni Müstəqil Dəyişdir (Phase Override)
         </div>
@@ -116,7 +116,7 @@ export const ArchitectConsole: React.FC<ArchitectConsoleProps> = ({
 
       {/* Jitter Delay Configuration */}
       {onConfigureJitter && (
-        <div className="p-2.5 rounded-[8px] border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 flex flex-col gap-2 min-h-[44px]">
+        <div className="p-2.5 rounded-[8px] border border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20 backdrop-blur-md flex flex-col gap-2 min-h-[44px]">
           <div className="text-xs font-bold text-zinc-800 dark:text-zinc-200 uppercase tracking-wider tabular-nums tracking-tight">
             Gecə Anti-Deduksiya Jitter Tənzimləməsi (3–7 saniyə)
           </div>

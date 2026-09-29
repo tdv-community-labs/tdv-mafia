@@ -434,7 +434,7 @@ export function VoiceChat({
   const nightMuted = micEnabled && !micAllowed;
 
   return (
-    <div className="flex items-center gap-3 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm flex-wrap transition-colors duration-200">
+    <div className="flex items-center gap-3 p-4 rounded-2xl border border-blue-500/20 dark:border-blue-500/10 bg-blue-50/50 dark:bg-blue-950/20 backdrop-blur-xl shadow-[0_0_20px_rgba(59,130,246,0.1)] flex-wrap transition-all duration-300">
       {/* Mic Toggle Button */}
       <button
         type="button"

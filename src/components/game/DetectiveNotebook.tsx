@@ -45,7 +45,7 @@ export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({ isOpen, on
         onClick={onClose}
       />
       
-      <div className="fixed right-0 top-0 bottom-0 w-full max-w-sm z-[160] bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col animate-slideInRight">
+      <div className="fixed right-0 top-0 bottom-0 w-full max-w-sm z-[160] bg-white/95 dark:bg-zinc-950/90 backdrop-blur-2xl border-l border-white/20 dark:border-white/10 shadow-[-10px_0_50px_rgba(0,0,0,0.5)] flex flex-col animate-slideInRight">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/50">
           <div className="flex items-center gap-3">

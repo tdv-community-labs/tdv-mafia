@@ -62,7 +62,7 @@ export const BailiffConsole: React.FC<BailiffConsoleProps> = ({
       </div>
 
       {/* Speaker Queue Management */}
-      <div className="p-2.5 rounded-[8px] border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 flex flex-col gap-3 min-h-[44px]">
+      <div className="p-2.5 rounded-[8px] border border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20 backdrop-blur-md flex flex-col gap-3 min-h-[44px]">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 uppercase tracking-wider flex items-center gap-1.5 tabular-nums tracking-tight">
             <Mic className="w-3.5 h-3.5 text-rose-500" />
@@ -81,7 +81,7 @@ export const BailiffConsole: React.FC<BailiffConsoleProps> = ({
         </div>
 
         {currentSpeakerId ? (
-          <div className="p-2.5 rounded-[8px] border-l-4 border-l-rose-500 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 min-h-[44px]">
+          <div className="p-2.5 rounded-[8px] border-l-4 border-l-rose-500 border border-purple-500/20 dark:border-purple-500/10 bg-white/50 dark:bg-zinc-950/80 backdrop-blur-xl min-h-[44px]">
             <div className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider tabular-nums tracking-tight">
               Hazırda Söz Alan:
             </div>
@@ -131,7 +131,7 @@ export const BailiffConsole: React.FC<BailiffConsoleProps> = ({
 
       {/* Temporary Mute & Court Discipline Tools */}
       {onMutePlayer && (
-        <div className="p-2.5 rounded-[8px] border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 flex flex-col gap-2.5 min-h-[44px]">
+        <div className="p-2.5 rounded-[8px] border border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20 backdrop-blur-md flex flex-col gap-2.5 min-h-[44px]">
           <div className="text-xs font-bold text-zinc-800 dark:text-zinc-200 uppercase tracking-wider flex items-center gap-1.5 tabular-nums tracking-tight">
             <MicOff className="w-3.5 h-3.5 text-rose-500" />
             <span>İntizam Cəzası: Müvəqqəti Səssizləşdirmə (Mute)</span>

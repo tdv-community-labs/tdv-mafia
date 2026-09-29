@@ -20,10 +20,10 @@ export const TombstoneModal: React.FC<TombstoneModalProps> = ({ isOpen, onClose,
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
-      <div className="relative w-full max-w-sm bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden animate-[slideInUp_0.3s_ease-out]">
+      <div className="relative w-full max-w-sm bg-zinc-950/90 backdrop-blur-2xl border border-zinc-800/50 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden animate-[slideInUp_0.3s_ease-out] ring-1 ring-white/5">
         
         {/* Header */}
-        <div className="bg-zinc-800/80 p-4 border-b border-zinc-700/50 flex justify-between items-center relative overflow-hidden">
+        <div className="bg-zinc-900/40 p-5 border-b border-white/5 flex justify-between items-center relative overflow-hidden">
           <div className="absolute -right-4 -top-4 opacity-10">
              <Skull className="w-24 h-24" />
           </div>
