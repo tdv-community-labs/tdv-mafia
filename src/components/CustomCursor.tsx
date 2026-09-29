@@ -69,14 +69,14 @@ export default function CustomCursor() {
         }}
       />
       <div 
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9999] transition-all duration-200 border-2"
+        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9999] transition-all duration-300 border"
         style={{ 
           transform: `translate(${outlinePosition.x}px, ${outlinePosition.y}px) translate(-50%, -50%)`,
-          width: isHovering ? '60px' : '40px',
-          height: isHovering ? '60px' : '40px',
-          borderColor: isHovering ? 'rgba(16, 185, 129, 0.8)' : 'rgba(168, 85, 247, 0.5)',
-          backgroundColor: isHovering ? 'rgba(16, 185, 129, 0.1)' : 'rgba(168, 85, 247, 0.1)',
-          backdropFilter: 'blur(2px)'
+          width: isHovering ? '50px' : '32px',
+          height: isHovering ? '50px' : '32px',
+          borderColor: isHovering ? 'rgba(16, 185, 129, 0.6)' : 'rgba(168, 85, 247, 0.4)',
+          backgroundColor: isHovering ? 'rgba(16, 185, 129, 0.05)' : 'transparent',
+          boxShadow: isHovering ? '0 0 20px rgba(16, 185, 129, 0.15)' : '0 0 10px rgba(168, 85, 247, 0.1)'
         }}
       />
     </>
