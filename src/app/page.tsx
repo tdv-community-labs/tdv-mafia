@@ -26,6 +26,8 @@ import { AchievementsModal } from '../components/modals/AchievementsModal';
 import { GameModesCatalogModal } from '../components/modals/GameModesCatalogModal';
 import { PublicRoomSummary } from './api/rooms/route';
 
+import { motion } from 'framer-motion';
+
 export default function HomePage() {
   const [isCreateRoomOpen, setIsCreateRoomOpen] = useState<boolean>(false);
   const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
@@ -75,7 +77,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col gap-8 pb-16 max-w-7xl mx-auto px-4 sm:px-6 pt-6 transition-colors duration-200">
       {/* ─── HERO BANNER ─────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 shadow-sm dark:shadow-card-dark p-6 sm:p-10 lg:p-12 transition-all duration-200">
+      <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} className="relative overflow-hidden rounded-[2rem] border border-black/5 dark:border-white/5 bg-white/80 dark:bg-zinc-950/40 backdrop-blur-3xl shadow-2xl p-6 sm:p-10 lg:p-12 group">
         {/* Subtle Ambient Glows */}
         <div className="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-purple-600/10 dark:bg-purple-600/15 blur-3xl pointer-events-none" />
         <div className="absolute -left-16 -bottom-16 w-80 h-80 rounded-full bg-red-600/10 dark:bg-red-600/10 blur-3xl pointer-events-none" />
@@ -203,7 +205,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ─── TDV UNIFIED SSO ECOSYSTEM ACCESS BANNER ─────────────────── */}
       <section className="rounded-2xl border border-purple-500/30 bg-gradient-to-r from-purple-900/15 via-zinc-900/50 to-purple-950/20 p-5 sm:p-6 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
@@ -271,10 +273,16 @@ export default function HomePage() {
         </div>
 
         {activeRooms.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <motion.div 
+              initial="hidden"
+              animate="visible"
+              variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {activeRooms.map((room) => (
               <div
                 key={room.lobbyId}
+                  variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                  whileHover={{ scale: 1.02 }}
                 className="flex flex-col justify-between gap-4 p-5 rounded-[24px] border border-black/10 dark:border-white/10 bg-zinc-50 dark:bg-zinc-900/60 shadow-sm hover:border-black/20 dark:hover:border-white/20 transition-all duration-300 hover:-translate-y-0.5 group backdrop-blur-sm"
               >
                 <div>
