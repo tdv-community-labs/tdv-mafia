@@ -25,6 +25,7 @@ import {
   NightActionType,
   PlayerSession,
 } from '../../types/game';
+import { GoogleGenAI } from '@google/genai';
 import { CoreFaction, AllInPlayerIdentity } from '../../types/roles';
 import { inMemoryLobbyStore } from '../state/memory';
 
@@ -75,57 +76,32 @@ export async function generateGeminiContentWithFallback(
     const key = keys[(_activeKeyIndex + keyAttempt) % keys.length];
     if (!key) continue;
 
+    const ai = new GoogleGenAI({ apiKey: key });
+
     for (const model of modelsToTry) {
       try {
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20_000);
-        let res: Response;
-        try {
-          res = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal: controller.signal,
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: 'user',
-                  parts: [{ text: `${systemInstruction}\n\n${prompt}` }],
-                },
-              ],
-              generationConfig: {
-                temperature: 0.3,
-                maxOutputTokens: 2048,
-              },
-            }),
-          });
-        } finally {
-          clearTimeout(timeoutId);
-        }
-
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          const errMsg = errData?.error?.message || `HTTP ${res.status}`;
-          const isTemporary = res.status === 503 || res.status === 404 || /high demand|unavailable|unsupported|not found|overloaded|resource has been exhausted/i.test(errMsg);
-          if (isTemporary) {
-            // Model unavailable or overloaded: try secondary/fallback model
-            continue;
+        const response = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            systemInstruction: systemInstruction,
+            temperature: 0.3,
+            maxOutputTokens: 2048,
+            responseMimeType: "application/json",
           }
-          // Quota exhausted (429) or forbidden: try next key in pool
-          break;
-        }
+        });
 
-        const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
-        if (text) {
+        if (response.text) {
           _activeKeyIndex = (_activeKeyIndex + keyAttempt) % keys.length;
-          return text;
+          return response.text;
         }
       } catch (err: unknown) {
         const errMsg = String(err instanceof Error ? err.message : '');
-        const isTemporary = /high demand|unavailable|unsupported|not found|overloaded|aborted/i.test(errMsg);
-        if (isTemporary) continue;
-        break;
+        const isTemporary = /high demand|unavailable|unsupported|not found|overloaded|aborted|rate limit|quota/i.test(errMsg);
+        if (isTemporary && !/quota/i.test(errMsg)) {
+          continue; // Try next model
+        }
+        break; // Quota exhausted, try next API key
       }
     }
   }
@@ -322,8 +298,15 @@ function parseJsonField<K extends string>(
   raw: string,
   field: K
 ): string | null {
-  const match = raw.match(new RegExp(`"${field}"\\s*:\\s*"([^"]+)"`));
-  return match?.[1] ?? null;
+  try {
+    const cleanRaw = raw.replace(/^```json/m, '').replace(/^```/m, '').trim();
+    const parsed = JSON.parse(cleanRaw);
+    return typeof parsed[field] === 'string' ? parsed[field] : null;
+  } catch (err) {
+    // Fallback to strict regex for incomplete JSON
+    const match = raw.match(new RegExp(`"${field}"\s*:\s*"([^"]+)"`));
+    return match?.[1] ?? null;
+  }
 }
 
 // ─── Action Resolvers ─────────────────────────────────────────────────────────

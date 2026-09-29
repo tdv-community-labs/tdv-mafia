@@ -279,8 +279,8 @@ export default function HomePage() {
               variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {activeRooms.map((room) => (
-              <div
-                key={room.lobbyId}
+              <motion.div
+                  key={room.lobbyId}
                   variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
                   whileHover={{ scale: 1.02 }}
                 className="flex flex-col justify-between gap-4 p-5 rounded-[24px] border border-black/10 dark:border-white/10 bg-zinc-50 dark:bg-zinc-900/60 shadow-sm hover:border-black/20 dark:hover:border-white/20 transition-all duration-300 hover:-translate-y-0.5 group backdrop-blur-sm"
@@ -312,9 +312,9 @@ export default function HomePage() {
                     <ArrowRight className="w-3.5 h-3.5" />
                   </a>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
           <EmptyState
             icon={Dices}
@@ -446,3 +446,4 @@ export default function HomePage() {
     </div>
   );
 }
+
