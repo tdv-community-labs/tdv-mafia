@@ -280,7 +280,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-[20px] ring-1 ring-white/10 shadow-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 sm:p-8 shadow-xl flex flex-col gap-6 max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-lg rounded-[20px] ring-1 ring-white/5 shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-zinc-200 dark:border-white/10 bg-white/95 dark:bg-zinc-950/80 backdrop-blur-3xl p-6 sm:p-8 flex flex-col gap-6 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

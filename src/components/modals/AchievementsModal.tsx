@@ -218,11 +218,11 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
       onClick={onClose}
     >
       <div
-        className="w-full max-w-5xl rounded-[20px] ring-1 ring-white/10 shadow-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl flex flex-col h-[92vh] max-h-[880px] overflow-hidden transition-all duration-200"
+        className="w-full max-w-5xl rounded-[20px] ring-1 ring-white/10 shadow-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/80 backdrop-blur-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col ring-1 ring-white/5 h-[92vh] max-h-[880px] overflow-hidden transition-all duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ─── FIXED TOP HEADER ──────────────────────────────────────── */}
-        <div className="shrink-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+        <div className="shrink-0 bg-zinc-50/50 dark:bg-zinc-900/40 border-b border-zinc-200 dark:border-white/5">
           
           {/* Row 1: Title, Progress Stats & Close */}
           <div className="p-4 sm:px-6 sm:py-4 flex items-center justify-between gap-4">

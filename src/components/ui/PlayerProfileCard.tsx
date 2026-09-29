@@ -44,7 +44,7 @@ export const PlayerProfileCard: React.FC<PlayerProfileCardProps> = ({ userId, us
       variants={container}
       initial="hidden"
       animate="show"
-      className="w-full bg-zinc-900/80 border border-zinc-700/50 rounded-[24px] p-6 shadow-2xl backdrop-blur-md relative overflow-hidden group hover:border-amber-500/30 transition-colors"
+      className="w-full bg-zinc-950/60 border border-white/5 rounded-[24px] p-6 shadow-[0_0_40px_rgba(0,0,0,0.6)] backdrop-blur-3xl relative overflow-hidden group hover:border-amber-500/30 hover:bg-zinc-900/80 transition-all duration-300 ring-1 ring-white/5"
     >
       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
         <Trophy className="w-32 h-32 text-amber-500" />

@@ -102,7 +102,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[24px] overflow-hidden shadow-2xl flex flex-col max-h-[85vh] relative"
+        className="w-full max-w-2xl bg-white/95 dark:bg-zinc-950/80 backdrop-blur-3xl border border-zinc-200 dark:border-white/10 rounded-[24px] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] ring-1 ring-white/5 flex flex-col max-h-[85vh] relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
