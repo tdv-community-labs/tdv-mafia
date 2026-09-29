@@ -80,6 +80,7 @@ export async function generateGeminiContentWithFallback(
 
     for (const model of modelsToTry) {
       try {
+        // @ts-ignore
         const response = await ai.models.generateContent({
           model,
           contents: prompt,
