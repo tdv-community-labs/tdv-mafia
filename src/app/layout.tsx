@@ -4,6 +4,7 @@ import { Navbar } from '../components/layout/Navbar';
 import { ThemeProvider } from '../context/ThemeContext';
 import { RippleEffect } from '../components/ui/RippleEffect';
 import CustomCursor from '../components/CustomCursor';
+import SoundEffectsObserver from '../components/ui/SoundEffectsObserver';
 import { BackgroundParticles } from '../components/ui/BackgroundParticles';
 
 
@@ -65,6 +66,7 @@ export default function RootLayout({
         <ThemeProvider>
           <BackgroundParticles />
         <CustomCursor />
+          <SoundEffectsObserver />
           <RippleEffect />
           <div className="flex flex-col min-h-[100dvh] max-w-[100vw] overflow-x-clip pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
             <Navbar />

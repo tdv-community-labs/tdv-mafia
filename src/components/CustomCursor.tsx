@@ -67,9 +67,13 @@ export default function CustomCursor() {
         @media (pointer: fine) {
           body, a, button, input, select, textarea { cursor: none !important; }
         }
+        @keyframes cyber-spin {
+          from { transform: translate(-50%, -50%) rotate(0deg); }
+          to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
       `}} />
       
-      {/* The core dot */}
+      {/* The core dot - stays difference for perfect contrast over text */}
       <div 
         className="fixed top-0 left-0 rounded-full pointer-events-none z-[999999]"
         style={{ 
@@ -83,20 +87,37 @@ export default function CustomCursor() {
         }}
       />
       
-      {/* The trailing ring / hover aura */}
+      {/* The trailing Cyberpunk aura */}
       <div 
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[999998]"
+        className="fixed top-0 left-0 pointer-events-none z-[999998] flex items-center justify-center"
         style={{ 
           transform: `translate(${outlinePosition.x}px, ${outlinePosition.y}px) translate(-50%, -50%)`,
-          width: isHovering ? '64px' : '36px',
-          height: isHovering ? '64px' : '36px',
-          backgroundColor: isHovering ? '#fff' : 'transparent',
-          border: isHovering ? 'none' : '1.5px solid rgba(255, 255, 255, 0.8)',
-          mixBlendMode: 'difference',
-          transition: 'width 0.3s cubic-bezier(0.25, 1, 0.5, 1), height 0.3s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.3s ease, border 0.3s ease',
-          willChange: 'transform, width, height, background-color, border'
+          width: isHovering ? '72px' : '36px',
+          height: isHovering ? '72px' : '36px',
+          borderRadius: isHovering ? '16px' : '50%',
+          backgroundColor: isHovering ? 'rgba(168, 85, 247, 0.1)' : 'transparent',
+          border: isHovering ? '2px solid rgba(168, 85, 247, 0.8)' : '1.5px solid rgba(16, 185, 129, 0.6)',
+          boxShadow: isHovering 
+            ? '0 0 20px rgba(168, 85, 247, 0.3), inset 0 0 10px rgba(168, 85, 247, 0.2)' 
+            : '0 0 10px rgba(16, 185, 129, 0.1)',
+          transition: 'width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), height 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-radius 0.4s ease, background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease',
+          willChange: 'transform, width, height, border-radius',
         }}
-      />
+      >
+        {/* Inner rotating dash (only visible on hover) */}
+        <div 
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            width: '100%',
+            height: '100%',
+            border: '1px dashed rgba(236, 72, 153, 0.6)',
+            opacity: isHovering ? 1 : 0,
+            animation: isHovering ? 'cyber-spin 4s linear infinite' : 'none',
+            transition: 'opacity 0.3s ease',
+            transformOrigin: 'center center'
+          }}
+        />
+      </div>
     </>
   );
 }
