@@ -30,7 +30,9 @@ export type CivicOfficeType =
   | 'PORT_AUTHORITY_DIRECTOR'
   | 'PUBLIC_DEFENDER'
   | 'CITY_INVESTIGATOR'
-  | 'CORONER';
+  | 'CORONER'
+  | 'CHRONOS_DIRECTOR'
+  | 'NECRO_BIOLOGIST';
 
 export type InnateTraitType =
   | 'BULLETPROOF_VEST'
@@ -44,7 +46,9 @@ export type InnateTraitType =
   | 'FALSE_DOCUMENTATION'
   | 'MARTYR_RESOLVE'
   | 'COLD_BLOODED'
-  | 'POISON_IMMUNITY';
+  | 'POISON_IMMUNITY'
+  | 'TIME_WARP_CORE'
+  | 'DEATH_DEFIANCE';
 
 /** 3-Layer composite identity for All-In (40–50 players) */
 export interface AllInPlayerIdentity {

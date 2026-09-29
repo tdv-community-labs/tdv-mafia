@@ -36,14 +36,16 @@ export interface PlayerSession {
 }
 
 export type NightActionType =
+  | 'TIME_WARP'    // Priority 0: Reverses time, nullifying all subsequent actions
   | 'BLOCK'        // Priority 1: Prevents target from executing their night action
   | 'PROTECT'      // Priority 2: Prevents kill actions on target
   | 'MISDIRECT'    // Priority 3: Redirects actions aimed at target to another
   | 'FRAME'        // Priority 4: Causes target to register as guilty/mafia
   | 'INVESTIGATE'  // Priority 5: Discovers faction/identity information
-  | 'KILL';        // Priority 6: Eliminates target (bounded by kill cap)
+  | 'KILL'         // Priority 6: Eliminates target (bounded by kill cap)
+  | 'RESURRECT';   // Priority 7: Brings a dead player back to life
 
-export type NightActionPriority = 1 | 2 | 3 | 4 | 5 | 6;
+export type NightActionPriority = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export interface NightActionBufferItem {
   readonly actorPlayerId: string;
