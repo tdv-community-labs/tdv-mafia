@@ -256,7 +256,7 @@ export const GameModesCatalogModal: React.FC<GameModesCatalogModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-5xl rounded-[20px] ring-1 ring-white/10 shadow-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl flex flex-col max-h-[90vh] overflow-hidden"
+        className="w-full max-w-5xl rounded-[20px] ring-1 ring-white/10 shadow-2xl border border-zinc-200 dark:border-white/10 bg-white/95 dark:bg-zinc-950/80 backdrop-blur-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -336,7 +336,7 @@ export const GameModesCatalogModal: React.FC<GameModesCatalogModalProps> = ({
                 return (
                   <div
                     key={pack.id}
-                    className="p-5 rounded-[8px] border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-950 flex flex-col justify-between gap-4 shadow-sm hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-200 hover:-translate-y-0.5"
+                    className="p-5 rounded-[8px] border border-zinc-200 dark:border-white/5 bg-zinc-50/70 dark:bg-white/5 flex flex-col justify-between gap-4 shadow-sm hover:border-zinc-300 dark:hover:border-purple-500/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-purple-500/20"
                   >
                     <div className="flex flex-col gap-3">
                       <div className="flex items-start justify-between gap-2">
