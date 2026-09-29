@@ -42,7 +42,7 @@ export default function CustomCursor() {
       // Calculate cursor speed and angle for squash/stretch
       const dx = mouseX - prevX;
       const dy = mouseY - prevY;
-      const speed = Math.min(Math.sqrt(dx * dx + dy * dy) * 0.02, 0.4); // Max squeeze 0.4
+      const speed = Math.min(Math.sqrt(dx * dx + dy * dy) * 0.01, 0.25); // Max squeeze 0.4
       const angle = Math.atan2(dy, dx) * (180 / Math.PI);
       
       prevX = mouseX;
@@ -50,14 +50,14 @@ export default function CustomCursor() {
       setVelocity({ speed, angle });
 
       // Spring physics
-      outlineX += (mouseX - outlineX) * 0.25;
-      outlineY += (mouseY - outlineY) * 0.25;
+      outlineX += (mouseX - outlineX) * 0.6;
+      outlineY += (mouseY - outlineY) * 0.6;
       
-      t1X += (outlineX - t1X) * 0.2;
-      t1Y += (outlineY - t1Y) * 0.2;
+      t1X += (outlineX - t1X) * 0.4;
+      t1Y += (outlineY - t1Y) * 0.4;
 
-      t2X += (t1X - t2X) * 0.15;
-      t2Y += (t1Y - t2Y) * 0.15;
+      t2X += (t1X - t2X) * 0.3;
+      t2Y += (t1Y - t2Y) * 0.3;
 
       setOutlinePosition({ x: outlineX, y: outlineY });
       setTrail1({ x: t1X, y: t1Y });
