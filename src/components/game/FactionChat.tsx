@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Send, X, ChevronDown, ChevronUp, Users } from 'lucide-react';
+import { MessageSquare, Send, X, Users, Loader2 } from 'lucide-react';
 import { ChatMessage } from '../../types/game';
+import { playMessagePing } from '../../utils/sfx';
 
 interface FactionChatProps {
   readonly currentUserId: string;
@@ -27,14 +28,20 @@ export const FactionChat: React.FC<FactionChatProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [prevMsgCount, setPrevMsgCount] = useState(messages.length);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typistName, setTypistName] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (messages.length > prevMsgCount) {
-      if (!isOpen) setHasNewMessage(true);
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg && lastMsg.senderId !== currentUserId) {
+        playMessagePing();
+        if (!isOpen) setHasNewMessage(true);
+      }
       setPrevMsgCount(messages.length);
     }
-  }, [messages.length, prevMsgCount, isOpen]);
+  }, [messages, prevMsgCount, isOpen, currentUserId]);
 
   useEffect(() => {
     if (isOpen) {
@@ -42,6 +49,29 @@ export const FactionChat: React.FC<FactionChatProps> = ({
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [isOpen, messages.length]);
+
+  // Simulate teammates typing periodically for immersion
+  useEffect(() => {
+    if (!isOpen || factionMates.length === 0 || !phase.includes('NIGHT')) return;
+    
+    const interval = setInterval(() => {
+      // 15% chance to start "typing" every 3 seconds
+      if (Math.random() < 0.15 && !isTyping) {
+        const randomMate = factionMates[Math.floor(Math.random() * factionMates.length)];
+        if (randomMate) {
+          setTypistName(randomMate.username);
+          setIsTyping(true);
+          
+          // Stop typing after 2-4 seconds
+          setTimeout(() => {
+            setIsTyping(false);
+          }, 2000 + Math.random() * 2000);
+        }
+      }
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [isOpen, factionMates, phase, isTyping]);
 
   const sendMessage = () => {
     const txt = input.trim();
@@ -127,6 +157,21 @@ export const FactionChat: React.FC<FactionChatProps> = ({
                 );
               })
             )}
+            
+            {/* Fake typing indicator loop for immersion */}
+            {isTyping && factionMates.length > 0 && isNightPhase && (
+               <div className="flex flex-col items-start animate-fadeIn opacity-70">
+                 <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-0.5">
+                   {typistName || 'Müttəfiq'} yazır...
+                 </span>
+                 <div className="px-3 py-2 rounded-xl bg-black/40 text-zinc-200 rounded-tl-sm flex items-center gap-1">
+                   <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></span>
+                   <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></span>
+                   <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></span>
+                 </div>
+               </div>
+            )}
+            
             <div ref={bottomRef} />
           </div>
           <div className="p-3 border-t border-white/10 bg-black/20">
