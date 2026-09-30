@@ -658,12 +658,14 @@ export async function POST(request: Request, context: RouteContext) {
       const actionType = body.actionType as NightActionType;
 
       const priorityMap: Record<NightActionType, NightActionPriority> = {
+        TIME_WARP: 0,
         BLOCK: 1,
         MISDIRECT: 2,
         PROTECT: 3,
         KILL: 4,
         FRAME: 5,
         INVESTIGATE: 6,
+        RESURRECT: 7,
       };
       const priority = priorityMap[actionType] || 4;
 
