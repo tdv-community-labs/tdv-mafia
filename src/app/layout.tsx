@@ -23,6 +23,7 @@ export const viewport = {
 
 import { MagneticEffect } from '../components/ui/MagneticEffect';
 import { SpotlightEffect } from '../components/ui/SpotlightEffect';
+import { ContextMenu } from '../components/ui/ContextMenu';
 
 export default function RootLayout({
   children,
@@ -72,6 +73,7 @@ export default function RootLayout({
           <SoundEffectsObserver />
           <MagneticEffect />
           <SpotlightEffect />
+          <ContextMenu />
           <RippleEffect />
           <div className="flex flex-col min-h-[100dvh] max-w-[100vw] overflow-x-clip pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
             <Navbar />
