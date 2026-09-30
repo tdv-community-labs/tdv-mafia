@@ -55,6 +55,8 @@ export const AZ_CIVIC_OFFICES: Readonly<Record<CivicOfficeType, string>> = {
   PUBLIC_DEFENDER: 'İctimai Vəkil',
   CITY_INVESTIGATOR: 'Şəhər Müstəntiqi',
   CORONER: 'Məhkəmə Eksperti',
+  CHRONOS_DIRECTOR: 'Zaman Səyyahı',
+  NECRO_BIOLOGIST: 'Nekromant Alim',
 } as const;
 
 // === INNATE TRAIT TRANSLATIONS ===
@@ -71,6 +73,8 @@ export const AZ_INNATE_TRAITS: Readonly<Record<InnateTraitType, string>> = {
   MARTYR_RESOLVE: 'Şəhid Əzmi',
   COLD_BLOODED: 'Soyuqqanlı',
   POISON_IMMUNITY: 'Zəhər İmmuniteti',
+  TIME_WARP_CORE: 'Zaman Nüvəsi',
+  DEATH_DEFIANCE: 'Ölümə Meydan Oxuyan',
 } as const;
 
 // === DANTE'S CIRCLES TRANSLATIONS ===

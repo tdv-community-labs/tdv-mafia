@@ -38,6 +38,8 @@ const OFFICE_WEIGHT_BONUS: Readonly<Record<CivicOfficeType, number>> = {
   PUBLIC_DEFENDER:         0,
   CITY_INVESTIGATOR:       1,
   CORONER:                 0,
+  CHRONOS_DIRECTOR:        0,
+  NECRO_BIOLOGIST:         0,
 };
 
 function getVoterWeight(voter: PlayerSession, isAllIn: boolean): number {
