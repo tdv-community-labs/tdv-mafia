@@ -22,6 +22,7 @@ export const viewport = {
 };
 
 import { EcosystemNexus } from '../components/ui/EcosystemNexus';
+import { MagneticEffect } from '../components/ui/MagneticEffect';
 
 export default function RootLayout({
   children,
@@ -69,6 +70,7 @@ export default function RootLayout({
           <BackgroundParticles />
           <CustomCursor />
           <SoundEffectsObserver />
+          <MagneticEffect />
           <EcosystemNexus />
           <RippleEffect />
           <div className="flex flex-col min-h-[100dvh] max-w-[100vw] overflow-x-clip pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
