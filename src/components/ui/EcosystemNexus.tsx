@@ -58,9 +58,9 @@ export function EcosystemNexus() {
 
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-14 h-14 rounded-full bg-zinc-900/90 backdrop-blur-md border border-white/10 text-white flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 cursor-none hover:shadow-purple-500/20 hover:border-purple-500/50 ${isOpen ? 'rotate-45 scale-90' : ''}`}
+        className={`w-16 h-16 rounded-full bg-zinc-900/95 backdrop-blur-xl border-2 border-purple-500/40 text-purple-400 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.3)] transition-all duration-300 hover:scale-110 cursor-none hover:shadow-[0_0_35px_rgba(168,85,247,0.6)] hover:border-purple-400 hover:bg-zinc-800 ${isOpen ? 'rotate-45 scale-90' : ''}`}
       >
-        <Network className="w-6 h-6" />
+        <Network className="w-8 h-8" />
       </button>
     </div>
   );

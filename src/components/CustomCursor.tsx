@@ -52,7 +52,7 @@ export default function CustomCursor() {
       <div 
         className="fixed top-0 left-0 rounded-full pointer-events-none z-[999999]"
         style={{ 
-          transform: `translate(${position.x}px, ${position.y}px) translate(-50%, -50%) scale(${isHovering ? 0 : 1})`,
+          transform: `translate(${position.x}px, ${position.y}px) translate(-50%, -50%) scale(1)`,
           width: '6px',
           height: '6px',
           backgroundColor: '#fff',

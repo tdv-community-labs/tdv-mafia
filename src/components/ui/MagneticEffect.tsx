@@ -9,7 +9,7 @@ export function MagneticEffect() {
       // We only apply this to buttons or elements with 'magnetic' class
       const magneticElement = target.closest('button, a, .magnetic') as HTMLElement;
       
-      if (magneticElement) {
+      if (magneticElement && !magneticElement.classList.contains('no-magnetic')) {
         const rect = magneticElement.getBoundingClientRect();
         const x = e.clientX - rect.left - rect.width / 2;
         const y = e.clientY - rect.top - rect.height / 2;
@@ -26,7 +26,7 @@ export function MagneticEffect() {
       const target = e.target as HTMLElement;
       const magneticElement = target.closest('button, a, .magnetic') as HTMLElement;
       
-      if (magneticElement) {
+      if (magneticElement && !magneticElement.classList.contains('no-magnetic')) {
         magneticElement.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
         magneticElement.style.transform = 'translate(0px, 0px)';
       }
