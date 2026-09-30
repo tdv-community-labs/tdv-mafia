@@ -372,12 +372,14 @@ export default function LobbyPage({ params }: LobbyPageProps) {
     dispatchAction({ action: 'NIGHT_ACTION', actionType, targetPlayerId });
     const targetName = lobbyState.players[targetPlayerId]?.username || targetPlayerId;
     const actionNames: Record<NightActionType, string> = {
+      TIME_WARP: 'Zamanı geri sarma əmri',
       KILL: 'Qətl əmri',
       PROTECT: 'Mühafizə əmri',
       INVESTIGATE: 'Təhqiqat sorğusu',
       BLOCK: 'Bloklama əmri',
       MISDIRECT: 'Yönləndirmə əmri',
       FRAME: 'Şər atma əmri',
+      RESURRECT: 'Diriltmə əmri',
     };
     showToast(
       `Əmr qeydə alındı: ${actionNames[actionType] || actionType} ➔ ${targetName}`,
