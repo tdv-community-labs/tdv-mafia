@@ -18,15 +18,10 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   useEffect(() => {
     try {
-      const savedTheme = localStorage.getItem('tdv_theme') as Theme | null;
-      if (savedTheme === 'light' || savedTheme === 'dark') {
-        setThemeState(savedTheme);
-        applyTheme(savedTheme);
-      } else {
-        // Default to dark mode for Mafia platform
-        setThemeState('dark');
-        applyTheme('dark');
-      }
+      // Always default to dark mode for the Cyberpunk aesthetic
+      setThemeState('dark');
+      applyTheme('dark');
+      try { localStorage.setItem('tdv_theme', 'dark'); } catch {}
     } catch {
       applyTheme('dark');
     }
