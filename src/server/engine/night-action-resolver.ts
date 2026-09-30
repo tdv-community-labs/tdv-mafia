@@ -79,6 +79,8 @@ function buildInitialFlags(players: Readonly<Record<string, PlayerSession>>): Re
   const flags: Record<string, NightResolutionFlags> = {};
   for (const [id, p] of Object.entries(players)) {
     flags[id] = {
+      isTimeWarped:          false,
+      isTimeWarped:          false,
       isBlocked:             false,
       isProtected:           false,
       vestChargesRemaining:  hasTrait(p, 'BULLETPROOF_VEST') ? 1 : hasTrait(p, 'SURGICAL_RESILIENCE') ? 2 : 0,
@@ -99,6 +101,24 @@ function buildInitialFlags(players: Readonly<Record<string, PlayerSession>>): Re
  * Marks actors as blocked. COLD_BLOODED players ignore blocks.
  * A blocked actor's actions are voided at all subsequent priorities.
  */
+
+// ─── Priority 0: TIME_WARP ─────────────────────────────────────────────────────────────
+
+function applyTimeWarps(
+  actions: readonly NightActionBufferItem[],
+  flags: Record<string, NightResolutionFlags>,
+  players: Readonly<Record<string, PlayerSession>>
+): void {
+  for (const action of actions) {
+    if (action.priority !== 0) continue;
+    if (action.actionType !== 'TIME_WARP') continue;
+    const target = action.targetPlayerId;
+    if (players[target]) {
+      flags[target] = { ...(flags[target] as NightResolutionFlags), isTimeWarped: true };
+    }
+  }
+}
+
 function applyBlocks(
   actions: readonly NightActionBufferItem[],
   flags: Record<string, NightResolutionFlags>,
@@ -108,8 +128,10 @@ function applyBlocks(
     if (action.priority !== 1) continue;
     if (action.actionType !== 'BLOCK') continue;
 
+    const actor = action.actorPlayerId;
     const targetActor = action.targetPlayerId;
     const targetPlayer = players[targetActor];
+    if (flags[actor]?.isTimeWarped || flags[targetActor]?.isTimeWarped) continue;
     if (!targetPlayer) continue;
 
     // COLD_BLOODED trait: immune to BLOCK
@@ -488,6 +510,37 @@ function pickAlternateFaction(trueFaction: CoreFaction): CoreFaction {
   return others[Math.floor(Math.random() * others.length)] ?? 'TOWN';
 }
 
+
+// ─── Priority 7: RESURRECT ─────────────────────────────────────────────────────────────
+
+function applyResurrections(
+  actions: readonly NightActionBufferItem[],
+  flags: Record<string, NightResolutionFlags>,
+  players: Record<string, PlayerSession>,
+  publicDeaths: NightDeathRecord[]
+): void {
+  for (const action of actions) {
+    if (action.priority !== 7) continue;
+    if (action.actionType !== 'RESURRECT') continue;
+
+    const actor = action.actorPlayerId;
+    if (flags[actor]?.isTimeWarped || flags[actor]?.isBlocked) continue;
+
+    const target = action.targetPlayerId;
+    const targetPlayer = players[target];
+    if (!targetPlayer) continue;
+
+    // Revive them!
+    players[target] = { ...targetPlayer, isAlive: true };
+    
+    // Remove from publicDeaths if they were killed tonight
+    const deathIdx = publicDeaths.findIndex(d => d.playerId === target);
+    if (deathIdx !== -1) {
+      publicDeaths.splice(deathIdx, 1);
+    }
+  }
+}
+
 function applyInvestigations(
   actions: readonly NightActionBufferItem[],
   flags: Record<string, NightResolutionFlags>,
@@ -588,6 +641,9 @@ export function resolveNightActions(input: NightResolverInput): NightResolutionO
       return a;
     });
   }
+
+  // P0: Time Warp
+  applyTimeWarps(actions, flags, players);
 
   // P1: Block
   applyBlocks(actions, flags, players);

@@ -11,6 +11,7 @@ import { DanteCircle } from './minigames';
 
 /** Per-player transient flags built during a single night resolution pass */
 export interface NightResolutionFlags {
+  readonly isTimeWarped: boolean;
   readonly isBlocked: boolean;
   readonly isProtected: boolean;
   /** Charges remaining on BULLETPROOF_VEST / SURGICAL_RESILIENCE trait */
