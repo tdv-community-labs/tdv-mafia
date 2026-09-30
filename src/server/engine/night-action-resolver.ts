@@ -533,7 +533,7 @@ function applyResurrections(
     players[target] = { ...targetPlayer, isAlive: true };
     
     // Remove from publicDeaths if they were killed tonight
-    const deathIdx = publicDeaths.findIndex(d => d.playerId === target);
+    const deathIdx = publicDeaths.findIndex(d => d.victimPlayerId === target);
     if (deathIdx !== -1) {
       publicDeaths.splice(deathIdx, 1);
     }
