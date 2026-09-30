@@ -21,7 +21,6 @@ export const viewport = {
   viewportFit: 'cover',
 };
 
-import { EcosystemNexus } from '../components/ui/EcosystemNexus';
 import { MagneticEffect } from '../components/ui/MagneticEffect';
 
 export default function RootLayout({
@@ -71,7 +70,6 @@ export default function RootLayout({
           <CustomCursor />
           <SoundEffectsObserver />
           <MagneticEffect />
-          <EcosystemNexus />
           <RippleEffect />
           <div className="flex flex-col min-h-[100dvh] max-w-[100vw] overflow-x-clip pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
             <Navbar />
