@@ -80,7 +80,6 @@ function buildInitialFlags(players: Readonly<Record<string, PlayerSession>>): Re
   for (const [id, p] of Object.entries(players)) {
     flags[id] = {
       isTimeWarped:          false,
-      isTimeWarped:          false,
       isBlocked:             false,
       isProtected:           false,
       vestChargesRemaining:  hasTrait(p, 'BULLETPROOF_VEST') ? 1 : hasTrait(p, 'SURGICAL_RESILIENCE') ? 2 : 0,
