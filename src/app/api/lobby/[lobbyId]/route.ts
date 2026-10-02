@@ -12,6 +12,8 @@ import { runVotingEngine } from '../../../../server/engine/voting-engine';
 import { evaluateWinCondition } from '../../../../server/engine/phase-manager';
 import { botTakeoverController } from '../../../../server/ai/bot-takeover';
 import { InvestigationResult } from '../../../../types/engine';
+import { generateMorningNewspaperStory } from '../../../../server/ai/ai-narrator';
+
 
 interface RouteContext {
   readonly params: {
