@@ -1,19 +1,43 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { PenTool, X, Save, Trash2, CheckCircle2 } from 'lucide-react';
+import { PenTool, X, Save, Trash2, CheckCircle2, Sparkles, Bot } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 interface DetectiveNotebookProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string;
+  lobbyId?: string;
+  roleDisplay?: string;
 }
 
-export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({ isOpen, onClose, userId }) => {
+export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({ isOpen, onClose, userId, lobbyId, roleDisplay }) => {
   const [notes, setNotes] = useState('');
   const [saved, setSaved] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+
+  const requestAiAnalysis = async () => {
+    if (!lobbyId || !notes.trim()) return;
+    setIsAnalyzing(true);
+    try {
+      const res = await fetch('/api/ai-detective', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lobbyId, notes, roleDisplay })
+      });
+      const data = await res.json();
+      if (data.analysis) {
+        setAiAnalysis(data.analysis);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   useEffect(() => {
     setIsClient(true);

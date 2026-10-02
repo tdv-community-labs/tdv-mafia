@@ -1162,6 +1162,8 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             isOpen={isNotebookOpen}
             onClose={() => setIsNotebookOpen(false)}
             userId={currentUserId}
+            lobbyId={lobbyId}
+            roleDisplay={myPlayerSession.displayRole?.localizedRoleName || myPlayerSession.displayRole?.originalRoleName || 'Gizli Rol'}
           />
         </>
       )}
