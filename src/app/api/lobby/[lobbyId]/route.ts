@@ -180,9 +180,23 @@ function sanitizeLobbyForViewer(lobby: LobbyState, viewerUserId: string): LobbyS
   // Only expose private investigation results belonging to this requesting user
   const viewerInvestigations = lobby.privateInvestigations?.[viewerUserId] ?? [];
 
+  // Scrub buffered night actions: players only see their own, and Mafia sees other Mafia actions
+  let safeNightActions = lobby.bufferedNightActions;
+  if (!isEnded) {
+    safeNightActions = lobby.bufferedNightActions.filter(a => {
+      if (a.actorPlayerId === viewerUserId) return true;
+      if (isViewerMafia) {
+        const actor = lobby.players[a.actorPlayerId];
+        if (actor?.allInIdentity?.layer1Faction === 'MAFIA') return true;
+      }
+      return false;
+    });
+  }
+
   return {
     ...lobby,
     players: sanitizedPlayers,
+    bufferedNightActions: safeNightActions,
     privateInvestigations: {
       [viewerUserId]: viewerInvestigations,
     },

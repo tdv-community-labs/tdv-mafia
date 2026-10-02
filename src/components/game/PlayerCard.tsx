@@ -26,7 +26,8 @@ export interface PlayerCardProps {
   readonly isGameOver?: boolean;
   readonly onSelect?: (player: PlayerSession | ScrubbedPlayerView) => void;
   readonly onKick?: () => void;
-  readonly targetIntent?: 'KILL' | 'PROTECT' | 'INVESTIGATE' | 'BLOCK' | 'MISDIRECT';
+    readonly targetIntent?: 'KILL' | 'PROTECT' | 'INVESTIGATE' | 'BLOCK' | 'MISDIRECT';
+  readonly teammateIntents?: readonly { actorName: string; type: string }[];
   readonly isCompact?: boolean;
   readonly activeEmote?: string;
   readonly style?: React.CSSProperties;

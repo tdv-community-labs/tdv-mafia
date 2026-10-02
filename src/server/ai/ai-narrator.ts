@@ -24,8 +24,8 @@ export async function generateMorningNewspaperStory(
   const ai = new GoogleGenAI({ apiKey: keys[Math.floor(Math.random() * keys.length)] });
 
   const deathDetails = deaths.map(d => {
-    const p = players[d.playerId];
-    return `- ${p?.username || d.playerId} was found dead. Cause of death: ${d.cause}.`;
+    const p = players[d.victimPlayerId];
+    return `- ${p?.username || d.victimPlayerId} was found dead. Cause of death: ${d.cause}.`;
   }).join('\\n');
 
   let prompt = `You are the dramatic AI Mayor (Narrator) of a Mafia/Social Deduction game.\\n`;
@@ -40,6 +40,7 @@ export async function generateMorningNewspaperStory(
   prompt += `Write a short, suspenseful 2-3 sentence morning newspaper headline and story (in Azerbaijani language). Do not reveal hidden roles of the alive players. Be dramatic, dark, and mysterious. Use HTML formatting like <strong> or <em> if needed.`;
 
   try {
+    // @ts-ignore
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
