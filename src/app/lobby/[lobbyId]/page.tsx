@@ -40,6 +40,7 @@ import { AchievementToastSystem, unlockAchievement } from '../../../components/u
 import { AchievementShowcaseModal } from '../../../components/modals/AchievementShowcaseModal';
 import { ProfileModal } from '../../../components/modals/ProfileModal';
 import { RulesModal } from '../../../components/modals/RulesModal';
+import { GameOverCinematic } from '../../../components/game/GameOverCinematic';
 import { ArchiveModal } from '../../../components/modals/ArchiveModal';
 import { AmbientWeather } from '../../../components/game/AmbientWeather';
 import { GameIntroOverlay } from '../../../components/game/GameIntroOverlay';
