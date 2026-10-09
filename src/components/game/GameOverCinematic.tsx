@@ -8,22 +8,40 @@ interface GameOverCinematicProps {
   winnerResult: any;
   players: Record<string, PlayerSession>;
   currentUserId: string;
+  onClose?: () => void;
 }
 
 export const GameOverCinematic: React.FC<GameOverCinematicProps> = ({
   isOpen,
   winnerResult,
   players,
-  currentUserId
+  currentUserId,
+  onClose,
 }) => {
   if (!isOpen || !winnerResult) return null;
 
   const isTownVictory = winnerResult.kind === 'TOWN_VICTORY';
   const isMafiaVictory = winnerResult.kind === 'MAFIA_MAJORITY' || winnerResult.kind === 'YAKUZA_MAJORITY';
-  const isNeutralVictory = winnerResult.kind === 'NEUTRAL_VICTORY';
+  const isNeutralVictory =
+    winnerResult.kind === 'NEUTRAL_VICTORY' ||
+    winnerResult.kind === 'NEUTRAL_KILLER_SOLO' ||
+    winnerResult.kind === 'JESTER_LUCIFER_SHADOW' ||
+    winnerResult.kind === 'VOID_CULT_ASCENSION';
   
   const winnerIds = winnerResult.winnerPlayerIds || [];
   const iAmWinner = winnerIds.includes(currentUserId);
+
+  const victorySubtitle = isTownVictory
+    ? "ŞƏHƏR QAZANDI"
+    : isMafiaVictory
+    ? "MAFİYA QAZANDI"
+    : winnerResult.kind === 'JESTER_LUCIFER_SHADOW'
+    ? "TƏLXƏK ŞƏHƏRİ ƏLƏ KEÇİRDİ"
+    : winnerResult.kind === 'NEUTRAL_KILLER_SOLO'
+    ? "SERİYALI QATİL TƏK QALİB GƏLDİ"
+    : winnerResult.kind === 'VOID_CULT_ASCENSION'
+    ? "QARANLIQ KULT YÜKSƏLDİ"
+    : "BİTƏRƏF QAZANDI";
 
   return (
     <AnimatePresence>
@@ -61,13 +79,19 @@ export const GameOverCinematic: React.FC<GameOverCinematicProps> = ({
             {iAmWinner ? "QƏLƏBƏ!" : "MƏĞLUBİYYƏT"}
           </h1>
 
-          <h2 className={`text-2xl md:text-4xl font-bold uppercase tracking-widest mb-12 ${
+          <h2 className={`text-2xl md:text-4xl font-bold uppercase tracking-widest ${
               isTownVictory ? 'text-emerald-400' :
               isMafiaVictory ? 'text-red-400' :
               'text-purple-400'
           }`}>
-            {isTownVictory ? "ŞƏHƏR QAZANDI" : isMafiaVictory ? "MAFİYA QAZANDI" : "BİTƏRƏF QAZANDI"}
+            {victorySubtitle}
           </h2>
+
+          {winnerResult.reason && (
+            <p className="text-sm md:text-base text-zinc-400 mt-3 mb-8 max-w-xl mx-auto font-medium leading-relaxed">
+              {winnerResult.reason}
+            </p>
+          )}
 
           <div className="w-full bg-zinc-900/80 border border-zinc-700 p-6 rounded-2xl">
             <h3 className="text-zinc-400 text-sm font-bold uppercase tracking-widest mb-6">Qaliblər Lövhəsi</h3>
@@ -89,7 +113,7 @@ export const GameOverCinematic: React.FC<GameOverCinematicProps> = ({
                   >
                     <div className="text-white font-bold text-lg">{p.username}</div>
                     <div className="text-xs font-mono text-zinc-400 border-l border-zinc-700 pl-3">
-                      {p.displayRole?.originalRoleName || 'Bilinmir'}
+                      {p.displayRole?.localizedRoleName || p.displayRole?.originalRoleName || 'Bilinmir'}
                     </div>
                   </motion.div>
                 );
@@ -97,11 +121,23 @@ export const GameOverCinematic: React.FC<GameOverCinematicProps> = ({
             </div>
           </div>
           
+          {onClose && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 2.0 }}
+              onClick={onClose}
+              className="mt-8 px-8 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-sm tracking-widest uppercase transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-2xl backdrop-blur-md"
+            >
+              Tam Nəticələri Gör ➔
+            </motion.button>
+          )}
+
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 2.5 }}
-            className="mt-12 text-zinc-500 text-sm tracking-widest uppercase font-mono"
+            className="mt-6 text-zinc-500 text-xs tracking-widest uppercase font-mono"
           >
             Lobbyə qayıtmaq üçün yuxarıdan menyunu istifadə edin...
           </motion.p>

@@ -37,13 +37,39 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
     if (!isOpen) return;
 
     try {
-      const storedUser = localStorage.getItem('tdv_mafia_user');
       let currentUserId = '';
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        setCurrentUser(user);
-        currentUserId = user.userId;
-        setUserStats(getPlayerStats(user.userId));
+      let resolvedUsername = '';
+
+      const ecoRaw = localStorage.getItem('tdv_ecosystem_session_v1');
+      if (ecoRaw) {
+        try {
+          const eco = JSON.parse(ecoRaw);
+          if (eco?.fullName || eco?.username) {
+            resolvedUsername = eco.fullName || eco.username;
+            currentUserId = eco.id || `usr-${resolvedUsername.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+            setCurrentUser({
+              userId: currentUserId,
+              username: resolvedUsername,
+              tier: 'TIER_1',
+              roleTitle: 'Klub Oyunçusu',
+              gamesPlayed: 0,
+              winRate: 0,
+            });
+            setUserStats(getPlayerStats(currentUserId));
+          }
+        } catch {}
+      }
+
+      if (!currentUserId) {
+        const storedUser = localStorage.getItem('tdv_mafia_user');
+        if (storedUser) {
+          try {
+            const user = JSON.parse(storedUser);
+            setCurrentUser(user);
+            currentUserId = user.userId;
+            setUserStats(getPlayerStats(user.userId));
+          } catch {}
+        }
       }
 
       // Build leaderboard from local storage

@@ -53,6 +53,7 @@ export interface GameBoardProps {
   readonly onTriggerKlaatuFreeze?: () => void;
   readonly onKickPlayer?: (playerId: string) => void;
   readonly onSendEmote?: (emote: string) => void;
+  readonly onOpenGraveyard?: () => void;
   readonly districtFinalists?: readonly string[];
   /** Set of player IDs currently speaking via voice chat */
   readonly speakingIds?: ReadonlySet<string>;
@@ -71,6 +72,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   speakingIds,
   onKickPlayer,
   onSendEmote,
+  onOpenGraveyard,
 }) => {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [activeDistrictTab, setActiveDistrictTab] = useState<AllInDistrict | 'ALL'>('ALL');
@@ -594,15 +596,25 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
         {displayedPlayers.some(p => !p.isAlive) && (
           <div className="mt-12 mb-4 animate-fadeIn">
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center justify-between gap-4 mb-6">
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/50 to-transparent flex-1"></div>
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-zinc-900/50 border border-zinc-800 flex items-center justify-center">
                   <Skull className="w-4 h-4 text-zinc-500" />
                 </div>
                 <span className="text-[10px] font-black tracking-[0.3em] text-zinc-500 uppercase">
-                  Qəbiristanlıq
+                  Qəbiristanlıq ({displayedPlayers.filter(p => !p.isAlive).length})
                 </span>
+                {onOpenGraveyard && (
+                  <button
+                    type="button"
+                    onClick={onOpenGraveyard}
+                    className="ml-2 px-3 py-1 rounded-xl border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  >
+                    <Ghost className="w-3.5 h-3.5" />
+                    Məzarlığı Aç
+                  </button>
+                )}
               </div>
               <div className="h-px bg-gradient-to-r from-transparent via-zinc-700/50 to-transparent flex-1"></div>
             </div>
@@ -622,8 +634,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   isSpeaking={speakingIds?.has(player.userId) ?? false}
                   isViewerMafia={isMafia}
                   isGameOver={lobbyState.phase === 'ENDED'}
-              isLobbyPhase={lobbyState.phase === 'LOBBY'}
-                  onSelect={() => {}}
+                  isLobbyPhase={lobbyState.phase === 'LOBBY'}
+                  onSelect={onOpenGraveyard ? () => onOpenGraveyard() : undefined}
                 />
               ))}
             </div>

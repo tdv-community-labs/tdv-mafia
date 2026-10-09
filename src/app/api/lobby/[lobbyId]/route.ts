@@ -578,6 +578,31 @@ export async function POST(request: Request, context: RouteContext) {
       }
       lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
 
+    } else if (action === 'UPDATE_NAME') {
+      const newName = String(body.newName || '').trim().substring(0, 24);
+      if (newName && lobby && lobby.players[userId]) {
+        inMemoryLobbyStore.updateLobby(lobbyId, (l) => {
+          if (!l.players[userId]) return l;
+          const currentPlayer = l.players[userId];
+          const updatedPlayer = {
+            ...currentPlayer,
+            username: newName,
+            displayRole: formatRoleDisplay(
+              newName,
+              currentPlayer.displayRole?.originalRoleName || 'Citizen',
+              currentPlayer.displayRole?.localizedRoleName || 'Vətəndaş'
+            ),
+          };
+          return {
+            ...l,
+            players: {
+              ...l.players,
+              [userId]: updatedPlayer,
+            },
+          };
+        });
+        lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+      }
     } else if (action === 'KICK_PLAYER') {
       const targetUserId = String(body.targetUserId);
       if (lobby && lobby.hostUserId === userId) {

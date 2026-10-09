@@ -93,7 +93,7 @@ export const Navbar: React.FC = () => {
           if (decoded && (decoded.fullName || decoded.username)) {
             localStorage.setItem('tdv_ecosystem_session_v1', JSON.stringify(decoded));
             setCurrentUser({
-              userId: decoded.id || "usr-anon",
+              userId: decoded.id || `usr-${(decoded.username || decoded.fullName || 'anon').toLowerCase().replace(/[^a-z0-9]/g, '')}`,
               username: decoded.fullName || decoded.username,
               tier: 'TIER_1',
               roleTitle:
@@ -140,7 +140,7 @@ export const Navbar: React.FC = () => {
           }
 
           setCurrentUser({
-            userId: ecoSess.id || "usr-anon",
+            userId: ecoSess.id || `usr-${(ecoSess.username || ecoSess.fullName || 'anon').toLowerCase().replace(/[^a-z0-9]/g, '')}`,
             username: ecoSess.fullName || ecoSess.username,
             tier: 'TIER_1',
             roleTitle:

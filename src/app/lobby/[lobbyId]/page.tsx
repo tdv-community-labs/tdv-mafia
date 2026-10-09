@@ -439,6 +439,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
   const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
   const [isCompactView, setIsCompactView] = useState<boolean>(false);
   const [isGameOverDismissed, setIsGameOverDismissed] = useState<boolean>(false);
+  const [showCinematic, setShowCinematic] = useState<boolean>(true);
   const [isArchiveOpen, setIsArchiveOpen] = useState<boolean>(false);
   const [isGraveyardOpen, setIsGraveyardOpen] = useState<boolean>(false);
   
@@ -535,6 +536,12 @@ export default function LobbyPage({ params }: LobbyPageProps) {
 
   const eloRecordedRef = React.useRef(false);
   useEffect(() => {
+    if (lobbyState.phase === 'LOBBY') {
+      eloRecordedRef.current = false;
+      setShowCinematic(true);
+      setIsGameOverDismissed(false);
+      return;
+    }
     if (lobbyState.phase === 'ENDED' && lobbyState.winnerResult && !eloRecordedRef.current && currentUserId) {
       eloRecordedRef.current = true;
       const me = lobbyState.players[currentUserId];
@@ -1025,6 +1032,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             onTriggerAction={handleTriggerAction}
             onKickPlayer={handleKickPlayer}
             onSendEmote={(emote) => dispatchAction({ action: 'EMOTE', emote })}
+            onOpenGraveyard={() => setIsGraveyardOpen(true)}
             speakingIds={speakingIds}
           />
 
@@ -1055,17 +1063,29 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         </div>
       )}
 
+      {/* ─── GAME OVER CINEMATIC ────────────────────────────────────── */}
+      <GameOverCinematic
+        isOpen={Boolean(isGameOver && showCinematic && !isGameOverDismissed && lobbyState.winnerResult)}
+        winnerResult={lobbyState.winnerResult}
+        players={lobbyState.players}
+        currentUserId={currentUserId}
+        onClose={() => setShowCinematic(false)}
+      />
+
       {/* RE-OPEN GAME OVER BUTTON */}
       {isGameOver && isGameOverDismissed && (
         <button
-          onClick={() => setIsGameOverDismissed(false)}
+          onClick={() => {
+            setIsGameOverDismissed(false);
+            setShowCinematic(false);
+          }}
           className="fixed top-24 left-1/2 -translate-x-1/2 z-40 bg-zinc-900/90 hover:bg-zinc-800 text-white px-4 py-2 rounded-full shadow-lg border border-zinc-700 font-bold tracking-widest text-xs uppercase animate-bounce"
         >
           YEKUN NƏTİCƏNİ GÖSTƏR
         </button>
       )}
       {/* ─── GAME OVER / VICTORY MODAL ───────────────────────────────── */}
-      {isGameOver && !isGameOverDismissed && (
+      {isGameOver && !isGameOverDismissed && !showCinematic && (
         <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn transition-colors duration-1000 ${isTownVictory ? 'bg-emerald-950/80' : isMafiaVictory ? 'bg-red-950/80' : 'bg-black/85'} backdrop-blur-sm`}>
           <div className={`w-full max-w-2xl rounded-[32px] border ${isTownVictory ? 'border-emerald-500/40' : isMafiaVictory ? 'border-red-500/40' : 'border-purple-500/40'} bg-white/5 dark:bg-zinc-950/80  text-zinc-950 dark:text-white p-8 sm:p-12 shadow-2xl flex flex-col items-center text-center gap-8 relative`}>
             <button 
@@ -1214,17 +1234,18 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         onClose={() => setIsShowcaseOpen(false)}
         userId={currentUserId}
       />
-            <ProfileModal 
+      <ProfileModal 
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
         currentUsername={currentUsername}
+        userId={currentUserId}
         onUpdateUsername={(name) => {
           setCurrentUsername(name);
           localStorage.setItem('mafia_username', name);
-          // Only updates local state, to update server requires a socket event.
+          dispatchAction({ action: 'UPDATE_NAME', newName: name });
         }}
         tier={currentUserTier}
-        totalXp={0}
+        totalXp={100}
       />
       {/* ─── ACHIEVEMENT TOAST SYSTEM ──────────────────────────────── */}
       <AchievementToastSystem />
@@ -1286,6 +1307,17 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         </button>
       )}
 
+      {/* Qəbiristanlıq Button */}
+      {playersList.some(p => !p.isAlive) && (
+        <button
+          onClick={() => setIsGraveyardOpen(true)}
+          title="Qəbiristanlıq"
+          className="fixed bottom-6 left-40 z-40 p-3 rounded-full bg-zinc-900 hover:bg-zinc-800 text-purple-400 shadow-[0_0_20px_rgba(147,51,234,0.3)] border border-purple-500/30 transition-transform hover:scale-110 active:scale-95"
+        >
+          <Skull className="w-5 h-5" />
+        </button>
+      )}
+
       <LastWillModal
         isOpen={isLastWillOpen}
         initialText={myPlayerSession?.lastWill || localStorage.getItem(`mafia_lastwill_${currentUserId}_${lobbyId}`) || ''}
@@ -1309,22 +1341,6 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         isOpen={isGraveyardOpen}
         onClose={() => setIsGraveyardOpen(false)}
         players={lobbyState.players}
-      />
-
-      <ProfileModal
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
-        currentUsername={currentUsername}
-        onUpdateUsername={() => {}}
-        tier="TIER_1"
-        totalXp={100}
-        userId={currentUserId}
-      />
-
-      <AchievementShowcaseModal
-        isOpen={isShowcaseOpen}
-        onClose={() => setIsShowcaseOpen(false)}
-        userId={currentUserId}
       />
 
     </div>
