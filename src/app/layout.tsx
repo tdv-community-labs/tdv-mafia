@@ -15,6 +15,7 @@ export const metadata = {
     icon: '/assets/tdv-logo.png',
     apple: '/assets/tdv-logo.png',
   },
+  manifest: '/manifest.json',
 };
 
 export const viewport = {

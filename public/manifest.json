@@ -1,0 +1,22 @@
+{
+  "name": "TDV Mafia - Elit Onlayn Mafiya Platforması",
+  "short_name": "TDV Mafia",
+  "description": "Azərbaycanın ən möhtəşəm onlayn sosial deduksiya və mafiya mühərriki.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#dc2626",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/tdv-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/tdv-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
