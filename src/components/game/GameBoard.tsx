@@ -52,6 +52,7 @@ export interface GameBoardProps {
   readonly onTriggerAction?: (actionType: NightActionType, targetPlayerId: string) => void;
   readonly onTriggerKlaatuFreeze?: () => void;
   readonly onKickPlayer?: (playerId: string) => void;
+  readonly onSendEmote?: (emote: string) => void;
   readonly districtFinalists?: readonly string[];
   /** Set of player IDs currently speaking via voice chat */
   readonly speakingIds?: ReadonlySet<string>;
@@ -69,6 +70,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   districtFinalists = [],
   speakingIds,
   onKickPlayer,
+  onSendEmote,
 }) => {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [activeDistrictTab, setActiveDistrictTab] = useState<AllInDistrict | 'ALL'>('ALL');
@@ -628,6 +630,29 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           </div>
         )}
       </div>
+
+      {/* ─── LIVE REACTION DOCK ──────────────────────────────────── */}
+      {onSendEmote && (
+        <div className="flex items-center justify-center gap-2 p-2.5 bg-zinc-950/80 backdrop-blur-xl border border-zinc-800/90 rounded-2xl w-fit mx-auto shadow-[0_4px_25px_rgba(0,0,0,0.5)] select-none">
+          <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider px-2 hidden sm:inline">
+            Reaksiya:
+          </span>
+          {['🔥', '💀', '🤫', '👀', '🛡️', '⚖️', '🕊️', '😱'].map((emo) => (
+            <button
+              key={emo}
+              type="button"
+              onClick={() => {
+                playCard();
+                onSendEmote(emo);
+              }}
+              title={`Reaksiya göndər: ${emo}`}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl hover:bg-white/10 active:scale-90 flex items-center justify-center text-lg sm:text-xl transition-transform hover:scale-125"
+            >
+              {emo}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ─── STICKY BOTTOM ACTION BAR ───────────────────────────────── */}
       {!isAlive ? (

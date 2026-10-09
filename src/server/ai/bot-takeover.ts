@@ -677,10 +677,17 @@ export class BotTakeoverController {
         } else if (lobby.phase === 'DAY_VOTING') {
           const alreadyVoted = Boolean(lobby.liveVotes[bot.userId]);
           if (!alreadyVoted) {
-            // Randomly delay vote to feel natural (15% chance per sync tick)
-            if (Math.random() > 0.85) {
+            // Adaptive voting probability based on remaining time: ensures prompt completion
+            const timeRemaining = lobby.phaseTimeRemaining;
+            const voteChance = timeRemaining < 25 ? 0.95 : 0.5;
+            if (Math.random() < voteChance) {
               await this.submitBotDayVote(bot.userId, lobbyId);
             }
+          }
+          // Bots also occasionally emote during court voting
+          if (Math.random() < 0.12) {
+            const reaction = Math.random() > 0.5 ? '⚖️' : '👀';
+            inMemoryLobbyStore.addEmote(lobbyId, bot.userId, reaction);
           }
         } else if (lobby.phase === 'DAY_REGIONAL_CAUCUS' || lobby.phase === 'DAY_CENTRAL_ASSEMBLY') {
           const botSession = this.activeBots.get(bot.userId);
@@ -720,7 +727,7 @@ export class BotTakeoverController {
   }
 
   /**
-   * Bot emits a short in-character day chat message via GenAI.
+   * Bot emits a short in-character day chat message via GenAI or strategic persona heuristics.
    * All outputs guaranteed clean (no offensive role labels).
    */
   public async synthesizeBotChatMessage(playerId: string, lobbyId: string): Promise<ChatRecord | null> {
@@ -736,7 +743,7 @@ export class BotTakeoverController {
     const botSession = this.activeBots.get(playerId);
     if (!botSession) return null;
 
-    let message = 'Şübhəli hərəkətləri diqqətlə izləyirəm, ədalətli səs verməliyik.';
+    let message = this.generateHeuristicBotChatMessage(player, lobby);
     let interactionId = 'STRATEGIC_HEURISTIC';
 
     try {
@@ -753,7 +760,7 @@ export class BotTakeoverController {
         }
       }
     } catch {
-      // Fallback
+      // Fallback to heuristic
     }
 
     const record: ChatRecord = {
@@ -778,6 +785,63 @@ export class BotTakeoverController {
   }
 
   // ── Private Helpers ────────────────────────────────────────────────────────
+
+  private generateHeuristicBotChatMessage(player: PlayerSession, lobby: LobbyState): string {
+    const faction = player.allInIdentity?.layer1Faction || 'TOWN';
+    const roleName = player.displayRole?.originalRoleName?.toLowerCase() || '';
+    const lastDeaths = lobby.latestNewspaper?.publicDeaths || [];
+    const aliveOthers = Object.values(lobby.players).filter(p => p.isAlive && p.userId !== player.userId);
+    const randomSuspect = aliveOthers[Math.floor(Math.random() * aliveOthers.length)]?.username || 'bəzi şəxslər';
+
+    if (faction === 'MAFIA') {
+      const mafiaLines = [
+        `Dünən gecəki hadisə çox qəribədir, ${randomSuspect} niyə bu qədər sakit dayanıb?`,
+        `Mən şəhərin məsum vətəndaşıyam, şübhələri məndən uzaq tutun. Faktlara baxaq!`,
+        `Şərif nəticələrini açıqlasa yaxşı olar, boş yerə ittiham irəli sürməyək.`,
+        `Məncə bu raund tələsik qərar verməməliyik, sakitcə müzakirə edək.`,
+        `${randomSuspect} dünənki səsvermədə çox şübhəli mövqe sərgilədi.`
+      ];
+      return mafiaLines[Math.floor(Math.random() * mafiaLines.length)];
+    }
+
+    if (roleName.includes('doctor') || player.allInIdentity?.layer2Office === 'CITY_SURGEON') {
+      const doctorLines = [
+        `Gecə qoruma taktikasını düzgün qurmağa çalışıram, şəhər xalqı diqqətli olsun.`,
+        `Qurbanların sayı artmamalıdır, əsas şəhər qüvvələrini qorumalıyıq!`,
+        `Məncə ${randomSuspect} tərəfindən gələn arqumentlər inandırıcı görünmür.`
+      ];
+      return doctorLines[Math.floor(Math.random() * doctorLines.length)];
+    }
+
+    if (roleName.includes('investigator') || roleName.includes('sheriff')) {
+      const sheriffLines = [
+        `Şübhəli hərəkətləri izləyirəm, bəzi oyunçuların davranışları araşdırılmalıdır.`,
+        `Səhər qəzetindəki xəbərlər çox vacib ipucları verir, hamı diqqətlə baxsın.`,
+        `${randomSuspect} haqqında ciddi suallarım var, özünü müdafiə etsin!`
+      ];
+      return sheriffLines[Math.floor(Math.random() * sheriffLines.length)];
+    }
+
+    if (roleName.includes('jester')) {
+      const jesterLines = [
+        `Məni asmaq istəyirsinizsə buyurun, amma sonra çox peşman olacaqsınız! 😈`,
+        `Şəhər tamamilə çaşqınlıq içindədir, heç kim kimə güvənəcəyini bilmir!`,
+        `Məncə hamımız birdən ${randomSuspect} üçün səs versək əyləncəli olar!`
+      ];
+      return jesterLines[Math.floor(Math.random() * jesterLines.length)];
+    }
+
+    const townLines = [
+      `Şəhərimizi qorumalıyıq, Mafiya gizlicə sıralarımıza sızıb.`,
+      `${randomSuspect} oyunçusunun danışıq tərzi mənə şübhəli gəlir, siz nə düşünürsünüz?`,
+      lastDeaths.length > 0
+        ? `Dünən gecə itkilərimiz oldu, bu gün qatili məhkəməyə çıxarmalıyıq!`
+        : `Şükür ki, gecə itki olmadı. Həkim yaxşı iş görüb!`,
+      `Ədalətli səsvermə aparaq, günahsız bir vətəndaşı asmayaq.`,
+      `Faktlar göstərir ki, şəhərdə ən azı bir gizli qatil var.`
+    ];
+    return townLines[Math.floor(Math.random() * townLines.length)];
+  }
 
   private cancelDisconnectTimer(playerId: string): void {
     const existing = this.disconnectMap.get(playerId);

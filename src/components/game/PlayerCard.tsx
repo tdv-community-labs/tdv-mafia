@@ -61,6 +61,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
   targetIntent,
   onKick,
   isCompact = false,
+  activeEmote,
   style,
 }) => {
   const isAlive = player.isAlive;
@@ -134,6 +135,13 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
     >
       
 
+
+      {/* Floating Active Emote Badge */}
+      {activeEmote && (
+        <div className="absolute top-2 left-2 z-30 px-2.5 py-1 rounded-full bg-zinc-950/90 border border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.5)] text-sm font-black flex items-center gap-1 backdrop-blur-md animate-bounce pointer-events-none">
+          <span>{activeEmote}</span>
+        </div>
+      )}
 
       {/* Bloody Scratch Overlay for Dead Players */}
       {!isLobbyPhase && !isAlive && (
@@ -332,6 +340,7 @@ export const PlayerCard = React.memo(PlayerCardComponent, (prev, next) => {
     prev.isViewerMafia === next.isViewerMafia &&
     prev.isGameOver === next.isGameOver &&
     prev.targetIntent === next.targetIntent &&
+    prev.activeEmote === next.activeEmote &&
     JSON.stringify(prev.voterUsernames) === JSON.stringify(next.voterUsernames) &&
     JSON.stringify(prev.player) === JSON.stringify(next.player)
   );

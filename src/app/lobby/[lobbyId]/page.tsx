@@ -34,8 +34,6 @@ import { RoleRevealOverlay } from '../../../components/game/RoleRevealOverlay';
 import { CinematicVignette } from '../../../components/ui/CinematicVignette';
 import confetti from 'canvas-confetti';
 import { ExecutionOverlay } from '../../../components/game/ExecutionOverlay';
-import { FactionChat } from '../../../components/game/FactionChat';
-import { GhostChat } from '../../../components/game/GhostChat';
 import { AchievementToastSystem, unlockAchievement } from '../../../components/ui/AchievementToast';
 import { AchievementShowcaseModal } from '../../../components/modals/AchievementShowcaseModal';
 import { ProfileModal } from '../../../components/modals/ProfileModal';
@@ -54,7 +52,7 @@ import { recordGameResult } from '../../../utils/stats';
 import { VoiceChat } from '../../../components/voice/VoiceChat';
 import { ChatBox } from '../../../components/game/ChatBox';
 import { formatRoleDisplay } from '../../../types/roles';
-import { GamePhase, LobbyState, NightActionType, PlayerSession } from '../../../types/game';
+import { GamePhase, LobbyState, NightActionType, PlayerSession, ChatChannel } from '../../../types/game';
 import { MorningNewspaper } from '../../../types/engine';
 import { AZ_PHASES, AZ_UI } from '../../../config/i18n/az';
 import { Button } from '../../../components/ui/Button';
@@ -411,6 +409,27 @@ export default function LobbyPage({ params }: LobbyPageProps) {
       userId: p.userId,
       isAlive: p.isAlive,
     }));
+
+  // Dynamic available chat channels
+  const availableChatChannels = React.useMemo<{ id: ChatChannel; label: string }[]>(() => {
+    if (lobbyState.phase === 'LOBBY') {
+      return [{ id: 'LOBBY', label: 'Otaq Söhbəti' }];
+    }
+    const isPlayerAlive = myPlayerSession?.isAlive ?? true;
+    if (!isPlayerAlive) {
+      return [
+        { id: 'DEAD', label: 'Ruhlar (Qəbiristanlıq)' },
+        { id: 'LOBBY', label: 'Şəhər (Yalnız Oxu)' },
+      ];
+    }
+    if (myFaction === 'MAFIA') {
+      return [
+        { id: 'LOBBY', label: 'Şəhər Məclisi' },
+        { id: 'MAFIA', label: 'Mafiya Məxfi' },
+      ];
+    }
+    return [{ id: 'LOBBY', label: 'Şəhər Məclisi' }];
+  }, [lobbyState.phase, myPlayerSession?.isAlive, myFaction]);
 
   
   const [isLastWillOpen, setIsLastWillOpen] = useState<boolean>(false);
@@ -1005,6 +1024,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             onRetractVote={handleRetractVote}
             onTriggerAction={handleTriggerAction}
             onKickPlayer={handleKickPlayer}
+            onSendEmote={(emote) => dispatchAction({ action: 'EMOTE', emote })}
             speakingIds={speakingIds}
           />
 
@@ -1169,37 +1189,13 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         </>
       )}
 
-{/* ─── CHATS ─────────────────────────────────────────────────── */}
-      {!isGameOver && myPlayerSession && !myPlayerSession.isAlive && lobbyState.phase !== 'LOBBY' && (
-        <GhostChat
+      {/* ─── UNIFIED MULTI-CHANNEL CHAT SYSTEM ───────────────────────── */}
+      {!isGameOver && (
+        <ChatBox
+          messages={lobbyState.chatMessages || []}
           currentUserId={currentUserId}
-          currentUsername={currentUsername}
-          isAlive={myPlayerSession.isAlive}
-          lobbyId={lobbyId}
-          phase={lobbyState.phase}
-          deadPlayerNames={Object.values(lobbyState.players)
-            .filter(p => !p.isAlive)
-            .map(p => ({ userId: p.userId, username: p.username }))}
-          messages={lobbyState.chatMessages?.filter(m => m.channel === 'DEAD') || []}
-          onSendMessage={(content) => dispatchAction({ action: 'SEND_MESSAGE', content, channel: 'DEAD' })}
-        />
-      )}
-
-      {!isGameOver && myPlayerSession && myPlayerSession.isAlive && myFaction === 'MAFIA' && lobbyState.phase !== 'LOBBY' && (
-        <FactionChat
-          currentUserId={currentUserId}
-          currentUsername={currentUsername}
-          faction="MAFIA"
-          lobbyId={lobbyId}
-          phase={lobbyState.phase}
-          factionMates={Object.values(lobbyState.players)
-            .filter(p => p.isAlive && (
-              p.displayRole?.formatted?.toLowerCase().includes('mafiya') ||
-              p.displayRole?.formatted?.toLowerCase().includes('mafia')
-            ))
-            .map(p => ({ userId: p.userId, username: p.username }))}
-          messages={lobbyState.chatMessages?.filter(m => m.channel === 'MAFIA') || []}
-          onSendMessage={(content) => dispatchAction({ action: 'SEND_MESSAGE', content, channel: 'MAFIA' })}
+          availableChannels={availableChatChannels}
+          onSendMessage={(content, channel) => dispatchAction({ action: 'SEND_MESSAGE', content, channel })}
         />
       )}
 
