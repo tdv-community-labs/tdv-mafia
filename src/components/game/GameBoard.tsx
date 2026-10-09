@@ -24,7 +24,6 @@ import { Button } from '../ui/Button';
 import { PlayerCard } from './PlayerCard';
 import { getTheme } from '../../config/themes.config';
 import { VotingCourtPanel } from './VotingCourtPanel';
-import { DetectiveNotebook } from './DetectiveNotebook';
 import {
   AZ_DANTE_CIRCLES,
   AZ_DISTRICTS,
@@ -79,19 +78,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [activeDistrictTab, setActiveDistrictTab] = useState<AllInDistrict | 'ALL'>('ALL');
   const [soundMuted, setSoundMuted] = useState<boolean>(false);
-  const [isNotebookOpen, setIsNotebookOpen] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showRoleReveal, setShowRoleReveal] = useState<boolean>(true);
-  const [inspectedDeadPlayer, setInspectedDeadPlayer] = useState<any>(null);
-  const [inspectedLastWill, setInspectedLastWill] = useState<string | null>(null);
-  const [inspectedProfileId, setInspectedProfileId] = useState<string | null>(null);
-  
-  useEffect(() => {
-    if (showRoleReveal) {
-      const timer = setTimeout(() => setShowRoleReveal(false), 4500);
-      return () => clearTimeout(timer);
-    }
-  }, [showRoleReveal]);
 
   const currentUser = lobbyState.players[currentUserId];
   const isAlive = currentUser?.isAlive ?? false;
