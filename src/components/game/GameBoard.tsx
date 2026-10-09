@@ -131,7 +131,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   const handleCardClick = (player: PlayerSession | ScrubbedPlayerView) => {
     playCard();
-    setSelectedPlayerId(player.userId);
+    setSelectedPlayerId((prev) => (prev === player.userId ? null : player.userId));
     if ('socketId' in player) {
       onSelectPlayer?.(player);
     }
@@ -171,7 +171,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   const isDisrupter =
     office === 'CHIEF_FIRE_MARSHAL' ||
-    office === 'PRISON_WARDEN';
+    office === 'PRISON_WARDEN' ||
+    roleName.includes('blocker') ||
+    localizedRole.includes('gözbağlayıcı');
 
   const isMisdirector = office === 'BLACK_MARKET_BROKER';
 
@@ -669,87 +671,128 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                MÜŞAHİDƏÇİ REJİMİ AKTİVDİR (Səsvermə və əmrlər deaktivdir)
             </span>
         </div>
-      ) : (
-        <div className="sticky bottom-0 sm:bottom-4 z-50 p-4 sm:p-5 rounded-t-[24px] sm:rounded-[24px] border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.1)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-300 w-full mb-0 sm:mb-4 border-b-0 sm:border-b">
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
-            isNightPhase
-              ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
-              : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
-          }`}>
-            <Target className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
-              {isNightPhase
-                ? `${AZ_UI.nightOrder} & Əməliyyat Paneli`
-                : isVotingPhase
-                ? 'Gündüz Məhkəməsi & İttiham Səsverməsi'
-                : 'Müzakirə Fazası'}
-            </span>
-            <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              {isNightPhase && !canActAtNight
-                ? 'Siz Məsum Vətəndaşsınız. Şəhər yatır... Səhəri gözləyin.'
-                : selectedPlayerId
-                ? `Seçilmiş Hədəf: ${
-                    lobbyState.players[selectedPlayerId]?.username ?? selectedPlayerId
-                  }`
-                : isNightPhase
-                ? 'Əmr icra etmək üçün yuxarıdakı kartlardan hədəf seçin'
-                : isVotingPhase
-                ? 'Səs vermək üçün yuxarıdakı kartlardan namizəd seçin'
-                : 'Müzakirə davam edir, söz hüququndan istifadə edin'}
-            </div>
-          </div>
-        </div>
+      ) : (() => {
+          const selectedPlayer = selectedPlayerId ? lobbyState.players[selectedPlayerId] : null;
+          const isSelectedTargetDead = selectedPlayer ? !selectedPlayer.isAlive : false;
+          const isSelectedTargetSelf = selectedPlayerId === currentUserId;
 
-        {isNightPhase ? (
-          canActAtNight ? (
-            <Button
-              variant="purple"
-              size="md"
-              disabled={
-                !isAlive ||
-                !selectedPlayerId ||
-                (primaryActionType !== 'PROTECT' && selectedPlayerId === currentUserId)
-              }
-              onClick={() => {
-                if (selectedPlayerId && onTriggerAction) {
-                  onTriggerAction(primaryActionType, selectedPlayerId);
-                }
-              }}
-              icon={<Zap className="w-4 h-4" />}
-              className="shrink-0"
-            >
-              {primaryActionLabel}
-            </Button>
-          ) : (
-            <Button
-              variant="secondary"
-              size="md"
-              disabled
-              className="shrink-0 opacity-70"
-            >
-              💤 Şəhər Yatır
-            </Button>
-          )
-        ) : isVotingPhase ? (
-          <Button
-            variant="danger"
-            size="md"
-            disabled={!isAlive || !selectedPlayerId || selectedPlayerId === currentUserId}
-            onClick={() => {
-              if (selectedPlayerId && onCastVote) {
-                onCastVote(selectedPlayerId);
-              }
-            }}
-            className="shrink-0"
-          >
-            Səs Ver
-          </Button>
-        ) : null}
-      </div>
-      )}
+          return (
+            <div className="sticky bottom-0 sm:bottom-4 z-50 p-4 sm:p-5 rounded-t-[24px] sm:rounded-[24px] border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.1)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-300 w-full mb-0 sm:mb-4 border-b-0 sm:border-b">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                  isNightPhase
+                    ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
+                    : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
+                }`}>
+                  <Target className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
+                    {isNightPhase
+                      ? `${AZ_UI.nightOrder} & Əməliyyat Paneli`
+                      : isVotingPhase
+                      ? 'Gündüz Məhkəməsi & İttiham Səsverməsi'
+                      : 'Müzakirə Fazası'}
+                  </span>
+                  <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 flex-wrap">
+                    {isNightPhase && !canActAtNight ? (
+                      'Siz Məsum Vətəndaşsınız. Şəhər yatır... Səhəri gözləyin.'
+                    ) : selectedPlayerId ? (
+                      <>
+                        <span>
+                          Seçilmiş Hədəf:{' '}
+                          <strong className="text-purple-600 dark:text-purple-400">
+                            {selectedPlayer?.username ?? selectedPlayerId}
+                          </strong>
+                        </span>
+                        {isSelectedTargetDead && (
+                          <span className="text-xs text-red-500 font-bold bg-red-500/10 px-2 py-0.5 rounded-md">
+                            ⚠️ Ələnib (Seçilə bilməz)
+                          </span>
+                        )}
+                        {isSelectedTargetSelf && primaryActionType !== 'PROTECT' && isNightPhase && (
+                          <span className="text-xs text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md">
+                            ⚠️ Özünüzü seçə bilməzsiniz
+                          </span>
+                        )}
+                        {isSelectedTargetSelf && isVotingPhase && (
+                          <span className="text-xs text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md">
+                            ⚠️ Özünüzə səs verə bilməzsiniz
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPlayerId(null)}
+                          className="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 underline cursor-pointer ml-1"
+                        >
+                          Seçimi ləğv et
+                        </button>
+                      </>
+                    ) : isNightPhase ? (
+                      'Əmr icra etmək üçün yuxarıdakı kartlardan hədəf seçin'
+                    ) : isVotingPhase ? (
+                      'Səs vermək üçün yuxarıdakı kartlardan namizəd seçin'
+                    ) : (
+                      'Müzakirə davam edir, söz hüququndan istifadə edin'
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {isNightPhase ? (
+                canActAtNight ? (
+                  <Button
+                    variant="purple"
+                    size="md"
+                    disabled={
+                      !isAlive ||
+                      !selectedPlayerId ||
+                      isSelectedTargetDead ||
+                      (primaryActionType !== 'PROTECT' && isSelectedTargetSelf)
+                    }
+                    onClick={() => {
+                      if (selectedPlayerId && onTriggerAction) {
+                        onTriggerAction(primaryActionType, selectedPlayerId);
+                      }
+                    }}
+                    icon={<Zap className="w-4 h-4" />}
+                    className="shrink-0"
+                  >
+                    {primaryActionLabel}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    disabled
+                    className="shrink-0 opacity-70"
+                  >
+                    💤 Şəhər Yatır
+                  </Button>
+                )
+              ) : isVotingPhase ? (
+                <Button
+                  variant="danger"
+                  size="md"
+                  disabled={
+                    !isAlive ||
+                    !selectedPlayerId ||
+                    isSelectedTargetDead ||
+                    isSelectedTargetSelf
+                  }
+                  onClick={() => {
+                    if (selectedPlayerId && onCastVote) {
+                      onCastVote(selectedPlayerId);
+                    }
+                  }}
+                  className="shrink-0"
+                >
+                  Səs Ver
+                </Button>
+              ) : null}
+            </div>
+          );
+        })()}
     </div>
   );
 };

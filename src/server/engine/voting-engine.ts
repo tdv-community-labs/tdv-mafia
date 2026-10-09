@@ -128,10 +128,11 @@ function determineLynchOutcome(
     return { kind: 'TIE', tiedCandidateIds: tied };
   }
 
-  // Majority check: must exceed 50% of weighted eligible votes
+  // Majority check: must exceed 50% of eligible voters (raw count or civic weighted bonus)
   const totalWeight = tallies.reduce((sum, t) => sum + t.voteWeight, 0);
   const quorum = totalEligibleVoters === 0 ? 0 : Math.floor(totalEligibleVoters / 2) + 1;
-  if (top.voteCount < quorum && !wrathMandatoryLynch) {
+  const effectiveVotes = Math.max(top.voteCount, top.voteWeight);
+  if (effectiveVotes < quorum && !wrathMandatoryLynch) {
     return { kind: 'NO_LYNCH', reason: 'QUORUM_NOT_MET' };
   }
 

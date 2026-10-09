@@ -62,12 +62,12 @@ function distributeSecretRoles(lobby: LobbyState): LobbyState {
   const roleDeck: Array<{ nickname: string; base: string; az: string; faction: CoreFaction; office: any }> = [];
 
   const addM1 = () => roleDeck.push({ nickname: isInferno ? 'Malebranche' : 'Qatil (Don)', base: 'Killer', az: 'Mafiya (Qatil)', faction: 'MAFIA', office: 'PUBLIC_DEFENDER' });
-  const addM2 = () => roleDeck.push({ nickname: isInferno ? 'Yalançı Ruh' : 'Şərr Atan (Framer)', base: 'Framer', az: 'Şərr Atan', faction: 'MAFIA', office: 'MEDIA_MANIPULATOR' });
+  const addM2 = () => roleDeck.push({ nickname: isInferno ? 'Yalançı Ruh' : 'Şərr Atan (Framer)', base: 'Framer', az: 'Şərr Atan', faction: 'MAFIA', office: 'MEDIA_MOGUL' });
   const addM3 = () => roleDeck.push({ nickname: isInferno ? 'Zülmət Elçisi' : 'Mafiya Üzvü', base: 'Killer', az: 'Mafiya Üzvü', faction: 'MAFIA', office: 'PUBLIC_DEFENDER' });
 
   const addT1 = () => roleDeck.push({ nickname: isInferno ? 'Mərhəmət Mələyi' : 'Həkim', base: 'Doctor', az: 'Həkim', faction: 'TOWN', office: 'CITY_SURGEON' });
   const addT2 = () => roleDeck.push({ nickname: isInferno ? 'Vergili' : 'Şərif', base: 'Investigator', az: 'Şərif', faction: 'TOWN', office: 'CITY_INVESTIGATOR' });
-  const addT3 = () => roleDeck.push({ nickname: isInferno ? 'Sirena' : 'Gözbağlayıcı', base: 'Blocker', az: 'Gözbağlayıcı', faction: 'TOWN', office: 'CITY_NIGHTLIFE' });
+  const addT3 = () => roleDeck.push({ nickname: isInferno ? 'Sirena' : 'Gözbağlayıcı', base: 'Blocker', az: 'Gözbağlayıcı', faction: 'TOWN', office: 'CHIEF_FIRE_MARSHAL' });
 
   const addN1 = () => roleDeck.push({ nickname: isInferno ? 'Kafirlərin Lideri' : 'Dəli (Jester)', base: 'Jester', az: 'Dəli', faction: 'NEUTRAL_EVIL', office: 'PUBLIC_DEFENDER' });
   const addNK1 = () => roleDeck.push({ nickname: isInferno ? 'İblisin Kölgəsi' : 'Manyak (Serial Killer)', base: 'SerialKiller', az: 'Manyak', faction: 'NEUTRAL_KILLER', office: 'PUBLIC_DEFENDER' });
@@ -427,8 +427,10 @@ export async function GET(request: Request, context: RouteContext) {
           f === 'NEUTRAL_KILLER' ||
           off === 'CITY_SURGEON' ||
           off === 'CITY_INVESTIGATOR' ||
+          off === 'POLICE_COMMISSIONER' ||
           off === 'CHIEF_FIRE_MARSHAL' ||
-          off === 'PRISON_WARDEN'
+          off === 'PRISON_WARDEN' ||
+          off === 'BLACK_MARKET_BROKER'
         );
       });
 
@@ -733,8 +735,10 @@ export async function POST(request: Request, context: RouteContext) {
           f === 'NEUTRAL_KILLER' ||
           off === 'CITY_SURGEON' ||
           off === 'CITY_INVESTIGATOR' ||
+          off === 'POLICE_COMMISSIONER' ||
           off === 'CHIEF_FIRE_MARSHAL' ||
-          off === 'PRISON_WARDEN'
+          off === 'PRISON_WARDEN' ||
+          off === 'BLACK_MARKET_BROKER'
         );
       });
       const actedSet = new Set(lobby.bufferedNightActions.map(a => a.actorPlayerId));

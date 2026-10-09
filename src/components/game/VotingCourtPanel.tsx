@@ -202,53 +202,76 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
 
       {/* Active Selection & Action Controls */}
       <div className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10 ${isAllIn ? 'rounded-none border-l-4 border-l-red-500 bg-zinc-900 border-y border-r border-zinc-800' : theme.courtActiveBox}`}>
-        <div>
-          <span className={`text-[11px] font-bold uppercase tracking-wider ${isAllIn ? 'text-red-400 font-mono tracking-widest' : 'text-zinc-500 dark:text-zinc-400'}`}>
-            Seçilmiş İttiham Hədəfi:
-          </span>
-          <div className={`font-extrabold ${isAllIn ? 'text-2xl text-white font-mono tracking-wider' : 'text-sm text-zinc-900 dark:text-zinc-100'}`}>
-            {selectedCandidateId
-              ? lobbyState.players[selectedCandidateId]?.username ?? selectedCandidateId
-              : 'Heç bir oyunçu seçilməyib (kartlardan birinə toxunun)'}
-          </div>
-          {currentVotedCandidateId && (
-            <div className="text-xs text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
-              Sizin cari səsiniz:{' '}
-              {lobbyState.players[currentVotedCandidateId]?.username ??
-                currentVotedCandidateId}
-            </div>
-          )}
-        </div>
+        {(() => {
+          const selectedPlayer = selectedCandidateId ? lobbyState.players[selectedCandidateId] : null;
+          const isSelectedDead = selectedPlayer ? !selectedPlayer.isAlive : false;
+          const isSelectedSelf = selectedCandidateId === currentUserId;
 
-        <div className="flex items-center gap-2 flex-wrap">
-          {currentVotedCandidateId && (
-            <button
-              className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest rounded-xl shadow-md transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
-              onClick={onRetractVote} disabled={!isAlive}
-            >
-              {AZ_UI.retractVote}
-            </button>
-          )}
+          return (
+            <>
+              <div>
+                <span className={`text-[11px] font-bold uppercase tracking-wider ${isAllIn ? 'text-red-400 font-mono tracking-widest' : 'text-zinc-500 dark:text-zinc-400'}`}>
+                  Seçilmiş İttiham Hədəfi:
+                </span>
+                <div className={`font-extrabold flex items-center gap-2 flex-wrap ${isAllIn ? 'text-2xl text-white font-mono tracking-wider' : 'text-sm text-zinc-900 dark:text-zinc-100'}`}>
+                  {selectedCandidateId
+                    ? selectedPlayer?.username ?? selectedCandidateId
+                    : 'Heç bir oyunçu seçilməyib (kartlardan birinə toxunun)'}
+                  {isSelectedDead && (
+                    <span className="text-xs text-red-500 font-bold bg-red-500/10 px-2 py-0.5 rounded-md">
+                      ⚠️ Ələnmiş oyunçuya səs verilə bilməz
+                    </span>
+                  )}
+                  {isSelectedSelf && (
+                    <span className="text-xs text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md">
+                      ⚠️ Özünüzə səs verə bilməzsiniz
+                    </span>
+                  )}
+                </div>
+                {currentVotedCandidateId && (
+                  <div className="text-xs text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
+                    Sizin cari səsiniz:{' '}
+                    {lobbyState.players[currentVotedCandidateId]?.username ??
+                      currentVotedCandidateId}
+                  </div>
+                )}
+              </div>
 
-          {!isWrath && onSkipVote && (
-            <button
-              className="px-6 py-2.5 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white border-2 border-zinc-300 dark:border-zinc-700 font-black uppercase tracking-widest rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
-              onClick={onSkipVote} disabled={!isAlive}
-            >
-              {AZ_UI.skipOrAbstain}
-            </button>
-          )}
+              <div className="flex items-center gap-2 flex-wrap">
+                {currentVotedCandidateId && (
+                  <button
+                    type="button"
+                    className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest rounded-xl shadow-md transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 cursor-pointer"
+                    onClick={onRetractVote} disabled={!isAlive}
+                  >
+                    {AZ_UI.retractVote}
+                  </button>
+                )}
 
-          <button
-            className="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-widest rounded-xl shadow-[0_4px_14px_0_rgba(220,38,38,0.39)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 disabled:shadow-none"
-            disabled={
-              !isAlive || !selectedCandidateId || currentVotedCandidateId === selectedCandidateId
-            }
-            onClick={() => selectedCandidateId && onCastVote(selectedCandidateId)}
-          >
-            {AZ_UI.vote}
-          </button>
-        </div>
+                {!isWrath && onSkipVote && (
+                  <button
+                    type="button"
+                    className="px-6 py-2.5 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white border-2 border-zinc-300 dark:border-zinc-700 font-black uppercase tracking-widest rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 cursor-pointer"
+                    onClick={onSkipVote} disabled={!isAlive}
+                  >
+                    {AZ_UI.skipOrAbstain}
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  className="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-widest rounded-xl shadow-[0_4px_14px_0_rgba(220,38,38,0.39)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 disabled:shadow-none cursor-pointer"
+                  disabled={
+                    !isAlive || !selectedCandidateId || isSelectedDead || isSelectedSelf || currentVotedCandidateId === selectedCandidateId
+                  }
+                  onClick={() => selectedCandidateId && onCastVote(selectedCandidateId)}
+                >
+                  {AZ_UI.vote}
+                </button>
+              </div>
+            </>
+          );
+        })()}
       </div>
     </div>
   );

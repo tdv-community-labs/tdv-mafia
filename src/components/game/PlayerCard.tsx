@@ -114,7 +114,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
   } else if (isAccused) {
     containerClasses = 'bg-red-500/10 dark:bg-red-950/40 border-red-500 border border-red-500/50 shadow-[0_0_25px_rgba(239,68,68,0.4)]';
   } else if (isSelected) {
-    containerClasses = 'bg-blue-50/90 dark:bg-blue-950/50 border-blue-500 border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]/40 shadow-lg shadow-blue-500/20';
+    containerClasses = 'bg-blue-50/90 dark:bg-blue-950/50 border-blue-500 ring-2 ring-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.35)]';
   } else if (isSpeaking) {
     containerClasses = 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-500/40 shadow-lg shadow-emerald-500/20';
   } else if (isCurrentTurn) {
@@ -129,8 +129,17 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
   return (
     <div
       onClick={handleClick}
-      className={`group relative rounded-[20px] ${isCompact ? "p-2 min-h-[60px]" : "p-4 min-h-[120px]"} border transition-all duration-300 flex flex-col justify-between gap-3 overflow-hidden select-none ${
-        onSelect ? 'cursor-pointer hover:' : 'cursor-default'
+      onKeyDown={(e) => {
+        if (onSelect && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
+      role={onSelect ? 'button' : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      style={style}
+      className={`group relative rounded-[20px] ${isCompact ? "p-2 min-h-[60px]" : "p-4 min-h-[120px]"} border transition-all duration-300 flex flex-col justify-between gap-3 overflow-hidden select-none outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${
+        onSelect ? 'cursor-pointer hover:scale-[1.02] hover:shadow-md active:scale-[0.98]' : 'cursor-default'
       } ${containerClasses}`}
     >
       
@@ -346,6 +355,9 @@ export const PlayerCard = React.memo(PlayerCardComponent, (prev, next) => {
     prev.isSpeaking === next.isSpeaking &&
     prev.isViewerMafia === next.isViewerMafia &&
     prev.isGameOver === next.isGameOver &&
+    prev.isCompact === next.isCompact &&
+    prev.onSelect === next.onSelect &&
+    prev.onKick === next.onKick &&
     prev.targetIntent === next.targetIntent &&
     prev.activeEmote === next.activeEmote &&
     JSON.stringify(prev.voterUsernames) === JSON.stringify(next.voterUsernames) &&
