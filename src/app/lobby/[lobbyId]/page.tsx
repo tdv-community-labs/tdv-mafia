@@ -638,11 +638,17 @@ export default function LobbyPage({ params }: LobbyPageProps) {
               <strong className="text-zinc-900 dark:text-zinc-100">{totalPlayersCount} Oyunçu</strong>
             </span>
             <span>•</span>
-            <span>
-              Siz:{' '}
-              <strong className="text-zinc-900 dark:text-zinc-100">{currentUsername}</strong>{' '}
-              {isHost && <span className="text-amber-600 dark:text-amber-400 font-bold">(Host)</span>}
-            </span>
+            <button
+              type="button"
+              onClick={() => setIsProfileOpen(true)}
+              className="inline-flex items-center gap-1.5 hover:text-purple-400 transition-colors cursor-pointer group text-left"
+              title="Profil və Ləqəb Düzəlişi"
+            >
+              <span>Siz:</span>
+              <strong className="text-zinc-900 dark:text-zinc-100 group-hover:underline underline-offset-2">{currentUsername}</strong>
+              <User className="w-3.5 h-3.5 text-zinc-400 group-hover:text-purple-400" />
+            </button>
+            {isHost && <span className="text-amber-600 dark:text-amber-400 font-bold">(Host)</span>}
           </div>
         </div>
 
@@ -655,6 +661,15 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             icon={copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <LinkIcon className="w-4 h-4" />}
           >
             {copiedLink ? 'Link Kopyalandı' : 'Dəvət Linkini Kopyala'}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsRulesOpen(true)}
+            icon={<BookOpen className="w-4 h-4 text-purple-400" />}
+          >
+            Qaydalar
           </Button>
 
           {/* Sound Toggle in Lobby */}
@@ -1341,6 +1356,10 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         isOpen={isGraveyardOpen}
         onClose={() => setIsGraveyardOpen(false)}
         players={lobbyState.players}
+      />
+      <RulesModal
+        isOpen={isRulesOpen}
+        onClose={() => setIsRulesOpen(false)}
       />
 
     </div>
