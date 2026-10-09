@@ -16,7 +16,14 @@ const GameIntroOverlayComponent: React.FC<GameIntroOverlayProps> = ({ phase, rol
   const [isFlipped, setIsFlipped] = useState(false);
 
   useEffect(() => {
-    if (phase !== 'LOBBY' && phase !== 'ENDED' && !hasShown) {
+    if (phase === 'LOBBY') {
+      setHasShown(false);
+      setShow(false);
+      setIsFlipped(false);
+      return;
+    }
+
+    if (phase !== 'ENDED' && !hasShown) {
       setHasShown(true);
       setShow(true);
       

@@ -245,6 +245,13 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
                 </span>
               )}
 
+              {isAfk && !isBot && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-zinc-500/15 text-zinc-500 dark:text-zinc-400 font-semibold px-1.5 py-0.2 rounded-md border border-zinc-500/20 shrink-0" title="Əlaqə kəsilib və ya passivdir">
+                  <WifiOff className="w-2.5 h-2.5" />
+                  Oflayn
+                </span>
+              )}
+
               {isSpeaking && (
                 <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.2 rounded-full font-bold border border-emerald-500/30 animate-pulse shrink-0">
                   <Mic className="w-2.5 h-2.5" />

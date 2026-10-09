@@ -15,8 +15,8 @@ export const RoleRevealOverlay = React.memo(({ displayRole, faction, phase, roun
   const [isRendered, setIsRendered] = useState(false);
 
   useEffect(() => {
-    // Only reveal when the first night starts
-    if (roundNumber === 1 && phase === 'NIGHT_BUFFER') {
+    // Only reveal when the first round starts
+    if (roundNumber === 1 && (phase === 'NIGHT_BUFFER' || phase === 'DAY_REGIONAL_CAUCUS')) {
       setIsRendered(true);
       setShow(true);
       const t = setTimeout(() => setShow(false), 5000); // 5 seconds dramatic reveal

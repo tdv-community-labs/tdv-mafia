@@ -24,9 +24,15 @@ const PhaseTransitionOverlayComponent: React.FC<PhaseTransitionOverlayProps> = (
   }, [show]);
 
   useEffect(() => {
+    if (phase === 'LOBBY') {
+      setCurrentPhase(null);
+      setShow(false);
+      return;
+    }
+
     if (
       phase !== currentPhase &&
-      ['DAY_DISCUSSION', 'DAY_CENTRAL_ASSEMBLY', 'DAY_VOTING', 'NIGHT_ACTION', 'NIGHT_BUFFER'].includes(phase)
+      ['DAY_DISCUSSION', 'DAY_CENTRAL_ASSEMBLY', 'DAY_REGIONAL_CAUCUS', 'DAY_VOTING', 'NIGHT_ACTION', 'NIGHT_BUFFER'].includes(phase)
     ) {
       setCurrentPhase(phase);
       setShow(true);
@@ -56,10 +62,10 @@ const PhaseTransitionOverlayComponent: React.FC<PhaseTransitionOverlayProps> = (
   let bgClass = 'bg-amber-500/10';
   let textClass = 'text-amber-500';
 
-  if (phase.includes('DAY_DISCUSSION') || phase.includes('DAY_CENTRAL_ASSEMBLY')) {
+  if (phase.includes('DAY_DISCUSSION') || phase.includes('DAY_CENTRAL_ASSEMBLY') || phase.includes('DAY_REGIONAL_CAUCUS')) {
     Icon = Sun;
-    title = 'Səhər Açılır';
-    subtitle = 'Şəhər oyanır. Hadisələri müzakirə etmək vaxtıdır.';
+    title = phase === 'DAY_REGIONAL_CAUCUS' ? 'Regional Kvartal Toplantısı' : 'Səhər Açılır';
+    subtitle = phase === 'DAY_REGIONAL_CAUCUS' ? 'Kvartal sakinləri toplaşır və finalçıları müəyyənləşdirir.' : 'Şəhər oyanır. Hadisələri müzakirə etmək vaxtıdır.';
     bgClass = 'bg-amber-500/10';
     textClass = 'text-amber-500';
   } else if (phase.includes('DAY_VOTING')) {

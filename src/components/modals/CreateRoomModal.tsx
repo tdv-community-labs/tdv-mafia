@@ -57,10 +57,23 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
 
     let hostName = 'Host';
     try {
-      const saved = localStorage.getItem('tdv_mafia_user');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed?.username) hostName = parsed.username;
+      const customName = localStorage.getItem('mafia_username');
+      if (customName && customName.trim()) {
+        hostName = customName.trim();
+      } else {
+        const ecoRaw = localStorage.getItem('tdv_ecosystem_session_v1');
+        if (ecoRaw) {
+          const parsedEco = JSON.parse(ecoRaw);
+          if (parsedEco?.fullName || parsedEco?.username) {
+            hostName = parsedEco.fullName || parsedEco.username;
+          }
+        } else {
+          const saved = localStorage.getItem('tdv_mafia_user');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed?.username) hostName = parsed.username;
+          }
+        }
       }
     } catch {
       // Ignore

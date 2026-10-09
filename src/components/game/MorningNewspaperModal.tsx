@@ -152,12 +152,12 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
                       </div>
                     )}
 
-                    {/* Son Vasiyət — Last Will */}
+                    {/* Son Vəsiyyət — Last Will */}
                     {lastWill && (
                       <div className="mt-2 p-2.5 rounded-md border border-amber-300/60 dark:border-amber-700/50 bg-amber-50/80 dark:bg-amber-950/30 flex flex-col gap-1">
                         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-amber-700 dark:text-amber-400">
                           <Mail className="w-3 h-3 shrink-0" />
-                          Son Vasiyət
+                          Son Vəsiyyət
                         </div>
                         <p className="text-xs italic text-amber-900 dark:text-amber-200 leading-relaxed">
                           &ldquo;{lastWill}&rdquo;

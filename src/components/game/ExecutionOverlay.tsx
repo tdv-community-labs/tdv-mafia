@@ -13,6 +13,11 @@ const ExecutionOverlayComponent: React.FC<ExecutionOverlayProps> = ({ lynchedPla
   const [currentPlayer, setCurrentPlayer] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!lynchedPlayerName) {
+      setCurrentPlayer(null);
+      setShow(false);
+      return;
+    }
     if (lynchedPlayerName && lynchedPlayerName !== currentPlayer) {
       setCurrentPlayer(lynchedPlayerName);
       setShow(true);

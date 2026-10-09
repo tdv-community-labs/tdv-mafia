@@ -300,6 +300,20 @@ export default function LobbyPage({ params }: LobbyPageProps) {
     [lobbyId, currentUserId, currentUsername]
   );
 
+  // Sync username changes from Navbar Profile modal
+  useEffect(() => {
+    const handleUpdateUsernameEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      const newName = customEvent.detail;
+      if (newName && newName.trim()) {
+        setCurrentUsername(newName.trim());
+        dispatchAction({ action: 'UPDATE_NAME', newName: newName.trim() });
+      }
+    };
+    window.addEventListener('update_username', handleUpdateUsernameEvent);
+    return () => window.removeEventListener('update_username', handleUpdateUsernameEvent);
+  }, [dispatchAction]);
+
   // Copy Room Link to Clipboard with vibrant green toast feedback
   const handleCopyLink = () => {
     if (typeof window !== 'undefined') {
@@ -1036,6 +1050,14 @@ export default function LobbyPage({ params }: LobbyPageProps) {
           <CinematicVignette phase={lobbyState.phase} />
           <PhaseTransitionOverlay phase={lobbyState.phase} />
           <ExecutionOverlay lynchedPlayerName={lastLynchedName} lynchedRole={lastLynchedRole} />
+          {myPlayerSession && (
+            <RoleRevealOverlay
+              displayRole={myPlayerSession.displayRole}
+              faction={myFaction as any}
+              phase={lobbyState.phase}
+              roundNumber={lobbyState.roundNumber}
+            />
+          )}
 
           {/* Interactive Game Board */}
           <GameBoard

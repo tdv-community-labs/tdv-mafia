@@ -469,6 +469,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           canSeeVotes={canSeeVotes}
           onCastVote={onCastVote}
           onRetractVote={onRetractVote}
+          onSkipVote={onRetractVote}
         />
       )}
 
