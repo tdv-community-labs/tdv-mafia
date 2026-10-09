@@ -87,8 +87,18 @@ export interface DantesInfernoEngineOutput {
 export function advanceDantesInfernoCircle(input: DantesInfernoEngineInput): DantesInfernoEngineOutput {
   const { currentState, phase, roundNumber, publicDeaths, players, greedAbilityUsers, lynchedPlayerId } = input;
 
+  const currentConfig = DANTE_CIRCLE_DEFINITIONS[currentState.currentCircle];
+  const isNightPhase = phase === 'NIGHT_BUFFER';
+  const isDayPhase = !isNightPhase && phase !== 'LOBBY' && phase !== 'ENDED';
+
+  // Only advance across the Day <-> Night boundary:
+  // e.g. currently in DAY circle and entering NIGHT, or currently in NIGHT circle and entering DAY
+  const shouldAdvance =
+    (currentConfig.activePhaseType === 'DAY' && isNightPhase) ||
+    (currentConfig.activePhaseType === 'NIGHT' && isDayPhase);
+
   const currentIndex = DANTE_CIRCLES_ORDER.indexOf(currentState.currentCircle);
-  const nextIndex = currentIndex + 1;
+  const nextIndex = shouldAdvance ? currentIndex + 1 : currentIndex;
   const nextCircle: DanteCircle | null =
     nextIndex < DANTE_CIRCLES_ORDER.length ? (DANTE_CIRCLES_ORDER[nextIndex] ?? null) : null;
 
@@ -99,7 +109,11 @@ export function advanceDantesInfernoCircle(input: DantesInfernoEngineInput): Dan
   const circleConfig = DANTE_CIRCLE_DEFINITIONS[activeCircle];
 
   // Track greed debts (players who used abilities owe their next vote)
-  const updatedGreedDebts: Record<string, boolean> = { ...currentState.greedVoteCostDebts };
+  // When entering Night after Day voting, fulfilled debts from the previous round are cleared
+  let updatedGreedDebts: Record<string, boolean> = { ...currentState.greedVoteCostDebts };
+  if (isNightPhase && currentState.currentCircle !== 'CIRCLE_4_GREED') {
+    updatedGreedDebts = {};
+  }
   for (const userId of greedAbilityUsers) {
     updatedGreedDebts[userId] = true;
   }
@@ -298,7 +312,10 @@ export interface ValkyrieEngineOutput {
  *     (phase = DAY_CENTRAL_ASSEMBLY): Dictator is assassinated.
  *   - Otherwise: the current holder is eliminated by the blast.
  */
-export function processValkyrieRound(input: ValkyrieEngineInput): ValkyrieEngineOutput {
+export function processValkyrieRound(
+  input: ValkyrieEngineInput,
+  players?: Readonly<Record<string, PlayerSession>>
+): ValkyrieEngineOutput {
   const { currentState, briefcasePassTargetId, isDayPhase } = input;
 
   if (currentState.briefcaseDetonated || currentState.dictatorAssassinated) {
@@ -311,16 +328,23 @@ export function processValkyrieRound(input: ValkyrieEngineInput): ValkyrieEngine
     };
   }
 
-  // Transfer briefcase if valid pass submitted during Day
+  // Transfer briefcase if valid pass submitted during Day to an alive player
   let newHolderId = currentState.briefcaseLocationPlayerId;
   if (isDayPhase && briefcasePassTargetId) {
-    // Validate: holder must be a conspirator or the current holder to transfer
+    const isTargetAlive = players ? (players[briefcasePassTargetId]?.isAlive ?? true) : true;
     const isValidTransfer =
-      currentState.conspiratorPlayerIds.includes(briefcasePassTargetId) ||
-      briefcasePassTargetId === currentState.dictatorPlayerId; // forced hand-off
+      isTargetAlive &&
+      (currentState.conspiratorPlayerIds.includes(briefcasePassTargetId) ||
+       briefcasePassTargetId === currentState.dictatorPlayerId); // forced hand-off
     if (isValidTransfer) {
       newHolderId = briefcasePassTargetId;
     }
+  }
+
+  // If current holder died, automatically transfer briefcase to the first alive conspirator
+  if (players && newHolderId && !players[newHolderId]?.isAlive) {
+    const aliveConspirators = currentState.conspiratorPlayerIds.filter(id => players[id]?.isAlive);
+    newHolderId = aliveConspirators[0] ?? null;
   }
 
   // Decrement fuse on Day phase ticks
@@ -673,7 +697,7 @@ export function dispatchMinigamePhaseEvent(input: MinigamePhaseEventInput): Mini
       currentState:            minigameSubStates.valkyrie,
       briefcasePassTargetId:   input.valkyrieBriefcasePassTarget,
       isDayPhase,
-    });
+    }, players);
     updatedValkyrie = valkyrieResult.updatedState;
   }
 

@@ -21,7 +21,9 @@ import {
   PlayerSession,
 } from '../../types/game';
 import { CoreFaction, InnateTraitType } from '../../types/roles';
-import { DantesInfernoState } from '../../types/minigames';
+import { DantesInfernoState, MinigameSubStates } from '../../types/minigames';
+import { applyWorldFreeze } from './minigames-engine';
+import { generateProceduralStory } from '../ai/ai-narrator';
 import {
   DeathCause,
   InvestigationResult,
@@ -224,7 +226,8 @@ function applyKills(
   players: Readonly<Record<string, PlayerSession>>,
   globalNightKillCap: number,
   danteState: DantesInfernoState | undefined,
-  roundNumber: number
+  roundNumber: number,
+  minigameSubStates?: MinigameSubStates
 ): { deaths: NightDeathRecord[]; updatedPlayers: Record<string, PlayerSession>; updatedFlags: Record<string, NightResolutionFlags>; mutinyActive?: boolean; mutineerIds?: string[]; protectedIds: string[] } {
   // Mutiny tracking
   let overallMutinyActive = false;
@@ -438,6 +441,19 @@ function applyKills(
       continue;
     }
 
+    // Catenaccio defensive wall armor absorption:
+    // Non-pierced attacks against wall players are absorbed by armor charges
+    if (minigameSubStates?.catenaccio && !minigameSubStates.catenaccio.wallBreached && !piercePresent) {
+      const catenaccio = minigameSubStates.catenaccio;
+      if (catenaccio.defensiveWallPlayerIds.includes(targetId)) {
+        const remainingArmor = catenaccio.armorCharges[targetId] ?? 0;
+        if (remainingArmor > 0) {
+          if (!protectedIds.includes(targetId)) protectedIds.push(targetId);
+          continue; // Attack absorbed by Catenaccio defensive wall armor!
+        }
+      }
+    }
+
     // POISON_IMMUNITY: immune to indirect/cult-vector kills (not direct faction kill)
     if (targetFlags.poisonImmune) {
       const directKill = targetAttempts.filter(a => a.killerFaction === 'MAFIA' || a.killerFaction === 'YAKUZA');
@@ -467,6 +483,22 @@ function applyKills(
           killsThisNight++;
         }
       }
+    }
+  }
+
+  // The Day the Earth Stood Still: Gort cosmic laser vaporisation
+  if (minigameSubStates?.earthStoodStill?.gortTargetPlayerId && killsThisNight < globalNightKillCap) {
+    const gortTargetId = minigameSubStates.earthStoodStill.gortTargetPlayerId;
+    const gortVictim = playerMap[gortTargetId];
+    if (gortVictim && gortVictim.isAlive) {
+      playerMap[gortTargetId] = { ...gortVictim, isAlive: false };
+      deaths.push({
+        victimPlayerId: gortTargetId,
+        cause: 'GORT_VAPORISATION',
+        killerFaction: null,
+        isCleaned: false,
+      });
+      killsThisNight++;
     }
   }
 
@@ -629,6 +661,13 @@ export function resolveNightActions(input: NightResolverInput): NightResolutionO
   // Dante CIRCLE_2_LUST: 20% deflection on all targeted actions
   const deflectionRate = danteState?.deflectionRate ?? 0;
   let actions = bufferedNightActions;
+
+  // The Day the Earth Stood Still: Klaatu World Freeze
+  const earthState = minigameSubStates.earthStoodStill;
+  if (earthState?.worldFrozenActive) {
+    actions = applyWorldFreeze(actions, earthState);
+  }
+
   if (deflectionRate > 0) {
     const playerIds = Object.keys(players);
     actions = actions.map(a => {
@@ -654,7 +693,7 @@ export function resolveNightActions(input: NightResolverInput): NightResolutionO
   applyProtections(actions, flags);
 
   // P4: Kill & Crossfire
-  const killResult = applyKills(actions, flags, players, globalNightKillCap, danteState, roundNumber);
+  const killResult = applyKills(actions, flags, players, globalNightKillCap, danteState, roundNumber, minigameSubStates);
   flags = killResult.updatedFlags;
   const killedPlayers = killResult.updatedPlayers;
   const protectedIds = killResult.protectedIds;
@@ -707,11 +746,23 @@ export function resolveNightActions(input: NightResolverInput): NightResolutionO
     }
   }
 
+  const storyResult = generateProceduralStory(
+    roundNumber,
+    publicDeaths,
+    players,
+    killResult.protectedIds,
+    minigameSubStates
+  );
+
   const newspaper: MorningNewspaper = {
+    roundNumber,
+    headline: storyResult.headline,
+    story: storyResult.story,
     publicDeaths,
     privateInvestigationResults: investigationResults,
     heresyClue,
     jitterAppliedMs: jitterMs,
+    protectedIds: killResult.protectedIds,
   };
 
   return {

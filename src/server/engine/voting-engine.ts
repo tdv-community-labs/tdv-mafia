@@ -207,8 +207,17 @@ export function runVotingEngine(input: VotingEngineInput): VotingEngineOutput {
     ? { ...liveVotes }
     : null;
 
-  // Voting map used for counting: in blind mode, same data (sealed from clients via ZK emitter)
-  const effectiveLiveVotes: Readonly<Record<string, string>> = liveVotes;
+  // ── Dante CIRCLE_4_GREED & Stanford Solitary Confinement ───────────────────
+  // Exclude voters who owe their vote due to Greed night abilities or are held in solitary confinement
+  const greedDebts = danteState?.greedVoteCostDebts ?? {};
+  const solitaryInmates = new Set(minigameSubStates.stanfordPrison?.solitaryConfinementPlayerIds ?? []);
+
+  const effectiveLiveVotes: Record<string, string> = {};
+  for (const [voterId, candidateId] of Object.entries(liveVotes)) {
+    if (!greedDebts[voterId] && !solitaryInmates.has(voterId)) {
+      effectiveLiveVotes[voterId] = candidateId;
+    }
+  }
 
   // ── All-In District Plebiscite ────────────────────────────────────────────
   if (isAllIn && !centralAssemblyFinalists) {

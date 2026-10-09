@@ -78,9 +78,38 @@ export function evaluateWinCondition(lobby: LobbyState): WinConditionResult {
     };
   }
 
+  // ── Valkyrie Conspirator Victory ──────────────────────────────────────────
+  if (minigameSubStates.valkyrie?.dictatorAssassinated) {
+    return {
+      kind:            'TOWN_VICTORY',
+      winningFaction:  'TOWN',
+      winnerPlayerIds: [...minigameSubStates.valkyrie.conspiratorPlayerIds],
+      reason:          'Valkiriya Əməliyyatı: Portfel partlayışı ilə Diktator aradan qaldırıldı və Qəsdçilər qələbə qazandı!',
+    };
+  }
+
+  // ── Stanford Prison Riot Victory ──────────────────────────────────────────
+  if (minigameSubStates.stanfordPrison?.riotTriggered) {
+    const inmateWinners = minigameSubStates.stanfordPrison.inmatePlayerIds.filter(id => players[id]?.isAlive);
+    return {
+      kind:            'TOWN_VICTORY',
+      winningFaction:  'TOWN',
+      winnerPlayerIds: inmateWinners.length > 0 ? inmateWinners : [...minigameSubStates.stanfordPrison.inmatePlayerIds],
+      reason:          'Stanford Həbsxanası üsyanı: Bütün mühafizəçilər devrildi və məhbuslar azadlığı əldə etdi!',
+    };
+  }
+
   const aliveIds = countAllAlive(players);
   const aliveCount = aliveIds.length;
   if (aliveCount === 0) {
+    if (minigameSubStates.earthStoodStill?.planetaryWipeTriggered) {
+      return {
+        kind:            'TOWN_VICTORY',
+        winningFaction:  null,
+        winnerPlayerIds: [],
+        reason:          'Qiyamət Saatı 12-yə çatdı: Qort planetar məhv silahını işə saldı və bütün canlılar məhv edildi.',
+      };
+    }
     // Mutual elimination — Town wins by default
     return {
       kind:            'TOWN_VICTORY',

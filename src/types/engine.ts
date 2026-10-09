@@ -64,6 +64,7 @@ export interface MorningNewspaper {
   /** Deaths visible in the public morning report */
   readonly roundNumber?: number;
   readonly headline?: string;
+  readonly story?: string;
   readonly publicDeaths: readonly NightDeathRecord[];
   /** Private per-investigator clues (only sent to owning socket) */
   readonly privateInvestigationResults: readonly InvestigationResult[];

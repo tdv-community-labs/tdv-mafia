@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "tsx tests/verify-architecture.ts && tsx tests/test-ai-bot-game.ts"
+    "test": "tsx tests/verify-architecture.ts && tsx tests/test-ai-bot-game.ts && tsx tests/test-minigames-engine.ts"
   },
   "dependencies": {
     "@google/genai": "^2.3.0",

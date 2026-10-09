@@ -81,8 +81,8 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
           <div className="text-[11px] tracking-widest uppercase text-stone-600 dark:text-stone-400 font-sans font-bold">
             TDV MAFIA • Səhər Xüsusi Buraxılışı
           </div>
-          <h1 className="text-5xl sm:text-6xl font-black uppercase tracking-tighter my-2 text-zinc-900 dark:text-zinc-100 font-serif">
-            {AZ_UI.morningBulletin}
+          <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tight my-2 text-zinc-900 dark:text-zinc-100 font-serif leading-tight">
+            {newspaper.headline || AZ_UI.morningBulletin}
           </h1>
           <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 border-t border-zinc-500/20 pt-3 mt-2 font-mono uppercase tabular-nums font-bold tracking-widest">
             <span>Raund #{roundNumber}</span>
@@ -90,6 +90,13 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
             <span>Jitter: {(newspaper.jitterAppliedMs / 1000).toFixed(1)}s</span>
           </div>
         </div>
+
+        {/* Narrative Story (Gemini or Procedural) */}
+        {newspaper.story && (
+          <div className="p-4 rounded-xl border border-stone-300 dark:border-stone-800 bg-stone-100/90 dark:bg-stone-900/60 font-serif text-sm leading-relaxed text-stone-800 dark:text-stone-200 italic shadow-sm">
+            &ldquo;{newspaper.story}&rdquo;
+          </div>
+        )}
 
         {/* Yesterday's Lynch Headline */}
         {lastLynchedPlayerName && (
@@ -252,6 +259,47 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
             </div>
             <div className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
               {AZ_DANTE_CIRCLES[dante.currentCircle]?.rule}
+            </div>
+          </div>
+        )}
+
+        {earth && (
+          <div className="p-3.5 rounded-[8px] border border-blue-300 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20 font-sans">
+            <div className="text-xs font-bold text-blue-700 dark:text-blue-400">
+              {AZ_UI.doomsdayClock}: {earth.doomsdayClockHours} / 12 Saat
+            </div>
+            <div className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+              {earth.doomsdayClockHours >= 12 ? 'Qortun planetar məhv silahı işə düşdü!' : 'Hər günahsız edam saatı 1 saat irəli aparır.'}
+            </div>
+          </div>
+        )}
+
+        {valkyrie && valkyrie.briefcaseLocationPlayerId && (
+          <div className="p-3.5 rounded-[8px] border border-amber-300 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/20 font-sans">
+            <div className="text-xs font-bold text-amber-700 dark:text-amber-400">
+              Valkiriya Əməliyyatı: Portfel {playerNames[valkyrie.briefcaseLocationPlayerId] ?? valkyrie.briefcaseLocationPlayerId} əlindədir
+            </div>
+            <div className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+              Partlayıcı portfelin vaxtına {valkyrie.fuseTimerDaysRemaining} gün qalır.
+            </div>
+          </div>
+        )}
+
+        {prison && (
+          <div className="p-3.5 rounded-[8px] border border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800/40 font-sans">
+            <div className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+              Stanford Həbsxanası: Üsyan göstəricisi {prison.revoltMeter}%
+            </div>
+            <div className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+              {prison.riotTriggered ? 'Qiyam başladı! Mühafizəçilər hakimiyyəti itirdi.' : 'Həbsxana nəzarət altındadır.'}
+            </div>
+          </div>
+        )}
+
+        {catenaccio && (
+          <div className="p-3.5 rounded-[8px] border border-emerald-300 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/20 font-sans">
+            <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+              Katenatçio: {catenaccio.wallBreached ? 'Müdafiə səddi dağıdıldı!' : `${catenaccio.defensiveWallPlayerIds.length} qalxanlıq müdafiə səddi aktivdir.`}
             </div>
           </div>
         )}

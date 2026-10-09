@@ -13,6 +13,7 @@ import { evaluateWinCondition } from '../../../../server/engine/phase-manager';
 import { botTakeoverController } from '../../../../server/ai/bot-takeover';
 import { InvestigationResult } from '../../../../types/engine';
 import { generateMorningNewspaperStory } from '../../../../server/ai/ai-narrator';
+import { dispatchMinigamePhaseEvent } from '../../../../server/engine/minigames-engine';
 
 
 interface RouteContext {
@@ -229,7 +230,25 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
       groupedInvestigations[inv.investigatorPlayerId].push(inv);
     }
 
-    // 4. Update lobby state and increment round
+    // 4. Enrich story via AI if available, falling back to procedural narrative
+    let finalHeadline = resolution.newspaper.headline ?? (resolution.newspaper.publicDeaths.length > 0 ? 'Qanlı Gecə!' : 'Sükut');
+    let finalStory = resolution.newspaper.story;
+
+    try {
+      const aiStory = await generateMorningNewspaperStory(
+        lobby.roundNumber,
+        [...resolution.newspaper.publicDeaths],
+        lobby.players,
+        resolution.newspaper.protectedIds,
+        lobby.minigameSubStates
+      );
+      if (aiStory?.headline) finalHeadline = aiStory.headline;
+      if (aiStory?.story) finalStory = aiStory.story;
+    } catch {
+      // Kept procedural default
+    }
+
+    // 5. Update lobby state and increment round
     inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
       ...l,
       players: resolution.updatedPlayers,
@@ -240,12 +259,14 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
       latestNewspaper: {
         ...resolution.newspaper,
         roundNumber: l.roundNumber,
-        headline: resolution.newspaper.publicDeaths.length > 0 ? 'Qanlı Gecə!' : 'Sükut',
+        headline: finalHeadline,
+        story: finalStory,
       },
       pastNewspapers: [...(l.pastNewspapers || []), {
         ...resolution.newspaper,
         roundNumber: l.roundNumber,
-        headline: resolution.newspaper.publicDeaths.length > 0 ? 'Qanlı Gecə!' : 'Sükut',
+        headline: finalHeadline,
+        story: finalStory,
       }],
       roundNumber: l.roundNumber + 1,
       privateInvestigations: {
@@ -253,6 +274,32 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
         ...groupedInvestigations,
       },
     }));
+
+    // 6. Advance minigames on morning arrival
+    if (lobby.minigameSubStates && Object.keys(lobby.minigameSubStates).length > 0) {
+      const minigameOutput = dispatchMinigamePhaseEvent({
+        lobbyId,
+        danteGreedAbilityUsers: [],
+        danteLynchedPlayerId: null,
+        earthInnocentsLynched: [],
+        earthKlaatuFreezeActivated: false,
+        earthGortTarget: null,
+        valkyrieBriefcasePassTarget: null,
+        prisonGuardSanctions: [],
+        prisonWardenAppeased: [],
+        prisonInmatesLynched: [],
+        prisonSolitary: [],
+        prisonAssassinStrike: false,
+        prisonAssassinTarget: null,
+        catenaccioSniperTarget: null,
+        catenaccioWallAttackers: [],
+        publicDeaths: resolution.newspaper.publicDeaths,
+      });
+      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+        ...l,
+        minigameSubStates: minigameOutput.updatedSubStates,
+      }));
+    }
 
     lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
     const win = evaluateWinCondition(lobby);
@@ -274,9 +321,11 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
     const voteOutput = runVotingEngine({ lobby });
     const updatedPlayers = { ...lobby.players };
     let lynchedId: string | null = null;
+    let isTownLynched = false;
     if (voteOutput.outcome.kind === 'LYNCHED') {
       lynchedId = voteOutput.outcome.victimId;
       if (updatedPlayers[lynchedId]) {
+        isTownLynched = updatedPlayers[lynchedId].allInIdentity?.layer1Faction === 'TOWN';
         updatedPlayers[lynchedId] = {
           ...updatedPlayers[lynchedId],
           isAlive: false,
@@ -290,6 +339,32 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
       lastLynchedUserId: lynchedId,
       liveVotes: {},
     }));
+
+    // Advance minigames on lynch / night transition
+    if (lobby.minigameSubStates && Object.keys(lobby.minigameSubStates).length > 0) {
+      const minigameOutput = dispatchMinigamePhaseEvent({
+        lobbyId,
+        danteGreedAbilityUsers: [],
+        danteLynchedPlayerId: lynchedId,
+        earthInnocentsLynched: isTownLynched && lynchedId ? [lynchedId] : [],
+        earthKlaatuFreezeActivated: false,
+        earthGortTarget: null,
+        valkyrieBriefcasePassTarget: null,
+        prisonGuardSanctions: [],
+        prisonWardenAppeased: [],
+        prisonInmatesLynched: isTownLynched && lynchedId ? [lynchedId] : [],
+        prisonSolitary: [],
+        prisonAssassinStrike: false,
+        prisonAssassinTarget: null,
+        catenaccioSniperTarget: null,
+        catenaccioWallAttackers: [],
+        publicDeaths: [],
+      });
+      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+        ...l,
+        minigameSubStates: minigameOutput.updatedSubStates,
+      }));
+    }
 
     lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
     const win = evaluateWinCondition(lobby);

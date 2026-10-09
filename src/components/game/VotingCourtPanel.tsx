@@ -35,8 +35,12 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
   canSeeVotes = true,
 }) => {
   const dante = lobbyState.minigameSubStates.dantesInferno;
+  const prison = lobbyState.minigameSubStates.stanfordPrison;
   const isWrath = dante?.wrathNoAbstainEnforced === true;
   const isTreacheryBlind = dante?.treacherySecretVotingActive === true;
+  const hasGreedDebt = Boolean(dante?.greedVoteCostDebts?.[currentUserId]);
+  const isInSolitary = Boolean(prison?.solitaryConfinementPlayerIds?.includes(currentUserId));
+  const isVotingDisqualified = hasGreedDebt || isInSolitary;
   const isAllIn = lobbyState.mode === 'ALL_IN';
   const theme = getTheme(lobbyState.mode);
 
@@ -227,6 +231,16 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
                       ⚠️ Özünüzə səs verə bilməzsiniz
                     </span>
                   )}
+                  {hasGreedDebt && (
+                    <span className="text-xs text-red-500 font-bold bg-red-500/10 px-2 py-0.5 rounded-md">
+                      ⚠️ Xəsislik dairəsi borcu: Gecə qabiliyyəti istifadə edildiyi üçün bu raund səsvermə hüququnuz yoxdur
+                    </span>
+                  )}
+                  {isInSolitary && (
+                    <span className="text-xs text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md">
+                      ⚠️ Təkadamlıq kamera: Cəza kamerasında saxlanıldığınız üçün səs verə bilməzsiniz
+                    </span>
+                  )}
                 </div>
                 {currentVotedCandidateId && (
                   <div className="text-xs text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
@@ -252,7 +266,7 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
                   <button
                     type="button"
                     className="px-6 py-2.5 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white border-2 border-zinc-300 dark:border-zinc-700 font-black uppercase tracking-widest rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 cursor-pointer"
-                    onClick={onSkipVote} disabled={!isAlive}
+                    onClick={onSkipVote} disabled={!isAlive || isVotingDisqualified}
                   >
                     {AZ_UI.skipOrAbstain}
                   </button>
@@ -262,7 +276,7 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
                   type="button"
                   className="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-widest rounded-xl shadow-[0_4px_14px_0_rgba(220,38,38,0.39)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 disabled:shadow-none cursor-pointer"
                   disabled={
-                    !isAlive || !selectedCandidateId || isSelectedDead || isSelectedSelf || currentVotedCandidateId === selectedCandidateId
+                    !isAlive || isVotingDisqualified || !selectedCandidateId || isSelectedDead || isSelectedSelf || currentVotedCandidateId === selectedCandidateId
                   }
                   onClick={() => selectedCandidateId && onCastVote(selectedCandidateId)}
                 >

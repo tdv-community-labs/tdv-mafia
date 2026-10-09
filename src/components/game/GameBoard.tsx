@@ -374,7 +374,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-between gap-3">
           <div>
             <span className="font-bold text-sm text-amber-800 dark:text-amber-300">
-              {AZ_UI.briefcaseLocation}: {valkyrie.briefcaseLocationPlayerId}
+              {AZ_UI.briefcaseLocation}: {lobbyState.players[valkyrie.briefcaseLocationPlayerId]?.username ?? valkyrie.briefcaseLocationPlayerId}
             </span>
             <div className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
               {AZ_UI.fuseCountdown}: {valkyrie.fuseTimerDaysRemaining} gün qalır.

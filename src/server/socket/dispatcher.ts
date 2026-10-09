@@ -38,6 +38,7 @@ import { inMemoryLobbyStore } from '../state/memory';
 import { resolveNightActions } from '../engine/night-action-resolver';
 import { runVotingEngine } from '../engine/voting-engine';
 import { executePhaseTransition, evaluateWinCondition } from '../engine/phase-manager';
+import { dispatchMinigamePhaseEvent } from '../engine/minigames-engine';
 
 // ─── Investigation result accumulator ────────────────────────────────────────
 
@@ -297,6 +298,32 @@ export class ZeroKnowledgeDispatcher {
       ),
     }));
 
+    // Advance minigames on morning arrival
+    if (lobby.minigameSubStates && Object.keys(lobby.minigameSubStates).length > 0) {
+      const minigameOutput = dispatchMinigamePhaseEvent({
+        lobbyId,
+        danteGreedAbilityUsers: [],
+        danteLynchedPlayerId: null,
+        earthInnocentsLynched: [],
+        earthKlaatuFreezeActivated: false,
+        earthGortTarget: null,
+        valkyrieBriefcasePassTarget: null,
+        prisonGuardSanctions: [],
+        prisonWardenAppeased: [],
+        prisonInmatesLynched: [],
+        prisonSolitary: [],
+        prisonAssassinStrike: false,
+        prisonAssassinTarget: null,
+        catenaccioSniperTarget: null,
+        catenaccioWallAttackers: [],
+        publicDeaths: resolution.newspaper.publicDeaths,
+      });
+      inMemoryLobbyStore.updateLobby(lobbyId, (current) => ({
+        ...current,
+        minigameSubStates: minigameOutput.updatedSubStates,
+      }));
+    }
+
     // Broadcast morning newspaper publicly
     const anySocket = Object.values(this.userSocketMap)[0];
     if (anySocket) {
@@ -347,6 +374,33 @@ export class ZeroKnowledgeDispatcher {
       // Emit lynch outcome
       const isViolenceCleaned = dante?.currentCircle === 'CIRCLE_7_VIOLENCE';
       const victim = result.outcome.kind === 'LYNCHED' ? result.outcome.victimId : null;
+      const isTownLynched = victim ? lobby.players[victim]?.allInIdentity?.layer1Faction === 'TOWN' : false;
+
+      // Advance minigames on lynch
+      if (lobby.minigameSubStates && Object.keys(lobby.minigameSubStates).length > 0) {
+        const minigameOutput = dispatchMinigamePhaseEvent({
+          lobbyId,
+          danteGreedAbilityUsers: [],
+          danteLynchedPlayerId: victim,
+          earthInnocentsLynched: isTownLynched && victim ? [victim] : [],
+          earthKlaatuFreezeActivated: false,
+          earthGortTarget: null,
+          valkyrieBriefcasePassTarget: null,
+          prisonGuardSanctions: [],
+          prisonWardenAppeased: [],
+          prisonInmatesLynched: isTownLynched && victim ? [victim] : [],
+          prisonSolitary: [],
+          prisonAssassinStrike: false,
+          prisonAssassinTarget: null,
+          catenaccioSniperTarget: null,
+          catenaccioWallAttackers: [],
+          publicDeaths: [],
+        });
+        inMemoryLobbyStore.updateLobby(lobbyId, (current) => ({
+          ...current,
+          minigameSubStates: minigameOutput.updatedSubStates,
+        }));
+      }
 
       const lynchPayload: LynchOutcomePayload = {
         lobbyId,
