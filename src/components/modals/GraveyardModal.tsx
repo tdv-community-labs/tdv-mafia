@@ -14,7 +14,14 @@ interface GraveyardModalProps {
 }
 
 export const GraveyardModal: React.FC<GraveyardModalProps> = ({ isOpen, onClose, players, onInspectPlayer }) => {
-
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const deadPlayers = Object.values(players).filter(p => !p.isAlive && !p.userId.startsWith('temp-'));
 

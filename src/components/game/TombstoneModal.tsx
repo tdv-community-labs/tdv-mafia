@@ -12,6 +12,15 @@ interface TombstoneModalProps {
 }
 
 export const TombstoneModal: React.FC<TombstoneModalProps> = ({ isOpen, onClose, deadPlayer, lastWill }) => {
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !deadPlayer) return null;
 
   const faction = deadPlayer.allInIdentity?.layer1Faction || 'TOWN';

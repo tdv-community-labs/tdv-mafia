@@ -187,6 +187,15 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
     );
   }, [activeCategory, selectedTier, searchQuery]);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const totalCount = ACHIEVEMENTS_REGISTRY.length;

@@ -79,6 +79,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   }, [initialTab, isOpen]);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   // Login inputs
   const [usernameInput, setUsernameInput] = useState<string>('');
   const [loginPin, setLoginPin] = useState<string>('');

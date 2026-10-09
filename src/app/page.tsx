@@ -66,6 +66,15 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (!isJoinByCodeOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsJoinByCodeOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isJoinByCodeOpen]);
+
   const openCreateModal = (mode?: GameMode) => {
     if (mode) setSelectedPackForModal(mode);
     setIsCreateRoomOpen(true);
@@ -434,6 +443,7 @@ export default function HomePage() {
         onClose={() => setIsCatalogOpen(false)}
         onSelectMode={(mode) => {
           setSelectedPackForModal(mode);
+          setIsCatalogOpen(false);
           setIsCreateRoomOpen(true);
         }}
       />

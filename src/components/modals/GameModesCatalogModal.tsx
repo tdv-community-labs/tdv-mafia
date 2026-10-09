@@ -233,6 +233,15 @@ export const GameModesCatalogModal: React.FC<GameModesCatalogModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<ShowcaseTab>('CLASSIC');
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const packs = Object.values(PACKS_CONFIG);

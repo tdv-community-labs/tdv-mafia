@@ -45,6 +45,15 @@ export const AchievementShowcaseModal: React.FC<AchievementShowcaseProps> = ({ i
     }
   }, [isOpen, userId]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const filtered = ACHIEVEMENTS_REGISTRY.filter(a => activeTab === 'ALL' || a.category === activeTab);
