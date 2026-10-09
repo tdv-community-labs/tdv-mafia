@@ -1,17 +1,7 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { inMemoryLobbyStore } from '../../../server/state/memory';
-
-function getEnvKeyPool(): string[] {
-  const keys = [
-    process.env.GEMINI_API_KEY_1,
-    process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3,
-    process.env.GEMINI_API_KEY_4,
-    process.env.GEMINI_API_KEY_5,
-  ];
-  return keys.filter((k) => !!k) as string[];
-}
+import { getGeminiApiKeyPool } from '../../../server/ai/gemini-keys';
 
 function generateHeuristicDeduction(alivePlayers: string[], deadPlayers: string[], notes: string, roleDisplay?: string): string {
   const noteLower = (notes || '').toLowerCase();
@@ -42,7 +32,7 @@ export async function POST(request: Request) {
     const deadPlayers = Object.values(lobby.players).filter(p => !p.isAlive).map(p => p.username);
     const alivePlayers = Object.values(lobby.players).filter(p => p.isAlive).map(p => p.username);
 
-    const keys = getEnvKeyPool();
+    const keys = getGeminiApiKeyPool();
     if (keys.length === 0) {
       return NextResponse.json({
         analysis: generateHeuristicDeduction(alivePlayers, deadPlayers, notes, roleDisplay)
@@ -58,14 +48,29 @@ export async function POST(request: Request) {
     prompt += `Oyunçunun hazırki qeydləri belədir:\n"""${notes}"""\n\n`;
     prompt += `Bu qeydlərə və oyunun vəziyyətinə əsasən, oyunçuya (Maksimum 2-3 cümləlik) ağıllı, sirli və məntiqli bir 'Xəfiyyə Məsləhəti' (Detective Deduction) ver. Oyundakı rolları qəti şəkildə ifşa etmə (çünki sən də bilmirsən), sadəcə qeydlərdəki şübhələri analiz et və ehtimallar irəli sür. Azərbaycan dilində yaz.`;
 
-    // @ts-ignore
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: { temperature: 0.7 }
-    });
+    const candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+    let analysisText: string | null = null;
 
-    return NextResponse.json({ analysis: response.text });
+    for (const model of candidateModels) {
+      try {
+        // @ts-ignore
+        const response = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: { temperature: 0.7 }
+        });
+        if (response.text) {
+          analysisText = response.text;
+          break;
+        }
+      } catch (genErr) {
+        // Continue to fallback model
+      }
+    }
+
+    return NextResponse.json({
+      analysis: analysisText || generateHeuristicDeduction(alivePlayers, deadPlayers, notes, roleDisplay)
+    });
   } catch (error: any) {
     console.error('AI Detective Error:', error);
     return NextResponse.json({

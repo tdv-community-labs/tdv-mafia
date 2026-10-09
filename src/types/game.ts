@@ -32,6 +32,7 @@ export interface PlayerSession {
   readonly disconnectedAt: number | null;
   readonly lastSeenAt?: number; // Unix timestamp in ms or null
   readonly isAiBotControlled: boolean;
+  readonly isReady?: boolean;
   readonly lastWill?: string;
 }
 

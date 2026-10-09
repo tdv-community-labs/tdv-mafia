@@ -879,7 +879,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                   player={p}
                   isLobbyPhase={true}
                   isSelf={p.userId === currentUserId}
-                  isReady={p.isHost || isReadyLocal}
+                  isReady={p.isHost || (p.userId === currentUserId ? isReadyLocal : Boolean(p.isReady))}
                 />
               ))}
             </div>
@@ -1032,7 +1032,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                   </div>
                   <div>
                     <span className={`text-[11px] font-extrabold uppercase tracking-[0.2em] block ${textTop} transition-colors duration-300`}>
-                      ${isRoleRevealed ? 'SİZİN GİZLİ KİMLİYİNİZ' : 'MƏXFİ DOSYE (Gizlidir)'}
+                      {isRoleRevealed ? 'SİZİN GİZLİ KİMLİYİNİZ' : 'MƏXFİ DOSYE (Gizlidir)'}
                     </span>
                     <div className={`text-2xl font-black tracking-tight mt-0.5 transition-colors duration-300 ${!isRoleRevealed ? 'text-zinc-400 dark:text-zinc-600 select-none blur-[4px]' : 'text-zinc-950 dark:text-white'}`}>
                       {roleStr || `${currentUsername} (Vətəndaş)`}

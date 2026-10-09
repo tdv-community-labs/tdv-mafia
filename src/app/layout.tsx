@@ -9,6 +9,7 @@ import { BackgroundParticles } from '../components/ui/BackgroundParticles';
 
 
 export const metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://tdv-mafia.vercel.app'),
   title: 'TDV MAFIA | Elit Onlayn Mafiya Platforması',
   description: 'Azərbaycanın ən möhtəşəm onlayn sosial deduksiya və mafiya mühərriki. 40–50 nəfərlik All-In rejimi, asimmetrik mini-oyunlar və 75s Gemini AI mühafizəsi.',
   icons: {

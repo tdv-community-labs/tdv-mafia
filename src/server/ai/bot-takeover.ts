@@ -28,6 +28,7 @@ import {
 import { GoogleGenAI } from '@google/genai';
 import { CoreFaction, AllInPlayerIdentity } from '../../types/roles';
 import { inMemoryLobbyStore } from '../state/memory';
+import { getGeminiApiKeyPool } from './gemini-keys';
 
 function getBotPersonality(username: string): string {
   const hash = Array.from(username).reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -50,14 +51,6 @@ export const GEMINI_MODEL_PRIMARY = 'gemini-3.8-flash';
 export const GEMINI_MODEL_SECONDARY = 'gemini-3.7-flash';
 export const GEMINI_MODEL_FALLBACK = 'gemini-2.5-flash';
 
-// ─── GenAI Key Pool & Resilient Generation ────────────────────────────────────
-
-function getEnvKeyPool(): string[] {
-  const env = (globalThis as Record<string, unknown>)['process'] as { env?: Record<string, string | undefined> } | undefined;
-  const rawPool = env?.env?.['GEMINI_API_KEYS'] || env?.env?.['GEMINI_API_KEY'] || '';
-  return rawPool.split(',').map(k => k.trim()).filter(Boolean);
-}
-
 let _activeKeyIndex = 0;
 
 /**
@@ -67,7 +60,7 @@ export async function generateGeminiContentWithFallback(
   systemInstruction: string,
   prompt: string
 ): Promise<string | null> {
-  const keys = getEnvKeyPool();
+  const keys = getGeminiApiKeyPool();
   if (keys.length === 0) return null;
 
   const modelsToTry = [GEMINI_MODEL_PRIMARY, GEMINI_MODEL_SECONDARY, GEMINI_MODEL_FALLBACK];
