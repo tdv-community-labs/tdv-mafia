@@ -188,7 +188,7 @@ export const Navbar: React.FC = () => {
     try {
       localStorage.removeItem('tdv_mafia_user');
       localStorage.removeItem('tdv_ecosystem_session_v1');
-      const BROKER_URL = 'https://tdv-community-hubs.vercel.app/sso-broker.html';
+      const BROKER_URL = 'https://tdv-community-labs.github.io/tdv-hub/sso-broker.html';
       let iframe = document.getElementById('tdv_sso_broker_bridge') as HTMLIFrameElement;
       const registeredList = JSON.parse(localStorage.getItem('tdv_registered_users_v1') || '[]');
       if (iframe && iframe.contentWindow) {
@@ -375,7 +375,7 @@ export const Navbar: React.FC = () => {
 
                 {/* Hub */}
                 <a
-                  href={getEcoLink("https://tdv-community-hubs.vercel.app/")}
+                  href={getEcoLink("https://tdv-community-labs.github.io/tdv-hub/")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/70 transition-colors group"

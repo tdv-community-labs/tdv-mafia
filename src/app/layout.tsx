@@ -11,6 +11,10 @@ import { BackgroundParticles } from '../components/ui/BackgroundParticles';
 export const metadata = {
   title: 'TDV MAFIA | Elit Onlayn Mafiya Platforması',
   description: 'Azərbaycanın ən möhtəşəm onlayn sosial deduksiya və mafiya mühərriki. 40–50 nəfərlik All-In rejimi, asimmetrik mini-oyunlar və 75s Gemini AI mühafizəsi.',
+  icons: {
+    icon: '/assets/tdv-logo.png',
+    apple: '/assets/tdv-logo.png',
+  },
 };
 
 export const viewport = {

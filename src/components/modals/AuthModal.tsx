@@ -43,7 +43,7 @@ const TIER_TITLES: Record<PlayerTier, string> = {
 
 function dispatchSSOBrokerState(session: any, users: any) {
   try {
-    const BROKER_URL = 'https://tdv-community-hubs.vercel.app/sso-broker.html';
+    const BROKER_URL = 'https://tdv-community-labs.github.io/tdv-hub/sso-broker.html';
     let iframe = document.getElementById('tdv_sso_broker_bridge') as HTMLIFrameElement;
     if (!iframe) {
       iframe = document.createElement('iframe');
