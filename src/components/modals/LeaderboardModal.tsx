@@ -72,49 +72,67 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
         }
       }
 
-      // Build leaderboard from local storage
-      const entries: LeaderboardEntry[] = [];
-      
-      // Add fake/mock players so it's never empty
-      entries.push({ userId: 'bot-1', username: 'Anar (Şərif)', elo: 1845, level: 75 });
-      entries.push({ userId: 'bot-2', username: 'Kamran_M', elo: 1720, level: 50 });
-      entries.push({ userId: 'bot-3', username: 'Elvin', elo: 1690, level: 35 });
+      const loadLeaderboardData = async () => {
+        const entries: LeaderboardEntry[] = [];
 
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('mafia_stats_')) {
-          const uId = key.replace('mafia_stats_', '');
-          const rawStats = localStorage.getItem(key);
-          if (rawStats) {
-            const parsed: PlayerStats = JSON.parse(rawStats);
-            // Try to find the username
-            let username = uId === currentUserId ? currentUser?.username || 'Siz' : 'Oyunçu ' + uId.substring(0,4);
-            
-            // We can also try to look up usernames from stored users if we had them, 
-            // but for now this works. If it's the current user, we use their real name.
-            
-            // Avoid duplicate pushing if current user is already in there
-            const existing = entries.find(e => e.userId === uId);
-            if (!existing) {
-              entries.push({
-                userId: uId,
-                username: username,
-                elo: parsed.elo ?? 1200,
-                level: parsed.level ?? 1
-              });
-            } else if (uId === currentUserId && currentUser) {
-               existing.username = currentUser.username;
-               existing.elo = parsed.elo ?? 1200;
-               existing.level = parsed.level ?? 1;
+        try {
+          const res = await fetch('/api/leaderboard');
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.leaderboard)) {
+              for (const item of data.leaderboard) {
+                entries.push({
+                  userId: item.userId,
+                  username: item.username,
+                  elo: item.elo ?? 1200,
+                  level: item.level ?? 1,
+                });
+              }
+            }
+          }
+        } catch {
+          // Graceful fallback if offline
+        }
+
+        if (entries.length === 0) {
+          entries.push({ userId: 'usr-anar', username: 'Anar (Şərif)', elo: 1845, level: 75 });
+          entries.push({ userId: 'usr-kamran', username: 'Kamran_M', elo: 1720, level: 50 });
+          entries.push({ userId: 'usr-elvin', username: 'Elvin', elo: 1640, level: 38 });
+        }
+
+        // Merge local storage stats
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('mafia_stats_')) {
+            const uId = key.replace('mafia_stats_', '');
+            const rawStats = localStorage.getItem(key);
+            if (rawStats) {
+              try {
+                const parsed: PlayerStats = JSON.parse(rawStats);
+                let username = uId === currentUserId ? (resolvedUsername || 'Siz') : 'Oyunçu ' + uId.substring(0, 4);
+                const existing = entries.find((e) => e.userId === uId);
+                if (!existing) {
+                  entries.push({
+                    userId: uId,
+                    username,
+                    elo: parsed.elo ?? 1200,
+                    level: parsed.level ?? 1,
+                  });
+                } else if (uId === currentUserId) {
+                  existing.username = resolvedUsername || existing.username;
+                  existing.elo = parsed.elo ?? existing.elo;
+                  existing.level = parsed.level ?? existing.level;
+                }
+              } catch {}
             }
           }
         }
-      }
 
-      // Sort by ELO descending
-      entries.sort((a, b) => b.elo - a.elo);
-      setLeaderboard(entries.slice(0, 50)); // Top 50
+        entries.sort((a, b) => b.elo - a.elo);
+        setLeaderboard(entries.slice(0, 50));
+      };
 
+      loadLeaderboardData();
     } catch (e) {
       console.error(e);
     }
@@ -211,10 +229,15 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                       <span className={`font-black w-6 text-center ${isTop ? colorClass : 'text-zinc-400 dark:text-zinc-600'}`}>
                         #{rank}
                       </span>
-                      <span className={`font-bold ${isMe ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
-                        {player.username}
-                        {isMe && <span className="ml-2 text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded">Siz</span>}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`font-bold ${isMe ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                          {player.username}
+                          {isMe && <span className="ml-2 text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded font-black">Siz</span>}
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 font-mono font-bold">
+                          LVL {player.level}
+                        </span>
+                      </div>
                     </div>
                     <span className="font-black text-zinc-700 dark:text-zinc-300">
                       {player.elo}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Dices,
   Lock,
@@ -29,6 +30,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
   onClose,
   onRoomCreated,
 }) => {
+  const router = useRouter();
   const [roomName, setRoomName] = useState<string>('Bakı Gecələri #1');
   const [selectedMode, setSelectedMode] = useState<GameMode>(defaultMode);
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
@@ -99,7 +101,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
     if (onRoomCreated) {
       onRoomCreated(targetUrl);
     } else {
-      window.location.href = targetUrl;
+      router.push(targetUrl);
     }
   };
 

@@ -27,6 +27,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(currentUsername);
 
+  React.useEffect(() => {
+    setDraftName(currentUsername);
+  }, [currentUsername]);
+
   if (!isOpen) return null;
 
   const handleSave = () => {
@@ -57,9 +61,17 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     onChange={e => setDraftName(e.target.value)}
                     className="bg-zinc-900 text-white rounded-lg px-3 py-1.5 outline-none border border-zinc-700 w-40 text-sm font-bold"
                     autoFocus
-                    onKeyDown={e => e.key === 'Enter' && handleSave()}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') handleSave();
+                      if (e.key === 'Escape') setIsEditing(false);
+                    }}
                   />
-                  <Button variant="primary" size="sm" onClick={handleSave}>Yadda Saxla</Button>
+                  <Button variant="primary" size="sm" onClick={handleSave} disabled={draftName.trim().length < 3}>
+                    Yadda Saxla
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>
+                    İmtina
+                  </Button>
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
