@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { PenTool, X, Save, Trash2, CheckCircle2, Sparkles, Bot } from 'lucide-react';
+import { PenTool, X, Save, Trash2, CheckCircle2, Sparkles, Bot, Loader2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 interface DetectiveNotebookProps {
@@ -12,12 +12,28 @@ interface DetectiveNotebookProps {
   roleDisplay?: string;
 }
 
-export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({ isOpen, onClose, userId, lobbyId, roleDisplay }) => {
+export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({
+  isOpen,
+  onClose,
+  userId,
+  lobbyId,
+  roleDisplay,
+}) => {
   const [notes, setNotes] = useState('');
   const [saved, setSaved] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const requestAiAnalysis = async () => {
     if (!lobbyId || !notes.trim()) return;
@@ -26,7 +42,7 @@ export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({ isOpen, on
       const res = await fetch('/api/ai-detective', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lobbyId, notes, roleDisplay })
+        body: JSON.stringify({ lobbyId, notes, roleDisplay }),
       });
       const data = await res.json();
       if (data.analysis) {
@@ -56,6 +72,7 @@ export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({ isOpen, on
   const handleClear = () => {
     if (window.confirm('Bütün qeydləri silmək istədiyinizə əminsiniz?')) {
       setNotes('');
+      setAiAnalysis(null);
       localStorage.removeItem(`mafia_notes_${userId}`);
     }
   };
@@ -64,11 +81,11 @@ export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({ isOpen, on
 
   return (
     <>
-      <div 
+      <div
         className="fixed inset-0 z-[150] bg-zinc-950/40 backdrop-blur-sm transition-opacity animate-fadeIn"
         onClick={onClose}
       />
-      
+
       <div className="fixed right-0 top-0 bottom-0 w-full max-w-sm z-[160] bg-white/95 dark:bg-zinc-950/90 backdrop-blur-2xl border-l border-white/20 dark:border-white/10 shadow-[-10px_0_50px_rgba(0,0,0,0.5)] flex flex-col animate-slideInRight">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/50">
@@ -81,49 +98,101 @@ export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({ isOpen, on
               <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Şəxsi Qeydlər</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
-            className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+            title="Bağla (Esc)"
+            className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 p-4 sm:p-5 flex flex-col gap-2 relative bg-[url('https://www.transparenttextures.com/patterns/lined-paper.png')] dark:bg-none bg-repeat">
+        <div className="flex-1 p-4 sm:p-5 flex flex-col gap-3 relative bg-[url('https://www.transparenttextures.com/patterns/lined-paper.png')] dark:bg-none bg-repeat overflow-y-auto">
           <div className="absolute inset-0 bg-white/90 dark:bg-zinc-950/95 pointer-events-none" />
-          
+
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Şübhəliləri, iddiaları və yalanları buraya qeyd edin...&#10;&#10;Məsələn:&#10;1-ci gün: Orxan Həkim olduğunu iddia etdi.&#10;2-ci gün: Əli səsvermədə aqressiv idi."
-            className="w-full h-full relative z-10 resize-none bg-transparent outline-none text-zinc-800 dark:text-zinc-300 placeholder:text-zinc-400/70 font-medium text-sm leading-relaxed"
-            style={{ 
+            className="w-full flex-1 min-h-[160px] relative z-10 resize-none bg-transparent outline-none text-zinc-800 dark:text-zinc-300 placeholder:text-zinc-400/70 font-medium text-sm leading-relaxed"
+            style={{
               lineHeight: '2rem',
-              backgroundImage: 'linear-gradient(transparent, transparent calc(2rem - 1px), rgba(200,200,200,0.2) 0px)',
-              backgroundSize: '100% 2rem'
+              backgroundImage:
+                'linear-gradient(transparent, transparent calc(2rem - 1px), rgba(200,200,200,0.2) 0px)',
+              backgroundSize: '100% 2rem',
             }}
           />
+
+          {/* AI Detective Deduction Card */}
+          {aiAnalysis && (
+            <div className="relative z-10 p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 dark:bg-amber-950/40 text-xs text-amber-950 dark:text-amber-200 shadow-sm animate-fadeIn flex flex-col gap-1.5 shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-400">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Sherlock AI Təhlili</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAiAnalysis(null)}
+                  className="text-amber-600 dark:text-amber-400 hover:text-amber-800 text-sm font-bold px-1"
+                >
+                  &times;
+                </button>
+              </div>
+              <p className="italic leading-relaxed font-sans">{aiAnalysis}</p>
+            </div>
+          )}
         </div>
+
+        {/* AI Analysis Action Strip */}
+        {lobbyId && (
+          <div className="px-4 py-2.5 border-t border-zinc-100 dark:border-zinc-900 bg-amber-50/50 dark:bg-amber-950/20 flex items-center justify-between gap-2">
+            <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+              <Bot className="w-3.5 h-3.5" />
+              Gemini Analitiki
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={requestAiAnalysis}
+              disabled={isAnalyzing || !notes.trim()}
+              icon={
+                isAnalyzing ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-500" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                )
+              }
+              className="text-xs font-bold border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10 disabled:opacity-50"
+            >
+              {isAnalyzing ? 'Təhlil Edilir...' : 'AI Analiz Et'}
+            </Button>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="p-4 sm:p-5 border-t border-zinc-100 dark:border-zinc-900 bg-white dark:bg-zinc-950 flex items-center justify-between gap-3">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleClear}
             className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
             icon={<Trash2 className="w-4 h-4" />}
           >
             Təmizlə
           </Button>
-          
-          <Button 
-            variant="primary" 
-            size="sm" 
+
+          <Button
+            variant="primary"
+            size="sm"
             onClick={handleSave}
             icon={saved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-            className={saved ? 'bg-emerald-500 hover:bg-emerald-600 ring-emerald-500/20 text-white' : 'bg-amber-500 hover:bg-amber-600 ring-amber-500/20 text-white'}
+            className={
+              saved
+                ? 'bg-emerald-500 hover:bg-emerald-600 ring-emerald-500/20 text-white'
+                : 'bg-amber-500 hover:bg-amber-600 ring-amber-500/20 text-white'
+            }
           >
             {saved ? 'Yadda Saxlanıldı' : 'Yadda Saxla'}
           </Button>
