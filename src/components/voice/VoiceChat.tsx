@@ -29,6 +29,7 @@ interface VoiceChatProps {
   readonly myFaction: string | null; // null = unknown (lobby phase)
   readonly phase: GamePhase;
   readonly peers: PeerInfo[]; // all OTHER players (not self)
+  readonly myIsAlive?: boolean;
   readonly onSpeakingChange: (speakingIds: Set<string>) => void;
 }
 
@@ -45,10 +46,11 @@ const SPEAKING_CHECK_INTERVAL_MS = 150;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function isMicAllowedByPhase(phase: GamePhase, myFaction: string | null): boolean {
+function isMicAllowedByPhase(phase: GamePhase, myFaction: string | null, isAlive: boolean): boolean {
   if (phase === 'LOBBY' || phase === 'ENDED') return false;
-  if (phase === 'NIGHT_BUFFER') return myFaction === 'MAFIA';
-  return true; // DAY phases — all can speak
+  if (!isAlive) return false;
+  if (phase === 'NIGHT_BUFFER') return myFaction === 'MAFIA' || myFaction === 'YAKUZA';
+  return true; // DAY phases — all living can speak
 }
 
 async function postSignal(
@@ -77,6 +79,7 @@ export function VoiceChat({
   myFaction,
   phase,
   peers,
+  myIsAlive = true,
   onSpeakingChange,
 }: VoiceChatProps) {
   const [micEnabled, setMicEnabled] = useState(false);
@@ -95,7 +98,7 @@ export function VoiceChat({
   const myAnalyserRef = useRef<{ analyser: AnalyserNode; data: Uint8Array<ArrayBuffer> } | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
-  const micAllowed = isMicAllowedByPhase(phase, myFaction);
+  const micAllowed = isMicAllowedByPhase(phase, myFaction, myIsAlive);
 
   // ── Speaking Detection ─────────────────────────────────────────────────────
 
@@ -381,11 +384,31 @@ export function VoiceChat({
 
   useEffect(() => {
     if (!localStreamRef.current) return;
-    const allowed = isMicAllowedByPhase(phase, myFaction);
+    const allowed = isMicAllowedByPhase(phase, myFaction, myIsAlive);
     for (const track of localStreamRef.current.getAudioTracks()) {
       track.enabled = allowed && micEnabled;
     }
-  }, [phase, myFaction, micEnabled]);
+  }, [phase, myFaction, myIsAlive, micEnabled]);
+
+  // ── Selective Remote Audio Gating (Zero-Knowledge Hearing) ───────────────
+  useEffect(() => {
+    for (const [peerId, audioEl] of remoteAudioRefs.current.entries()) {
+      const peer = peers.find((p) => p.userId === peerId);
+      if (!peer || !peer.isAlive) {
+        // Living players cannot hear dead players, and dead cannot broadcast to living
+        audioEl.muted = true;
+        continue;
+      }
+      if (phase === 'NIGHT_BUFFER') {
+        const isTeammate =
+          (myFaction === 'MAFIA' && peer.faction === 'MAFIA') ||
+          (myFaction === 'YAKUZA' && peer.faction === 'YAKUZA');
+        audioEl.muted = !isTeammate;
+      } else {
+        audioEl.muted = !myIsAlive;
+      }
+    }
+  }, [phase, myFaction, peers, myIsAlive]);
 
   // ── Connect to newly joined peers ─────────────────────────────────────────
 
@@ -439,21 +462,24 @@ export function VoiceChat({
       <button
         type="button"
         onClick={handleMicToggle}
-        title={isActuallyMuted ? 'Mikrofonu aç' : 'Mikrofonu söndür'}
-        className={`inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] min-w-[44px] rounded-2xl font-bold text-sm cursor-pointer transition-transform duration-200 select-none shadow-sm active:scale-[0.98] ${
+        disabled={!myIsAlive}
+        title={!myIsAlive ? 'Ölüm Sükutu (Danışmaq qadağandır)' : isActuallyMuted ? 'Mikrofonu aç' : 'Mikrofonu söndür'}
+        className={`inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] min-w-[44px] rounded-2xl font-bold text-sm select-none shadow-sm transition-transform duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${
           isActuallyMuted
             ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/25 hover:bg-rose-500/15'
             : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20'
         }`}
       >
         {isActuallyMuted ? (
-          <svg className="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11v1a7 7 0 01-14 0v-1m14 0a7 7 0 01-14 0m14 0v-1a7 7 0 00-14 0v1m14 0v1a7 7 0 01-14 0v-1m14 0h-14m14 0h-14" /><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+          <MicOff className="w-5 h-5 text-rose-500" />
         ) : (
-          <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"></path></svg>
+          <Mic className="w-5 h-5 text-emerald-500" />
         )}
         <span>
           {!voiceActive
             ? 'Səs Çata Qoşul'
+            : !myIsAlive
+            ? 'Ruhlar Danışa Bilməz'
             : isActuallyMuted
             ? 'Mikrofon Bağlıdır'
             : 'Danışırsınız'}
@@ -463,7 +489,7 @@ export function VoiceChat({
       {/* Connected peer count */}
       {voiceActive && (
         <span className="text-xs text-zinc-500 dark:text-zinc-400 inline-flex items-center gap-1.5 font-medium">
-          <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <Radio className="w-4 h-4 text-blue-500" />
           {connectedPeerIds.size > 0 ? (
             <span className="text-blue-600 dark:text-blue-400 font-semibold">{connectedPeerIds.size} oyunçu qoşulub</span>
           ) : (
@@ -472,10 +498,18 @@ export function VoiceChat({
         </span>
       )}
 
+      {/* Dead Player Notice */}
+      {!myIsAlive && (
+        <span className="text-xs text-zinc-400 bg-zinc-800/60 border border-zinc-700 px-2.5 py-1 rounded-lg font-medium inline-flex items-center gap-1.5">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-zinc-400" />
+          <span>Ölüm Sükutu: Ruhlar səs kanalında danışa bilməz</span>
+        </span>
+      )}
+
       {/* Night phase warning */}
-      {nightMuted && (
+      {nightMuted && myIsAlive && (
         <span className="text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg font-medium inline-flex items-center gap-1.5">
-          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500" />
           <span>Gecə fazasında yalnız mafiya fraksiyası danışa bilər</span>
         </span>
       )}
@@ -483,7 +517,7 @@ export function VoiceChat({
       {/* Microphone permission denied */}
       {hasPermission === false && (
         <span className="text-xs text-rose-700 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 rounded-lg font-medium inline-flex items-center gap-1.5">
-          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
           <span>Mikrofon icazəsi verilmədi. Brauzer ayarlarından icazə verin.</span>
         </span>
       )}

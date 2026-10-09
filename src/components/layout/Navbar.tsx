@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import {
   BookOpen,
   Trophy,
@@ -47,8 +48,43 @@ export const Navbar: React.FC = () => {
   const [isEcoDropdownOpen, setIsEcoDropdownOpen] = useState<boolean>(false);
   const [soundMuted, setSoundMuted] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<UserSessionState | null>(null);
+  const [onlineCount, setOnlineCount] = useState<number>(1);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Heartbeat & Online presence tracking
+  useEffect(() => {
+    let isMounted = true;
+    const sendPresence = async () => {
+      try {
+        const storedUser = currentUser;
+        const res = await fetch('/api/presence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: storedUser?.userId || 'guest-anon',
+            username: storedUser?.username || 'Anonim Oyunçu',
+            tier: storedUser?.tier || 'TIER_1',
+          }),
+        });
+        if (res.ok && isMounted) {
+          const data = await res.json();
+          if (typeof data.onlineCount === 'number') {
+            setOnlineCount(data.onlineCount);
+          }
+        }
+      } catch {
+        // Network resilience
+      }
+    };
+
+    sendPresence();
+    const interval = setInterval(sendPresence, 20_000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [currentUser]);
 
   // Listen for open-tdv-auth custom events
   useEffect(() => {
@@ -230,7 +266,7 @@ export const Navbar: React.FC = () => {
         
         {/* ─── LEFT: BRAND & LIVE NODE INDICATORS ──────────────────── */}
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-          <a href="/" className="flex items-center gap-2.5 group select-none">
+          <Link href="/" className="flex items-center gap-2.5 group select-none">
             <div className="relative">
               <img
                 src="/assets/tdv-logo.png"
@@ -253,7 +289,7 @@ export const Navbar: React.FC = () => {
                 Bakı Türk Liseyi
               </span>
             </div>
-          </a>
+          </Link>
 
           {/* Live Node Indicators */}
           <div className="hidden lg:flex items-center gap-2 pl-2 border-l border-zinc-200 dark:border-zinc-800 text-xs">
@@ -268,6 +304,15 @@ export const Navbar: React.FC = () => {
               <Activity className="w-3 h-3 text-emerald-500" />
               <span>Bakı Node-01</span>
               <span className="text-[10px] opacity-75 font-mono">(16ms)</span>
+            </div>
+
+            {/* Live Online Presence Indicator */}
+            <div
+              title="Hal-hazırda Aktiv Oyunçular"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/25 font-semibold text-[11px]"
+            >
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              <span>{onlineCount} Onlayn</span>
             </div>
 
             <div

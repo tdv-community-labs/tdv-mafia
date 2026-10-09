@@ -1083,6 +1083,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             myFaction={myFaction}
             phase={lobbyState.phase}
             peers={voicePeers}
+            myIsAlive={myPlayerSession?.isAlive ?? true}
             onSpeakingChange={setSpeakingIds}
           />
 
