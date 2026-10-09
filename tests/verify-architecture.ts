@@ -70,14 +70,14 @@ console.log('  ✔ Access control and tier logic verified.');
 // === TEST 2: PACKS CONFIGURATION & WAIVER CONSTRAINTS ===
 console.log('▶ Test 2: Packs Configuration, Player Ranges, & Waiver Constraints');
 const standardPacks: readonly StandardPackId[] = [
-  'SE7EN_DEADLY_SINS',
-  'AND_THEN_THERE_WERE_NONE',
-  'CRIME_AND_PUNISHMENT',
-  'STEINS_GATE',
-  'DIES_IRAE',
-  'ALL_TOMORROWS',
-  'FULL_HOUSE',
-  'TABULA_RASA',
+  'BLITZ',
+  'STANDARD',
+  'EXTENDED',
+  'GRAND',
+  'EPIC',
+  'MASSIVE',
+  'LIMITLESS',
+  'CUSTOM_LOBBY',
 ];
 
 const minigames: readonly MinigameId[] = [
@@ -114,11 +114,11 @@ assertStrictEqual(allInConfig.platformAdminRequired, true, 'All-In strictly requ
 assertStrictEqual(allInConfig.hostWaiverAllowed, false, 'Host waiver not allowed for All-In');
 assertStrictEqual(allInConfig.requiresExamProof, true);
 
-// Check 20-39 player packs allow host waivers
-assertStrictEqual(PACKS_CONFIG['STEINS_GATE'].hostWaiverAllowed, true);
-assertStrictEqual(PACKS_CONFIG['DIES_IRAE'].hostWaiverAllowed, true);
-assertStrictEqual(PACKS_CONFIG['ALL_TOMORROWS'].hostWaiverAllowed, true);
-assertStrictEqual(PACKS_CONFIG['FULL_HOUSE'].hostWaiverAllowed, true);
+// Check 16+ player packs allow host waivers
+assertStrictEqual(PACKS_CONFIG['GRAND'].hostWaiverAllowed, true);
+assertStrictEqual(PACKS_CONFIG['EPIC'].hostWaiverAllowed, true);
+assertStrictEqual(PACKS_CONFIG['MASSIVE'].hostWaiverAllowed, true);
+assertStrictEqual(PACKS_CONFIG['LIMITLESS'].hostWaiverAllowed, true);
 console.log('  ✔ Pack metadata, player boundaries, and waiver rules verified.');
 
 // === TEST 3: ROLES, OFFICES, TRAITS & UI FORMAT CONTRACT ===

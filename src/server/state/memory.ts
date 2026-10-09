@@ -45,7 +45,7 @@ export class InMemoryLobbyStore {
     hostSession: PlayerSession,
     mode: GameMode
   ): LobbyState {
-    const metadata = PACKS_CONFIG[mode];
+    const metadata = PACKS_CONFIG[mode] || PACKS_CONFIG['BLITZ'];
     const initialUnlock: AdminMasterUnlockState = {
       architectUnlocked: false,
       bailiffUnlocked: false,
@@ -98,7 +98,7 @@ export class InMemoryLobbyStore {
       return { success: false, error: 'GAME_ALREADY_IN_PROGRESS' };
     }
 
-    const metadata = PACKS_CONFIG[lobby.mode];
+    const metadata = PACKS_CONFIG[lobby.mode] || PACKS_CONFIG['BLITZ'];
     const currentCount = Object.keys(lobby.players).length;
 
     if (currentCount >= metadata.maxPlayers) {
@@ -355,4 +355,9 @@ export class InMemoryLobbyStore {
   }
 }
 
-export const inMemoryLobbyStore = new InMemoryLobbyStore();
+const globalLobbyStore = globalThis as unknown as {
+  __tdv_lobby_store?: InMemoryLobbyStore;
+};
+
+export const inMemoryLobbyStore =
+  globalLobbyStore.__tdv_lobby_store ?? (globalLobbyStore.__tdv_lobby_store = new InMemoryLobbyStore());

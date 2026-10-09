@@ -1,15 +1,8 @@
 import { NextResponse } from 'next/server';
+import { inMemoryLobbyStore } from '../../../server/state/memory';
+import { PublicRoomSummary } from '../../../types/rooms';
 
-export interface PublicRoomSummary {
-  readonly lobbyId: string;
-  readonly name: string;
-  readonly mode: string;
-  readonly hostUsername: string;
-  readonly isPrivate: boolean;
-  readonly playerCount: number;
-  readonly maxPlayers: number;
-  readonly createdAt: number;
-}
+export type { PublicRoomSummary };
 
 const globalRooms = globalThis as unknown as {
   __tdv_rooms_map?: Map<string, PublicRoomSummary>;
@@ -17,7 +10,6 @@ const globalRooms = globalThis as unknown as {
 
 function getRoomsMap(): Map<string, PublicRoomSummary> {
   if (!globalRooms.__tdv_rooms_map) {
-    // Start with empty map — ZERO fake or random rooms!
     globalRooms.__tdv_rooms_map = new Map<string, PublicRoomSummary>();
   }
   return globalRooms.__tdv_rooms_map;
@@ -25,6 +17,29 @@ function getRoomsMap(): Map<string, PublicRoomSummary> {
 
 export async function GET() {
   const map = getRoomsMap();
+  const now = Date.now();
+  const maxRoomAgeMs = 3 * 60 * 60 * 1000; // 3 hours
+
+  // Prune expired rooms and synchronize with active in-memory lobbies
+  for (const [id, room] of map.entries()) {
+    if (now - room.createdAt > maxRoomAgeMs) {
+      map.delete(id);
+      continue;
+    }
+
+    const activeLobby = inMemoryLobbyStore.getLobby(room.lobbyId);
+    if (activeLobby) {
+      if (activeLobby.phase === 'ENDED') {
+        map.delete(id);
+        continue;
+      }
+      const count = Object.keys(activeLobby.players).length;
+      if (count > 0 && count !== room.playerCount) {
+        map.set(id, { ...room, playerCount: count });
+      }
+    }
+  }
+
   const rooms = Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
   return NextResponse.json({
     rooms,
@@ -65,5 +80,20 @@ export async function POST(request: Request) {
     });
   } catch {
     return NextResponse.json({ success: false, error: 'INVALID_ROOM_PAYLOAD' }, { status: 400 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const url = new URL(request.url);
+    const lobbyId = url.searchParams.get('lobbyId');
+    if (!lobbyId) {
+      return NextResponse.json({ error: 'MISSING_LOBBY_ID' }, { status: 400 });
+    }
+    const map = getRoomsMap();
+    map.delete(lobbyId);
+    return NextResponse.json({ success: true, removed: lobbyId });
+  } catch {
+    return NextResponse.json({ error: 'FAILED_TO_DELETE' }, { status: 500 });
   }
 }

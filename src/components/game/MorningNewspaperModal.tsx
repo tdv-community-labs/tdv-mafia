@@ -50,15 +50,32 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
   const prison = minigameSubStates?.stanfordPrison;
   const catenaccio = minigameSubStates?.catenaccio;
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   return (
     <div
-      className="fixed inset-0 z-50 bg-zinc-950/80  flex items-center justify-center p-4 animate-fadeIn"
+      className="fixed inset-0 z-50 bg-zinc-950/80 flex items-center justify-center p-4 animate-fadeIn"
       onClick={onClose}
     >
       <div
         className={`w-full max-w-4xl p-6 sm:p-10 shadow-2xl flex flex-col gap-6 max-h-[90vh] overflow-y-auto relative ${isAllIn ? 'bg-zinc-950/95 border-2 border-cyan-500/50 ring-4 ring-cyan-500/20 text-cyan-50 font-mono rounded-[8px]' : theme.newspaperContainer}`}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Top-Right Close Button */}
+        <button
+          onClick={onClose}
+          title="Bağla (Esc)"
+          className="absolute top-4 right-4 p-2 rounded-full text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors z-10 cursor-pointer"
+        >
+          <X className="w-5 h-5" />
+        </button>
         {/* Newspaper Masthead */}
         <div className={`py-6 text-center mb-4 flex flex-col gap-2 ${isAllIn ? 'border-y-2 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.3)]' : theme.newspaperMasthead}`}>
           <div className="text-[11px] tracking-widest uppercase text-stone-600 dark:text-stone-400 font-sans font-bold">

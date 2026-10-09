@@ -95,7 +95,7 @@ async function runSimulation() {
     isAiBotControlled: false,
   };
 
-  let lobby = inMemoryLobbyStore.createLobby(lobbyId, hostId, hostSession, 'SE7EN_DEADLY_SINS');
+  let lobby = inMemoryLobbyStore.createLobby(lobbyId, hostId, hostSession, 'BLITZ');
   console.log(`✅ Step 1: Lobby created: ${lobbyId}, Host: ${hostSession.username}`);
 
   // 2. Add 4 AI Bots

@@ -26,7 +26,7 @@ import { RulesModal } from '../components/modals/RulesModal';
 import { LeaderboardModal } from '../components/modals/LeaderboardModal';
 import { AchievementsModal } from '../components/modals/AchievementsModal';
 import { GameModesCatalogModal } from '../components/modals/GameModesCatalogModal';
-import { PublicRoomSummary } from './api/rooms/route';
+import { PublicRoomSummary } from '../types/rooms';
 
 import { motion } from 'framer-motion';
 

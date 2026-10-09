@@ -362,7 +362,6 @@ function getOrCreateLobby(lobbyId: string, initialHostUser?: { userId: string; u
 }
 
 export async function GET(request: Request, context: RouteContext) {
-  try {
   const { lobbyId } = context.params;
 
   // Validate lobbyId format — must be alphanumeric + hyphens, 4-80 chars
@@ -462,7 +461,7 @@ export async function GET(request: Request, context: RouteContext) {
       { error: 'INTERNAL_SERVER_ERROR', detail: msg },
       { status: 500, headers: corsHeaders }
     );
-  }  } catch (error) { return NextResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 }); }
+  }
 }
 
 export async function POST(request: Request, context: RouteContext) {

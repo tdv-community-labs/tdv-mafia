@@ -89,4 +89,9 @@ class SignalingStore {
 }
 
 // Singleton — shared across all Next.js route handler invocations in the same Node process
-export const signalingStore = new SignalingStore();
+const globalSig = globalThis as unknown as {
+  __tdv_signaling_store?: SignalingStore;
+};
+
+export const signalingStore =
+  globalSig.__tdv_signaling_store ?? (globalSig.__tdv_signaling_store = new SignalingStore());

@@ -26,6 +26,15 @@ try {
   hasError = true;
 }
 
+try {
+  console.log('Running Architecture & AI Bot Simulation Tests (npm test)...');
+  execSync('npm test', { stdio: 'inherit' });
+  console.log('SUCCESS: All test suites passed.');
+} catch (err) {
+  console.error('ERROR: Test suites failed.');
+  hasError = true;
+}
+
 if (hasError) {
   process.exit(1);
 } else {

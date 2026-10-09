@@ -1255,6 +1255,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
           messages={lobbyState.chatMessages || []}
           currentUserId={currentUserId}
           availableChannels={availableChatChannels}
+          isPlayerAlive={myPlayerSession?.isAlive ?? true}
           onSendMessage={(content, channel) => dispatchAction({ action: 'SEND_MESSAGE', content, channel })}
         />
       )}
