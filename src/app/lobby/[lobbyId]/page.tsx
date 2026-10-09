@@ -45,6 +45,7 @@ import { GameIntroOverlay } from '../../../components/game/GameIntroOverlay';
 import { DetectiveNotebook } from '../../../components/game/DetectiveNotebook';
 import { LastWillModal } from '../../../components/modals/LastWillModal';
 import { GraveyardModal } from '../../../components/modals/GraveyardModal';
+import { TombstoneModal } from '../../../components/game/TombstoneModal';
 import { MorningNewspaperModal } from '../../../components/game/MorningNewspaperModal';
 import { PlayerCard } from '../../../components/game/PlayerCard';
 import { PlayerProfileCard } from '../../../components/ui/PlayerProfileCard';
@@ -456,6 +457,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
   const [showCinematic, setShowCinematic] = useState<boolean>(true);
   const [isArchiveOpen, setIsArchiveOpen] = useState<boolean>(false);
   const [isGraveyardOpen, setIsGraveyardOpen] = useState<boolean>(false);
+  const [inspectingDeadPlayer, setInspectingDeadPlayer] = useState<PlayerSession | null>(null);
   
   const submitLastWill = (text: string) => {
     dispatchAction({ action: 'SUBMIT_LAST_WILL', text });
@@ -1070,6 +1072,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             onKickPlayer={handleKickPlayer}
             onSendEmote={(emote) => dispatchAction({ action: 'EMOTE', emote })}
             onOpenGraveyard={() => setIsGraveyardOpen(true)}
+            onInspectDeadPlayer={(p) => setInspectingDeadPlayer(p)}
             speakingIds={speakingIds}
           />
 
@@ -1378,6 +1381,13 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         isOpen={isGraveyardOpen}
         onClose={() => setIsGraveyardOpen(false)}
         players={lobbyState.players}
+        onInspectPlayer={(p) => setInspectingDeadPlayer(p)}
+      />
+      <TombstoneModal
+        isOpen={Boolean(inspectingDeadPlayer)}
+        onClose={() => setInspectingDeadPlayer(null)}
+        deadPlayer={inspectingDeadPlayer}
+        lastWill={inspectingDeadPlayer?.lastWill || (inspectingDeadPlayer ? lastWills[inspectingDeadPlayer.userId] : null)}
       />
       <RulesModal
         isOpen={isRulesOpen}

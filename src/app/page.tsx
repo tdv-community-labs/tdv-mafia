@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Dices,
   Key,
@@ -29,6 +31,7 @@ import { PublicRoomSummary } from './api/rooms/route';
 import { motion } from 'framer-motion';
 
 export default function HomePage() {
+  const router = useRouter();
   const [isCreateRoomOpen, setIsCreateRoomOpen] = useState<boolean>(false);
   const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState<boolean>(false);
@@ -71,7 +74,7 @@ export default function HomePage() {
   const handleJoinByCode = () => {
     const code = roomCodeInput.trim();
     if (!code) return;
-    window.location.href = `/lobby/${encodeURIComponent(code)}`;
+    router.push(`/lobby/${encodeURIComponent(code)}`);
   };
 
   return (
@@ -304,13 +307,13 @@ export default function HomePage() {
                     <Users className="w-3.5 h-3.5" />
                     {room.playerCount} / {room.maxPlayers} Oyunçu
                   </span>
-                  <a
+                  <Link
                     href={`/lobby/${room.lobbyId}`}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all duration-200 hover:-translate-y-0.5"
                   >
                     <span>Qoşul</span>
                     <ArrowRight className="w-3.5 h-3.5" />
-                  </a>
+                  </Link>
                 </div>
               </motion.div>
             ))}

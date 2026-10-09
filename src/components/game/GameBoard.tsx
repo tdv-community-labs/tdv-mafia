@@ -54,6 +54,7 @@ export interface GameBoardProps {
   readonly onKickPlayer?: (playerId: string) => void;
   readonly onSendEmote?: (emote: string) => void;
   readonly onOpenGraveyard?: () => void;
+  readonly onInspectDeadPlayer?: (player: PlayerSession) => void;
   readonly districtFinalists?: readonly string[];
   /** Set of player IDs currently speaking via voice chat */
   readonly speakingIds?: ReadonlySet<string>;
@@ -73,6 +74,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   onKickPlayer,
   onSendEmote,
   onOpenGraveyard,
+  onInspectDeadPlayer,
 }) => {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [activeDistrictTab, setActiveDistrictTab] = useState<AllInDistrict | 'ALL'>('ALL');
@@ -636,7 +638,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   isViewerMafia={isMafia}
                   isGameOver={lobbyState.phase === 'ENDED'}
                   isLobbyPhase={lobbyState.phase === 'LOBBY'}
-                  onSelect={onOpenGraveyard ? () => onOpenGraveyard() : undefined}
+                  onSelect={
+                    onInspectDeadPlayer
+                      ? () => onInspectDeadPlayer(player as PlayerSession)
+                      : onOpenGraveyard
+                      ? () => onOpenGraveyard()
+                      : undefined
+                  }
                 />
               ))}
             </div>

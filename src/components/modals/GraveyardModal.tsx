@@ -10,9 +10,10 @@ interface GraveyardModalProps {
   isOpen: boolean;
   onClose: () => void;
   players: Record<string, PlayerSession>;
+  onInspectPlayer?: (player: PlayerSession) => void;
 }
 
-export const GraveyardModal: React.FC<GraveyardModalProps> = ({ isOpen, onClose, players }) => {
+export const GraveyardModal: React.FC<GraveyardModalProps> = ({ isOpen, onClose, players, onInspectPlayer }) => {
 
 
   const deadPlayers = Object.values(players).filter(p => !p.isAlive && !p.userId.startsWith('temp-'));
@@ -70,16 +71,21 @@ export const GraveyardModal: React.FC<GraveyardModalProps> = ({ isOpen, onClose,
                     : 'Bilinməyən Rol';
 
                 return (
-                  <React.Fragment key={p.userId}><div className={`flex items-center justify-between bg-zinc-950/50 border border-zinc-800/50 ${p.lastWill ? 'rounded-t-xl border-b-0' : 'rounded-xl'} p-4 hover:border-red-500/30 transition-colors group`}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center text-zinc-500 font-black group-hover:border-red-500/50 transition-colors">
-                        {p.username.charAt(0).toUpperCase()}
+                  <React.Fragment key={p.userId}>
+                    <div
+                      onClick={() => onInspectPlayer?.(p)}
+                      className={`flex items-center justify-between bg-zinc-950/50 border border-zinc-800/50 ${p.lastWill ? 'rounded-t-xl border-b-0' : 'rounded-xl'} p-4 hover:border-red-500/40 hover:bg-zinc-900/60 transition-all group cursor-pointer`}
+                      title="Məzar daşını və ətraflı məlumatı aç"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center text-zinc-500 font-black group-hover:border-red-500/50 group-hover:text-red-400 transition-colors">
+                          {p.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex flex-col text-left">
+                          <span className="font-bold text-zinc-300 line-through decoration-red-500/50 group-hover:text-white transition-colors">{p.username}</span>
+                          <span className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">{roleName}</span>
+                        </div>
                       </div>
-                      <div className="flex flex-col text-left">
-                        <span className="font-bold text-zinc-300 line-through decoration-red-500/50">{p.username}</span>
-                        <span className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">{roleName}</span>
-                      </div>
-                    </div>
                     {p.lastWill && (
                       <Badge tone="purple" className="shrink-0">
                         Vəsiyyəti Var
