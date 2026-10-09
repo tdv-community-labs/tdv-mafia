@@ -16,6 +16,15 @@ export const metadata = {
     apple: '/assets/tdv-logo.png',
   },
   manifest: '/manifest.json',
+  openGraph: {
+    title: 'TDV MAFIA | Elit Onlayn Mafiya Platforması',
+    description: '40–50 nəfərlik All-In rejimi, asimmetrik mini-oyunlar və 75s Gemini AI mühafizəsi ilə elit onlayn mafiya mühərriki.',
+    url: 'https://tdv-mafia.vercel.app',
+    siteName: 'TDV Mafia',
+    images: [{ url: '/assets/tdv-logo.png', width: 512, height: 512, alt: 'TDV Mafia Logo' }],
+    locale: 'az_AZ',
+    type: 'website',
+  },
 };
 
 export const viewport = {
