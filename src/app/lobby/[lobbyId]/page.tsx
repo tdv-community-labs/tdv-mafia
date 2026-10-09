@@ -1073,6 +1073,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             onSendEmote={(emote) => dispatchAction({ action: 'EMOTE', emote })}
             onOpenGraveyard={() => setIsGraveyardOpen(true)}
             onInspectDeadPlayer={(p) => setInspectingDeadPlayer(p)}
+            onTriggerKlaatuFreeze={() => dispatchAction({ action: 'KLAATU_FREEZE' })}
             speakingIds={speakingIds}
           />
 

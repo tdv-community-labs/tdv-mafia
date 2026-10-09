@@ -870,6 +870,36 @@ export async function POST(request: Request, context: RouteContext) {
       const role = body.role === 'THE_ARCHITECT' ? 'THE_ARCHITECT' : 'THE_BAILIFF';
       const unlockRes = inMemoryLobbyStore.submitAdminUnlock(lobbyId, userId, role);
       if (unlockRes.lobby) lobby = unlockRes.lobby;
+    } else if (action === 'KLAATU_FREEZE') {
+      if (lobby && lobby.minigameSubStates?.earthStoodStill && !lobby.minigameSubStates.earthStoodStill.worldFrozenUsed) {
+        inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+          ...l,
+          minigameSubStates: {
+            ...l.minigameSubStates,
+            earthStoodStill: {
+              ...l.minigameSubStates.earthStoodStill!,
+              worldFrozenActive: true,
+              worldFrozenUsed: true,
+            },
+          },
+        }));
+        lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+      }
+    } else if (action === 'PASS_BRIEFCASE') {
+      const targetUserId = String(body.targetUserId || '');
+      if (lobby && lobby.minigameSubStates?.valkyrie && targetUserId) {
+        inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+          ...l,
+          minigameSubStates: {
+            ...l.minigameSubStates,
+            valkyrie: {
+              ...l.minigameSubStates.valkyrie!,
+              briefcaseLocationPlayerId: targetUserId,
+            },
+          },
+        }));
+        lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+      }
     }
 
     const scrubbed = buildScrubbedLobbyView(lobby, userId);

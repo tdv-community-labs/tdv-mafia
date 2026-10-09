@@ -129,7 +129,6 @@ function determineLynchOutcome(
   }
 
   // Majority check: must exceed 50% of eligible voters (raw count or civic weighted bonus)
-  const totalWeight = tallies.reduce((sum, t) => sum + t.voteWeight, 0);
   const quorum = totalEligibleVoters === 0 ? 0 : Math.floor(totalEligibleVoters / 2) + 1;
   const effectiveVotes = Math.max(top.voteCount, top.voteWeight);
   if (effectiveVotes < quorum && !wrathMandatoryLynch) {
