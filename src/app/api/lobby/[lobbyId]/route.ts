@@ -4,7 +4,15 @@ import { buildScrubbedLobbyView } from '../../../../server/socket/dispatcher';
 import { formatRoleDisplay } from '../../../../types/roles';
 import { GamePhase, LobbyState, NightActionPriority, NightActionType, PlayerSession } from '../../../../types/game';
 import { GameMode } from '../../../../types/packs';
-import { PACKS_CONFIG } from '../../../../config/packs.config';
+import { PACKS_CONFIG, deriveModeFromLobbyId } from '../../../../config/packs.config';
+import {
+  createInitialDantesInfernoState,
+  createInitialEarthStoodStillState,
+  createInitialValkyrieState,
+  createInitialStanfordPrisonState,
+  createInitialCatenaccioState,
+} from '../../../../config/minigames.config';
+import { MinigameSubStates } from '../../../../types/minigames';
 import { PlayerTier } from '../../../../types/access';
 import { CoreFaction } from '../../../../types/roles';
 import { resolveNightActions } from '../../../../server/engine/night-action-resolver';
@@ -33,17 +41,79 @@ const BOT_NAME_POOL = [
   'Bot_Sevda',
   'Bot_Togrul',
   'Bot_Ayan',
+  'Bot_Cavid',
+  'Bot_Gunel',
+  'Bot_Rashad',
+  'Bot_Rena',
+  'Bot_Farid',
+  'Bot_Zahra',
+  'Bot_Fuad',
+  'Bot_Lala',
+  'Bot_Eldar',
+  'Bot_Sabina',
+  'Bot_Samir',
+  'Bot_Konul',
+  'Bot_Anar',
+  'Bot_Amina',
+  'Bot_Tural',
+  'Bot_Fatima',
+  'Bot_Ilkin',
+  'Bot_Aida',
+  'Bot_Vusal',
+  'Bot_Narmin',
+  'Bot_Emil',
+  'Bot_Gulnar',
+  'Bot_Orkhan',
+  'Bot_Nargiz',
+  'Bot_Emin',
+  'Bot_Fidan',
+  'Bot_Ramil',
+  'Bot_Zeynab',
+  'Bot_Kenan',
+  'Bot_Shabnam',
+  'Bot_Hasan',
+  'Bot_Maryam',
+  'Bot_Ali',
+  'Bot_Mehriban',
+  'Bot_Polad',
+  'Bot_Sona',
+  'Bot_Nijat',
+  'Bot_Perver',
+  'Bot_Ruslan',
+  'Bot_Leman',
 ];
 
-function deriveModeFromLobbyId(lobbyId: string): GameMode {
-  const lower = lobbyId.toLowerCase();
-  const allModes = Object.keys(PACKS_CONFIG) as GameMode[];
-  for (const mode of allModes) {
-    if (lower.startsWith(mode.toLowerCase())) {
-      return mode;
-    }
+function initializeMinigameSubStates(lobby: LobbyState): MinigameSubStates {
+  const pList = Object.values(lobby.players);
+  const pIds = pList.map(p => p.userId);
+
+  if (lobby.mode === 'DANTES_INFERNO') {
+    return { dantesInferno: createInitialDantesInfernoState() };
   }
-  return 'BLITZ';
+  if (lobby.mode === 'THE_DAY_THE_EARTH_STOOD_STILL') {
+    const klaatu = pList.find(p => p.displayRole?.originalRoleName === 'Investigator' || p.displayRole?.localizedRoleName?.includes('Şərif'))?.userId || pIds[0] || null;
+    return { earthStoodStill: createInitialEarthStoodStillState(klaatu) };
+  }
+  if (lobby.mode === 'OPERATION_VALKYRIE') {
+    const dictator = pList.find(p => p.allInIdentity?.layer1Faction === 'MAFIA')?.userId || pIds[0] || 'usr-host';
+    const conspirators = pList.filter(p => p.userId !== dictator).slice(0, 3).map(p => p.userId);
+    const initialHolder = conspirators[0] || pIds[1] || pIds[0] || 'usr-holder';
+    return { valkyrie: createInitialValkyrieState(dictator, conspirators, initialHolder) };
+  }
+  if (lobby.mode === 'STANFORD_PRISON') {
+    const warden = pIds[0] || 'usr-warden';
+    const guards = pIds.slice(1, Math.max(2, Math.floor(pIds.length / 3)));
+    const inmates = pIds.slice(guards.length + 1);
+    const secretAssassin = inmates[0] || null;
+    return { stanfordPrison: createInitialStanfordPrisonState(warden, guards, inmates, secretAssassin) };
+  }
+  if (lobby.mode === 'CATENACCIO') {
+    const defenders = pList.filter(p => p.allInIdentity?.layer1Faction === 'TOWN').slice(0, 3).map(p => p.userId);
+    const sniper = pList.find(p => p.allInIdentity?.layer1Faction === 'NEUTRAL_KILLER' || p.allInIdentity?.layer1Faction === 'MAFIA')?.userId || pIds[0] || null;
+    return { catenaccio: createInitialCatenaccioState(defenders.length > 0 ? defenders : pIds.slice(0, 2), sniper, 2) };
+  }
+
+  return {};
 }
 
 /**

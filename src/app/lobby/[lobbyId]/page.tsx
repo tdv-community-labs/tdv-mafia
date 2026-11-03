@@ -58,7 +58,7 @@ import { MorningNewspaper } from '../../../types/engine';
 import { AZ_PHASES, AZ_UI } from '../../../config/i18n/az';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
-import { PACKS_CONFIG } from '../../../config/packs.config';
+import { PACKS_CONFIG, deriveModeFromLobbyId } from '../../../config/packs.config';
 import { getTheme } from '../../../config/themes.config';
 import { playCard, playElimination, playDay, playNight, isSoundMuted, toggleSound, subscribeSound, startAmbient, stopAmbient } from '../../../utils/sfx';
 
@@ -733,7 +733,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                 onClick={handleFillBots}
                 icon={<Zap className="w-4 h-4 text-amber-500" />}
               >
-                5 Botla Doldur
+                {currentPack?.minPlayers ?? 5} Botla Doldur
               </Button>
               <Button
                 variant="primary"

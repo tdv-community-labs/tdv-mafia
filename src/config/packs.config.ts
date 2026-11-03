@@ -530,3 +530,32 @@ export const PACKS_CONFIG: Readonly<Record<GameMode, PackMetadata>> = {
 export function getPackMetadata(mode: GameMode): PackMetadata {
   return PACKS_CONFIG[mode];
 }
+
+/**
+ * Derives the GameMode from a lobby identifier string.
+ * Supports exact mode names, prefix slugs, and case-insensitive matching.
+ */
+export function deriveModeFromLobbyId(lobbyId: string): GameMode {
+  if (!lobbyId) return 'BLITZ';
+  const clean = lobbyId.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+  const allModes = Object.keys(PACKS_CONFIG) as GameMode[];
+  
+  // 1. Direct match with mode prefix
+  for (const mode of allModes) {
+    const modeKey = mode.toLowerCase();
+    if (clean.startsWith(modeKey) || lobbyId.toLowerCase().startsWith(mode.toLowerCase().replace(/_/g, '-'))) {
+      return mode;
+    }
+  }
+
+  // 2. Substring detection for special formats
+  if (clean.includes('all_in') || clean.includes('allin')) return 'ALL_IN';
+  if (clean.includes('inferno') || clean.includes('dante')) return 'DANTES_INFERNO';
+  if (clean.includes('earth') || clean.includes('klaatu')) return 'THE_DAY_THE_EARTH_STOOD_STILL';
+  if (clean.includes('valkyrie')) return 'OPERATION_VALKYRIE';
+  if (clean.includes('stanford') || clean.includes('prison')) return 'STANFORD_PRISON';
+  if (clean.includes('catenaccio')) return 'CATENACCIO';
+  if (clean.includes('classic') || clean.includes('standard')) return 'STANDARD';
+
+  return 'BLITZ';
+}

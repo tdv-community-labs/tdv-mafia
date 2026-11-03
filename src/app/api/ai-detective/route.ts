@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { inMemoryLobbyStore } from '../../../server/state/memory';
-import { getGeminiApiKeyPool } from '../../../server/ai/gemini-keys';
+import { getGeminiApiKeyPool, GEMINI_CANDIDATE_MODELS } from '../../../server/ai/gemini-keys';
 
 function generateHeuristicDeduction(alivePlayers: string[], deadPlayers: string[], notes: string, roleDisplay?: string): string {
   const noteLower = (notes || '').toLowerCase();
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     prompt += `Oyunçunun hazırki qeydləri belədir:\n"""${notes}"""\n\n`;
     prompt += `Bu qeydlərə və oyunun vəziyyətinə əsasən, oyunçuya (Maksimum 2-3 cümləlik) ağıllı, sirli və məntiqli bir 'Xəfiyyə Məsləhəti' (Detective Deduction) ver. Oyundakı rolları qəti şəkildə ifşa etmə (çünki sən də bilmirsən), sadəcə qeydlərdəki şübhələri analiz et və ehtimallar irəli sür. Azərbaycan dilində yaz.`;
 
-    const candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+    const candidateModels = GEMINI_CANDIDATE_MODELS;
     let analysisText: string | null = null;
 
     for (const model of candidateModels) {

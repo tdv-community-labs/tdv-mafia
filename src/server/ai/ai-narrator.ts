@@ -2,7 +2,7 @@ import { GoogleGenAI } from '@google/genai';
 import { NightDeathRecord } from '../../types/engine';
 import { PlayerSession } from '../../types/game';
 import { MinigameSubStates } from '../../types/minigames';
-import { getGeminiApiKeyPool } from './gemini-keys';
+import { getGeminiApiKeyPool, GEMINI_CANDIDATE_MODELS } from './gemini-keys';
 import { AZ_DANTE_CIRCLES } from '../../config/i18n/az';
 
 export interface NewspaperStoryResult {
@@ -140,7 +140,7 @@ export async function generateMorningNewspaperStory(
   "story": "A dramatic 2-3 sentence morning newspaper report in Azerbaijani detailing the night events without revealing any alive player's secret role."
 }`;
 
-  const candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+  const candidateModels = GEMINI_CANDIDATE_MODELS;
   for (const model of candidateModels) {
     try {
       // @ts-ignore
