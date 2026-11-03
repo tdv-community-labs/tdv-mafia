@@ -9,6 +9,7 @@ import { Badge, BadgeTone } from '../ui/Badge';
 import { AZ_CIVIC_OFFICES, AZ_DISTRICTS, AZ_UI } from '../../config/i18n/az';
 import { motion } from 'framer-motion';
 import { playCard } from '../../utils/sfx';
+import { RoleActionReticle, ActionReticleType } from './RoleActionReticle';
 
 export interface PlayerCardProps {
   readonly player: PlayerSession | ScrubbedPlayerView;
@@ -18,6 +19,8 @@ export interface PlayerCardProps {
   readonly hasVoteOnTarget?: boolean;
   readonly isSelected?: boolean;
   readonly isAccused?: boolean;
+  readonly isTargetable?: boolean;
+  readonly actionType?: ActionReticleType | null;
   readonly voteCount?: number;
   readonly voterUsernames?: readonly string[];
   readonly isReady?: boolean;
@@ -26,7 +29,7 @@ export interface PlayerCardProps {
   readonly isGameOver?: boolean;
   readonly onSelect?: (player: PlayerSession | ScrubbedPlayerView) => void;
   readonly onKick?: () => void;
-    readonly targetIntent?: 'KILL' | 'PROTECT' | 'INVESTIGATE' | 'BLOCK' | 'MISDIRECT';
+  readonly targetIntent?: ActionReticleType;
   readonly teammateIntents?: readonly { actorName: string; type: string }[];
   readonly isCompact?: boolean;
   readonly activeEmote?: string;
@@ -51,6 +54,8 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
   hasVoteOnTarget = false,
   isSelected = false,
   isAccused = false,
+  isTargetable = false,
+  actionType,
   voteCount = 0,
   voterUsernames = [],
   isReady = false,
@@ -68,6 +73,8 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
   const isHost = player.isHost;
   const isBot = isFullSession(player) ? player.isAiBotControlled : false;
   const isAfk = !isBot && isFullSession(player) && player.lastSeenAt && (Date.now() - player.lastSeenAt > 15000);
+
+  const effectiveActionType = (actionType ?? targetIntent) as ActionReticleType | undefined;
 
   let roleTitle = player.username;
   let roleSubtitle = isLobbyPhase
@@ -112,9 +119,21 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
   if (!isAlive && !isLobbyPhase) {
     containerClasses = 'bg-zinc-100/60 dark:bg-zinc-950/60 border-zinc-200 dark:border-zinc-800/60 opacity-60 grayscale-[40%]';
   } else if (isAccused) {
-    containerClasses = 'bg-red-500/10 dark:bg-red-950/40 border-red-500 border border-red-500/50 shadow-[0_0_25px_rgba(239,68,68,0.4)]';
+    containerClasses = 'bg-gradient-to-b from-amber-950/40 via-zinc-900 to-amber-950/20 border-amber-400 dark:border-amber-400 ring-4 ring-amber-400/50 shadow-[0_0_35px_rgba(251,191,36,0.5)]';
   } else if (isSelected) {
-    containerClasses = 'bg-blue-50/90 dark:bg-blue-950/50 border-blue-500 ring-2 ring-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.35)]';
+    if (effectiveActionType === 'KILL') {
+      containerClasses = 'bg-red-500/10 dark:bg-red-950/40 border-red-500 ring-2 ring-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.35)]';
+    } else if (effectiveActionType === 'PROTECT') {
+      containerClasses = 'bg-blue-50/90 dark:bg-blue-950/50 border-blue-500 ring-2 ring-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.35)]';
+    } else if (effectiveActionType === 'INVESTIGATE') {
+      containerClasses = 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.35)]';
+    } else if (effectiveActionType === 'BLOCK') {
+      containerClasses = 'bg-amber-50/90 dark:bg-amber-950/40 border-amber-500 ring-2 ring-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.35)]';
+    } else if (effectiveActionType === 'MISDIRECT') {
+      containerClasses = 'bg-purple-50/90 dark:bg-purple-950/40 border-purple-500 ring-2 ring-purple-500/40 shadow-[0_0_20px_rgba(168,85,247,0.35)]';
+    } else {
+      containerClasses = 'bg-blue-50/90 dark:bg-blue-950/50 border-blue-500 ring-2 ring-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.35)]';
+    }
   } else if (isSpeaking) {
     containerClasses = 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-500/40 shadow-lg shadow-emerald-500/20';
   } else if (isCurrentTurn) {
@@ -125,6 +144,12 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
     // Radiant holographic glow border for player's own card
     containerClasses = 'bg-gradient-to-br from-purple-50/90 via-white to-purple-100/80 dark:from-purple-950/40 dark:via-zinc-900 dark:to-purple-950/30 border-purple-400 dark:border-purple-500 ring-2 ring-purple-500/50 shadow-[0_0_20px_rgba(147,51,234,0.35)]';
   }
+
+  const cursorClass = isTargetable && !isSelected
+    ? 'cursor-crosshair hover:scale-[1.02] hover:shadow-md active:scale-[0.98]'
+    : onSelect
+    ? 'cursor-pointer hover:scale-[1.02] hover:shadow-md active:scale-[0.98]'
+    : 'cursor-default';
 
   return (
     <div
@@ -138,15 +163,29 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
       role={onSelect ? 'button' : undefined}
       tabIndex={onSelect ? 0 : undefined}
       style={style}
-      className={`group relative rounded-[20px] ${isCompact ? "p-2 min-h-[60px]" : "p-4 min-h-[120px]"} border transition-all duration-300 flex flex-col justify-between gap-3 overflow-hidden select-none outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${
-        onSelect ? 'cursor-pointer hover:scale-[1.02] hover:shadow-md active:scale-[0.98]' : 'cursor-default'
-      } ${containerClasses}`}
+      className={`group relative rounded-[20px] ${isCompact ? "p-2 min-h-[60px]" : "p-4 min-h-[120px]"} border transition-all duration-300 flex flex-col justify-between gap-3 overflow-hidden select-none outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${cursorClass} ${containerClasses}`}
     >
-      
+      {/* Accused Podium Spotlight Beam & Ambient Glow */}
+      {isAccused && (
+        <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden rounded-[20px]">
+          {/* Golden spotlight beam descending from top */}
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-56 bg-gradient-to-b from-amber-400/35 via-amber-500/10 to-transparent blur-md transform -rotate-6 pointer-events-none" />
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-56 bg-gradient-to-b from-amber-300/30 via-amber-400/10 to-transparent blur-md transform rotate-6 pointer-events-none" />
+          {/* Ambient pulsing golden halo */}
+          <div className="absolute inset-0 bg-radial-gradient from-amber-400/10 via-transparent to-transparent animate-pulse pointer-events-none" />
+        </div>
+      )}
 
+      {/* Accused Podium Ribbon Badge */}
+      {isAccused && (
+        <div className="absolute top-2 left-2 z-30 px-2 py-0.5 rounded-full bg-amber-500 text-zinc-950 text-[10px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(245,158,11,0.8)] flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-950 animate-ping" />
+          <span>KÜRSÜDƏ</span>
+        </div>
+      )}
 
       {/* Floating Active Emote Badge */}
-      {activeEmote && (
+      {activeEmote && !isAccused && (
         <div className="absolute top-2 left-2 z-30 px-2.5 py-1 rounded-full bg-zinc-950/90 border border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.5)] text-sm font-black flex items-center gap-1 backdrop-blur-md animate-bounce pointer-events-none">
           <span>{activeEmote}</span>
         </div>
@@ -180,23 +219,14 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
         </div>
       )}
 
-      
-      {/* Target Intent Reticle */}
-      {isSelected && targetIntent && (
-         <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden rounded-[20px]">
-            {targetIntent === 'KILL' && (
-               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_40%,_rgba(239,68,68,0.2)_100%)] flex items-center justify-center">
-                  <Target className="w-24 h-24 text-red-500/30 absolute animate-ping" />
-                  <Target className="w-24 h-24 text-red-500/60 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]" />
-               </div>
-            )}
-            {targetIntent === 'PROTECT' && (
-               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_40%,_rgba(16,185,129,0.2)_100%)] flex items-center justify-center">
-                  <Shield className="w-24 h-24 text-emerald-500/30 absolute animate-ping" />
-                  <Shield className="w-24 h-24 text-emerald-500/60 drop-shadow-[0_0_15px_rgba(16,185,129,0.8)]" />
-               </div>
-            )}
-         </div>
+      {/* Dynamic Role Action Reticle */}
+      {effectiveActionType && (
+        <RoleActionReticle
+          actionType={effectiveActionType}
+          isSelected={isSelected}
+          isTargetable={isTargetable}
+          isCompact={isCompact}
+        />
       )}
       
       {/* Cinematic Death Watermark & Blood Overlay */}
@@ -350,6 +380,8 @@ export const PlayerCard = React.memo(PlayerCardComponent, (prev, next) => {
     prev.hasVoteOnTarget === next.hasVoteOnTarget &&
     prev.isSelected === next.isSelected &&
     prev.isAccused === next.isAccused &&
+    prev.isTargetable === next.isTargetable &&
+    prev.actionType === next.actionType &&
     prev.voteCount === next.voteCount &&
     prev.isReady === next.isReady &&
     prev.isSpeaking === next.isSpeaking &&

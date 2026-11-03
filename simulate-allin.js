@@ -212,11 +212,16 @@ function resolveNight(game, nightActions) {
   // Build per-player flags
   const flags = {};
   for (const [id, p] of Object.entries(players)) {
+    const vestRemaining = p.vestChargesRemaining !== undefined
+      ? p.vestChargesRemaining
+      : (p.allInIdentity.layer3Trait === 'BULLETPROOF_VEST' ? 1 :
+         p.allInIdentity.layer3Trait === 'SURGICAL_RESILIENCE' ? 2 : 0);
+
     flags[id] = {
       isBlocked: false,
       isProtected: false,
-      vestCharges: p.allInIdentity.layer3Trait === 'BULLETPROOF_VEST' ? 1 :
-                   p.allInIdentity.layer3Trait === 'SURGICAL_RESILIENCE' ? 2 : 0,
+      hasDoctorProtection: false,
+      vestCharges: vestRemaining,
       isFramed: false,
       isColdBlooded: p.allInIdentity.layer3Trait === 'COLD_BLOODED',
     };
@@ -246,7 +251,10 @@ function resolveNight(game, nightActions) {
   for (const a of sorted.filter(a => a.actionType === 'PROTECT')) {
     if (flags[a.actorPlayerId]?.isBlocked) continue;
     const ef = resolveTarget(a.targetPlayerId);
-    if (flags[ef]) flags[ef].isProtected = true;
+    if (flags[ef]) {
+      flags[ef].isProtected = true;
+      flags[ef].hasDoctorProtection = true;
+    }
   }
   // Vest self-protect
   for (const [id, f] of Object.entries(flags)) {
@@ -264,7 +272,14 @@ function resolveNight(game, nightActions) {
     if (!target || !target.isAlive) continue;
     const tf = flags[ef];
     const hasSilencer = actor.allInIdentity.layer3Trait === 'SILENCER_ATTACHMENT';
-    if (tf?.isProtected && !hasSilencer) continue; // blocked by protection
+    if (tf?.isProtected && !hasSilencer) {
+      if (!tf.hasDoctorProtection && tf.vestCharges > 0) {
+        tf.vestCharges--;
+        players[ef] = { ...target, vestChargesRemaining: tf.vestCharges };
+        if (tf.vestCharges === 0) tf.isProtected = false;
+      }
+      continue;
+    }
     players[ef] = { ...target, isAlive: false };
     deaths.push({ victimPlayerId: ef, cause: `${actor.allInIdentity.layer1Faction}_KILL`, killerFaction: actor.allInIdentity.layer1Faction });
     killCount++;
@@ -397,7 +412,7 @@ async function runGame(gameIdx) {
 
   // ── Game loop
   let round = 0;
-  const maxRounds = 15;
+  const maxRounds = 20;
   let winner = null;
   const roundResults = [];
 

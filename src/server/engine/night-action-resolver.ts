@@ -39,6 +39,23 @@ function hasTrait(player: PlayerSession, trait: InnateTraitType): boolean {
   return player.allInIdentity?.layer3Trait === trait;
 }
 
+function isBodyguard(player: PlayerSession): boolean {
+  if (!player.displayRole) return false;
+  const original = player.displayRole.originalRoleName?.toLowerCase() ?? '';
+  const localized = player.displayRole.localizedRoleName?.toLowerCase() ?? '';
+  const nickname = player.displayRole.nickname?.toLowerCase() ?? '';
+  const formatted = player.displayRole.formatted?.toLowerCase() ?? '';
+  return (
+    original.includes('bodyguard') ||
+    localized.includes('mühafizəçi') ||
+    localized.includes('cangüdən') ||
+    nickname.includes('cangüdən') ||
+    formatted.includes('bodyguard') ||
+    formatted.includes('cangüdən') ||
+    formatted.includes('mühafizəçi')
+  );
+}
+
 function getFaction(player: PlayerSession): CoreFaction {
   return player.allInIdentity?.layer1Faction ?? 'TOWN';
 }
@@ -81,16 +98,21 @@ function buildInitialFlags(players: Readonly<Record<string, PlayerSession>>): Re
   const flags: Record<string, NightResolutionFlags> = {};
   for (const [id, p] of Object.entries(players)) {
     flags[id] = {
-      isTimeWarped:          false,
-      isBlocked:             false,
-      isProtected:           false,
-      vestChargesRemaining:  hasTrait(p, 'BULLETPROOF_VEST') ? 1 : hasTrait(p, 'SURGICAL_RESILIENCE') ? 2 : 0,
-      redirectedTargetId:    null,
-      isFramed:              false,
-      factionMaskOverride:   hasTrait(p, 'FALSE_DOCUMENTATION') ? ('TOWN' as CoreFaction) : null,
-      retaliationFuseActive: hasTrait(p, 'RETALIATION_FUSE'),
-      coldBloodedImmune:     hasTrait(p, 'COLD_BLOODED'),
-      poisonImmune:          hasTrait(p, 'POISON_IMMUNITY'),
+      isTimeWarped:             false,
+      isBlocked:                false,
+      isProtected:              false,
+      protectorIds:             [],
+      bodyguardProtectorIds:    [],
+      vestChargesRemaining:     hasTrait(p, 'BULLETPROOF_VEST') ? 1 : hasTrait(p, 'SURGICAL_RESILIENCE') ? 2 : 0,
+      ironWillChargesRemaining: hasTrait(p, 'IRON_WILL') ? 1 : 0,
+      hasPhantomStep:           hasTrait(p, 'PHANTOM_STEP'),
+      isNightVision:            hasTrait(p, 'NIGHT_VISION'),
+      redirectedTargetId:       null,
+      isFramed:                 false,
+      factionMaskOverride:      hasTrait(p, 'FALSE_DOCUMENTATION') ? ('TOWN' as CoreFaction) : null,
+      retaliationFuseActive:    hasTrait(p, 'RETALIATION_FUSE'),
+      coldBloodedImmune:        hasTrait(p, 'COLD_BLOODED'),
+      poisonImmune:             hasTrait(p, 'POISON_IMMUNITY'),
     };
   }
   return flags;
@@ -135,8 +157,8 @@ function applyBlocks(
     if (flags[actor]?.isTimeWarped || flags[targetActor]?.isTimeWarped) continue;
     if (!targetPlayer) continue;
 
-    // COLD_BLOODED trait: immune to BLOCK
-    if (flags[targetActor]?.coldBloodedImmune) continue;
+    // COLD_BLOODED or PHANTOM_STEP trait: immune to BLOCK
+    if (flags[targetActor]?.coldBloodedImmune || flags[targetActor]?.hasPhantomStep || hasTrait(targetPlayer, 'PHANTOM_STEP')) continue;
 
     flags[targetActor] = { ...(flags[targetActor] as NightResolutionFlags), isBlocked: true };
   }
@@ -189,17 +211,35 @@ function resolveEffectiveTarget(
  */
 function applyProtections(
   actions: readonly NightActionBufferItem[],
-  flags: Record<string, NightResolutionFlags>
+  flags: Record<string, NightResolutionFlags>,
+  players: Readonly<Record<string, PlayerSession>>
 ): void {
   for (const action of actions) {
     if (action.priority !== 3) continue;
     if (action.actionType !== 'PROTECT') continue;
     if (flags[action.actorPlayerId]?.isBlocked) continue;
 
+    const actor = players[action.actorPlayerId];
+    if (!actor || !actor.isAlive) continue;
+
     const effectiveTarget = resolveEffectiveTarget(action.targetPlayerId, flags);
     if (!flags[effectiveTarget]) continue;
 
-    flags[effectiveTarget] = { ...(flags[effectiveTarget] as NightResolutionFlags), isProtected: true };
+    if (isBodyguard(actor) && action.actorPlayerId === effectiveTarget) {
+      continue;
+    }
+
+    const targetFlags = flags[effectiveTarget] as NightResolutionFlags;
+    const isBg = isBodyguard(actor);
+
+    flags[effectiveTarget] = {
+      ...targetFlags,
+      isProtected: true,
+      protectorIds: [...targetFlags.protectorIds, action.actorPlayerId],
+      bodyguardProtectorIds: isBg
+        ? [...targetFlags.bodyguardProtectorIds, action.actorPlayerId]
+        : targetFlags.bodyguardProtectorIds,
+    };
   }
 
   // Self-vest: players with vestChargesRemaining > 0 are implicitly protected
@@ -228,13 +268,15 @@ function applyKills(
   danteState: DantesInfernoState | undefined,
   roundNumber: number,
   minigameSubStates?: MinigameSubStates
-): { deaths: NightDeathRecord[]; updatedPlayers: Record<string, PlayerSession>; updatedFlags: Record<string, NightResolutionFlags>; mutinyActive?: boolean; mutineerIds?: string[]; protectedIds: string[] } {
+): { deaths: NightDeathRecord[]; updatedPlayers: Record<string, PlayerSession>; updatedFlags: Record<string, NightResolutionFlags>; mutinyActive?: boolean; mutineerIds?: string[]; protectedIds: string[]; armorBrokenPlayerIds: string[]; achievementsJustUnlocked: Record<string, string[]> } {
   // Mutiny tracking
   let overallMutinyActive = false;
   let allMutineerIds: string[] = [];
 
   const deaths: NightDeathRecord[] = [];
   const protectedIds: string[] = [];
+  const armorBrokenPlayerIds: string[] = [];
+  const achievementsJustUnlocked: Record<string, string[]> = {};
   const playerMap: Record<string, PlayerSession> = { ...players };
   let killsThisNight = 0;
 
@@ -257,10 +299,6 @@ function applyKills(
 
   // --- SYNDICATE CONSENSUS LOGIC (Probability-based Kill) ---
   const attempts: KillAttempt[] = [];
-  
-  // Add SOLO Killers first
-  const soloKillers = rawAttempts.filter(a => a.killerFaction === 'NEUTRAL_KILLER' || a.killerFaction === 'VOID_CULT');
-  soloKillers.forEach(sk => attempts.push(sk));
 
   for (const faction of ['MAFIA', 'YAKUZA'] as CoreFaction[]) {
     const factionAttempts = rawAttempts.filter(a => a.killerFaction === faction);
@@ -409,24 +447,190 @@ function applyKills(
     if (!targetPlayer || !targetPlayer.isAlive) continue;
 
     const targetFlags = flags[targetId] as NightResolutionFlags;
-    const piercePresent = targetAttempts.some(a => a.pierceProtection);
 
-    // Protected and not pierced → no kill
-    if (targetFlags.isProtected && !piercePresent) {
-      if (!protectedIds.includes(targetId)) protectedIds.push(targetId);
-      // Vest charge deduction when protection came from vest
-      if (targetFlags.vestChargesRemaining > 0) {
-        flags[targetId] = {
-          ...targetFlags,
-          vestChargesRemaining: targetFlags.vestChargesRemaining - 1,
-          isProtected: targetFlags.vestChargesRemaining - 1 > 0,
-        };
+    // Living bodyguards assigned to this target
+    let availableBodyguards = [...targetFlags.bodyguardProtectorIds].filter(
+      id => playerMap[id]?.isAlive
+    );
+    const hasDoctorProtection = targetFlags.protectorIds.some(
+      id => !targetFlags.bodyguardProtectorIds.includes(id) && playerMap[id]?.isAlive
+    );
+
+    let targetEliminated = false;
+    const connectingKills: KillAttempt[] = [];
+
+    for (const att of targetAttempts) {
+      if (targetEliminated) break;
+      if (killsThisNight >= globalNightKillCap) break;
+
+      const currentFlags = flags[targetId] as NightResolutionFlags;
+      const attacker = playerMap[att.actorId];
+
+      // SILENCER_ATTACHMENT: Pierce bypasses all protection
+      if (att.pierceProtection) {
+        connectingKills.push(att);
+        targetEliminated = true;
+        break;
       }
-      // RETALIATION_FUSE: attacker(s) die when attack is absorbed
-      for (const att of targetAttempts) {
-        if (targetFlags.retaliationFuseActive && killsThisNight < globalNightKillCap) {
-          const attacker = playerMap[att.actorId];
-          if (attacker && attacker.isAlive) {
+
+      // Check living Bodyguard intercept
+      if (availableBodyguards.length > 0) {
+        const bgId = availableBodyguards.shift()!;
+        const bodyguard = playerMap[bgId];
+
+        if (!protectedIds.includes(targetId)) protectedIds.push(targetId);
+
+        // 1. Counter-Kill Attacker
+        if (attacker && attacker.isAlive) {
+          const attackerFlags = flags[att.actorId] as NightResolutionFlags;
+          if (attackerFlags?.ironWillChargesRemaining > 0) {
+            // Attacker's IRON_WILL absorbs counter-kill
+            flags[att.actorId] = {
+              ...attackerFlags,
+              ironWillChargesRemaining: 0,
+            };
+            if (!armorBrokenPlayerIds.includes(att.actorId)) {
+              armorBrokenPlayerIds.push(att.actorId);
+            }
+            if (!protectedIds.includes(att.actorId)) {
+              protectedIds.push(att.actorId);
+            }
+          } else if (attackerFlags?.vestChargesRemaining > 0) {
+            flags[att.actorId] = {
+              ...attackerFlags,
+              vestChargesRemaining: attackerFlags.vestChargesRemaining - 1,
+              isProtected: attackerFlags.vestChargesRemaining - 1 > 0,
+            };
+            if (!protectedIds.includes(att.actorId)) {
+              protectedIds.push(att.actorId);
+            }
+          } else {
+            playerMap[att.actorId] = { ...attacker, isAlive: false };
+            deaths.push({
+              victimPlayerId: att.actorId,
+              cause: 'BODYGUARD_COUNTER',
+              killerFaction: null,
+              isCleaned: false,
+            });
+            killsThisNight++;
+          }
+        }
+
+        // 2. Bodyguard Noble Sacrifice
+        if (bodyguard && bodyguard.isAlive) {
+          playerMap[bgId] = { ...bodyguard, isAlive: false };
+          deaths.push({
+            victimPlayerId: bgId,
+            cause: 'BODYGUARD_SACRIFICE',
+            killerFaction: null,
+            isCleaned: false,
+          });
+          killsThisNight++;
+
+          achievementsJustUnlocked[bgId] = [
+            ...(achievementsJustUnlocked[bgId] || []),
+            'town_bodyguard_noble_sacrifice',
+          ];
+        }
+
+        continue; // Intercepted and resolved
+      }
+
+      // Doctor protection (heals all subsequent non-pierced attacks tonight)
+      if (hasDoctorProtection || (currentFlags.isProtected && currentFlags.vestChargesRemaining === 0 && currentFlags.bodyguardProtectorIds.length === 0)) {
+        if (!protectedIds.includes(targetId)) protectedIds.push(targetId);
+        continue;
+      }
+
+      // Vest charge deduction
+      if (currentFlags.vestChargesRemaining > 0) {
+        if (!protectedIds.includes(targetId)) protectedIds.push(targetId);
+        flags[targetId] = {
+          ...currentFlags,
+          vestChargesRemaining: currentFlags.vestChargesRemaining - 1,
+          isProtected: currentFlags.vestChargesRemaining - 1 > 0,
+        };
+        // RETALIATION_FUSE: attacker dies when attack absorbed by vest
+        if (currentFlags.retaliationFuseActive && attacker && attacker.isAlive && killsThisNight < globalNightKillCap) {
+          playerMap[att.actorId] = { ...attacker, isAlive: false };
+          deaths.push({
+            victimPlayerId: att.actorId,
+            cause: 'RETALIATION_FUSE_COUNTER',
+            killerFaction: null,
+            isCleaned: false,
+          });
+          killsThisNight++;
+        }
+        continue;
+      }
+
+      // IRON_WILL: 1-time lethal attack absorption with broken armor alert
+      if (currentFlags.ironWillChargesRemaining > 0) {
+        if (!protectedIds.includes(targetId)) protectedIds.push(targetId);
+        if (!armorBrokenPlayerIds.includes(targetId)) armorBrokenPlayerIds.push(targetId);
+        flags[targetId] = {
+          ...currentFlags,
+          ironWillChargesRemaining: currentFlags.ironWillChargesRemaining - 1,
+        };
+        // RETALIATION_FUSE: attacker dies when attack absorbed by IRON_WILL
+        if (currentFlags.retaliationFuseActive && attacker && attacker.isAlive && killsThisNight < globalNightKillCap) {
+          playerMap[att.actorId] = { ...attacker, isAlive: false };
+          deaths.push({
+            victimPlayerId: att.actorId,
+            cause: 'RETALIATION_FUSE_COUNTER',
+            killerFaction: null,
+            isCleaned: false,
+          });
+          killsThisNight++;
+        }
+        continue;
+      }
+
+      // Catenaccio defensive wall armor absorption
+      if (minigameSubStates?.catenaccio && !minigameSubStates.catenaccio.wallBreached) {
+        const catenaccio = minigameSubStates.catenaccio;
+        if (catenaccio.defensiveWallPlayerIds.includes(targetId)) {
+          const remainingArmor = catenaccio.armorCharges[targetId] ?? 0;
+          if (remainingArmor > 0) {
+            if (!protectedIds.includes(targetId)) protectedIds.push(targetId);
+            continue;
+          }
+        }
+      }
+
+      // POISON_IMMUNITY: immune to non-direct kill vectors (e.g. cult/neutral)
+      if (currentFlags.poisonImmune) {
+        if (att.killerFaction !== 'MAFIA' && att.killerFaction !== 'YAKUZA') {
+          continue;
+        }
+      }
+
+      // Attack connects!
+      connectingKills.push(att);
+      targetEliminated = true;
+    }
+
+    if (targetEliminated && connectingKills.length > 0) {
+      const connectingFactions = new Set(connectingKills.map(a => a.killerFaction));
+      const cause: DeathCause = connectingFactions.size > 1
+        ? 'CROSSFIRE'
+        : deathCauseForFaction(connectingKills[0]!.killerFaction);
+
+      playerMap[targetId] = { ...targetPlayer, isAlive: false };
+      deaths.push({
+        victimPlayerId: targetId,
+        cause,
+        killerFaction: connectingFactions.size === 1 ? connectingKills[0]!.killerFaction : null,
+        isCleaned: false,
+        signature: connectingKills[0]?.signature,
+      });
+      killsThisNight++;
+
+      // RETALIATION_FUSE: target died, attacker still dies (kamikaze on hit)
+      for (const att of connectingKills) {
+        const attacker = playerMap[att.actorId];
+        if (attacker && attacker.isAlive && flags[att.actorId]?.retaliationFuseActive) {
+          if (killsThisNight < globalNightKillCap) {
             playerMap[att.actorId] = { ...attacker, isAlive: false };
             deaths.push({
               victimPlayerId: att.actorId,
@@ -436,51 +640,6 @@ function applyKills(
             });
             killsThisNight++;
           }
-        }
-      }
-      continue;
-    }
-
-    // Catenaccio defensive wall armor absorption:
-    // Non-pierced attacks against wall players are absorbed by armor charges
-    if (minigameSubStates?.catenaccio && !minigameSubStates.catenaccio.wallBreached && !piercePresent) {
-      const catenaccio = minigameSubStates.catenaccio;
-      if (catenaccio.defensiveWallPlayerIds.includes(targetId)) {
-        const remainingArmor = catenaccio.armorCharges[targetId] ?? 0;
-        if (remainingArmor > 0) {
-          if (!protectedIds.includes(targetId)) protectedIds.push(targetId);
-          continue; // Attack absorbed by Catenaccio defensive wall armor!
-        }
-      }
-    }
-
-    // POISON_IMMUNITY: immune to indirect/cult-vector kills (not direct faction kill)
-    if (targetFlags.poisonImmune) {
-      const directKill = targetAttempts.filter(a => a.killerFaction === 'MAFIA' || a.killerFaction === 'YAKUZA');
-      if (directKill.length === 0) continue;
-    }
-
-    // Determine cause: if multiple factions hit the same target → CROSSFIRE
-    const factions = new Set(targetAttempts.map(a => a.killerFaction));
-    const cause: DeathCause = factions.size > 1
-      ? 'CROSSFIRE'
-      : deathCauseForFaction(targetAttempts[0]!.killerFaction);
-
-    // VIOLENCE circle: cleaned lynch applies to day — night deaths are cleaned only if Coroner active
-    const isCleaned = false; // Night deaths uncleaned; cleaning handled in day phase
-
-    playerMap[targetId] = { ...targetPlayer, isAlive: false };
-    deaths.push({ victimPlayerId: targetId, cause, killerFaction: factions.size === 1 ? targetAttempts[0]!.killerFaction : null, isCleaned, signature: targetAttempts[0]?.signature });
-    killsThisNight++;
-
-    // RETALIATION_FUSE: non-protected target, attacker still dies (kamikaze on hit)
-    for (const att of targetAttempts) {
-      const attacker = playerMap[att.actorId];
-      if (attacker && attacker.isAlive && flags[att.actorId]?.retaliationFuseActive) {
-        if (killsThisNight < globalNightKillCap) {
-          playerMap[att.actorId] = { ...attacker, isAlive: false };
-          deaths.push({ victimPlayerId: att.actorId, cause: 'RETALIATION_FUSE_COUNTER', killerFaction: null, isCleaned: false });
-          killsThisNight++;
         }
       }
     }
@@ -502,7 +661,16 @@ function applyKills(
     }
   }
 
-  return { deaths, updatedPlayers: playerMap, updatedFlags: flags, mutinyActive: overallMutinyActive, mutineerIds: allMutineerIds, protectedIds };
+  return {
+    deaths,
+    updatedPlayers: playerMap,
+    updatedFlags: flags,
+    mutinyActive: overallMutinyActive,
+    mutineerIds: allMutineerIds,
+    protectedIds,
+    armorBrokenPlayerIds,
+    achievementsJustUnlocked,
+  };
 }
 
 // ─── Priority 5: FRAME / Deception ──────────────────────────────────────────
@@ -594,6 +762,7 @@ function applyInvestigations(
 
     const targetFlags = flags[effectiveTarget] as NightResolutionFlags;
     const hasInsiderAccess = hasTrait(investigator, 'INSIDER_ACCESS');
+    const hasNightVision = hasTrait(investigator, 'NIGHT_VISION') || flags[action.actorPlayerId]?.isNightVision;
 
     // Determine revealed faction
     let revealedFaction: CoreFaction;
@@ -612,12 +781,62 @@ function applyInvestigations(
     const isBlurred = fraudBlurActive && Math.random() < 0.5;
     const alternateBlurredFaction: CoreFaction | null = isBlurred ? pickAlternateFaction(revealedFaction) : null;
 
+    // Collect visitors if investigator has NIGHT_VISION
+    let visitors: string[] | undefined = undefined;
+    if (hasNightVision) {
+      const visitorSet = new Set<string>();
+      for (const otherAction of actions) {
+        if (otherAction.actorPlayerId === action.actorPlayerId) continue;
+        if (flags[otherAction.actorPlayerId]?.isBlocked) continue;
+        const otherEffectiveTarget = resolveEffectiveTarget(otherAction.targetPlayerId, flags);
+        if (otherEffectiveTarget === effectiveTarget) {
+          visitorSet.add(otherAction.actorPlayerId);
+        }
+      }
+      visitors = Array.from(visitorSet);
+    }
+
     results.push({
       investigatorPlayerId: action.actorPlayerId,
       targetPlayerId: effectiveTarget,
       revealedFaction,
       isBlurred,
       alternateBlurredFaction,
+      ...(visitors !== undefined ? { visitors, observedVisitors: visitors } : {}),
+    });
+  }
+
+  // NIGHT_VISION: For holders who performed any visiting night action other than INVESTIGATE
+  for (const action of actions) {
+    if (action.actionType === 'INVESTIGATE') continue;
+    if (flags[action.actorPlayerId]?.isBlocked) continue;
+    const actor = players[action.actorPlayerId];
+    if (!actor || !actor.isAlive) continue;
+    if (!hasTrait(actor, 'NIGHT_VISION') && !flags[action.actorPlayerId]?.isNightVision) continue;
+
+    const effectiveTarget = resolveEffectiveTarget(action.targetPlayerId, flags);
+    const target = players[effectiveTarget];
+    if (!target) continue;
+
+    const visitorSet = new Set<string>();
+    for (const otherAction of actions) {
+      if (otherAction.actorPlayerId === action.actorPlayerId) continue;
+      if (flags[otherAction.actorPlayerId]?.isBlocked) continue;
+      const otherEffectiveTarget = resolveEffectiveTarget(otherAction.targetPlayerId, flags);
+      if (otherEffectiveTarget === effectiveTarget) {
+        visitorSet.add(otherAction.actorPlayerId);
+      }
+    }
+
+    const visitors = Array.from(visitorSet);
+    results.push({
+      investigatorPlayerId: action.actorPlayerId,
+      targetPlayerId: effectiveTarget,
+      revealedFaction: getFaction(target),
+      isBlurred: false,
+      alternateBlurredFaction: null,
+      visitors,
+      observedVisitors: visitors,
     });
   }
 
@@ -690,7 +909,7 @@ export function resolveNightActions(input: NightResolverInput): NightResolutionO
   applyMisdirections(actions, flags, players);
 
   // P3: Protect
-  applyProtections(actions, flags);
+  applyProtections(actions, flags, players);
 
   // P4: Kill & Crossfire
   const killResult = applyKills(actions, flags, players, globalNightKillCap, danteState, roundNumber, minigameSubStates);
@@ -717,14 +936,14 @@ export function resolveNightActions(input: NightResolverInput): NightResolutionO
     updatedPlayers[id] = p;
   }
 
-  // ── Vest-depletion persistence fix ─────────────────────────────────────────
+  // ── Vest & Iron Will depletion persistence ──────────────────────────────────
   // The flags struct is transient — it is rebuilt from PlayerSession each night.
-  // Without persisting vest exhaustion into PlayerSession, every night restores
-  // the BULLETPROOF_VEST / SURGICAL_RESILIENCE protection (game-stall bug).
+  // Without persisting vest/iron will exhaustion into PlayerSession, every night restores
+  // the protection charges (game-stall bug).
   //
-  // When vestChargesRemaining hits 0 in the final flags, we overwrite the
+  // When vestChargesRemaining hits 0 or ironWillChargesRemaining hits 0, we overwrite the
   // player's layer3Trait with a neutral trait ('CONTRABAND_POCKET') so that
-  // next night buildInitialFlags() assigns vestChargesRemaining = 0 for them.
+  // next night buildInitialFlags() assigns 0 charges for them.
   const vestSpentPlayerIds: string[] = [];
   for (const [id, f] of Object.entries(flags)) {
     const player = updatedPlayers[id];
@@ -733,7 +952,11 @@ export function resolveNightActions(input: NightResolverInput): NightResolutionO
     const hadVest =
       player.allInIdentity.layer3Trait === 'BULLETPROOF_VEST' ||
       player.allInIdentity.layer3Trait === 'SURGICAL_RESILIENCE';
-    if (hadVest && f.vestChargesRemaining === 0) {
+    const hadIronWill = player.allInIdentity.layer3Trait === 'IRON_WILL';
+    const vestDepleted = hadVest && f.vestChargesRemaining === 0;
+    const ironWillDepleted = hadIronWill && f.ironWillChargesRemaining === 0;
+
+    if (vestDepleted || ironWillDepleted) {
       vestSpentPlayerIds.push(id);
       updatedPlayers[id] = {
         ...player,
@@ -763,6 +986,7 @@ export function resolveNightActions(input: NightResolverInput): NightResolutionO
     heresyClue,
     jitterAppliedMs: jitterMs,
     protectedIds: killResult.protectedIds,
+    armorBrokenPlayerIds: killResult.armorBrokenPlayerIds,
   };
 
   return {
@@ -772,6 +996,7 @@ export function resolveNightActions(input: NightResolverInput): NightResolutionO
     vestSpentPlayerIds,
     mutinyActive: killResult.mutinyActive,
     mutineerIds: killResult.mutineerIds,
+    achievementsJustUnlocked: killResult.achievementsJustUnlocked,
   };
 }
 

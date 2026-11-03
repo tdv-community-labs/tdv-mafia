@@ -5,6 +5,7 @@
 
 import {
   CatenaccioState,
+  ChernobylState,
   DanteCircle,
   DantesInfernoCircleConfig,
   DantesInfernoState,
@@ -142,7 +143,8 @@ export function createInitialStanfordPrisonState(
   wardenPlayerId: string,
   guardPlayerIds: readonly string[],
   inmatePlayerIds: readonly string[],
-  secretAssassinInmateId: string | null = null
+  secretAssassinInmateId: string | null = null,
+  initialSanctions = 3
 ): StanfordPrisonState {
   return {
     guardPlayerIds,
@@ -152,6 +154,7 @@ export function createInitialStanfordPrisonState(
     secretAssassinInmateId,
     solitaryConfinementPlayerIds: [],
     riotTriggered: false,
+    guardSanctionsRemaining: initialSanctions,
   };
 }
 
@@ -172,3 +175,63 @@ export function createInitialCatenaccioState(
     wallBreached: false,
   };
 }
+
+// === CHERNOBYL EXCLUSION ZONE DEFAULTS & FACTORY ===
+
+export const CHERNOBYL_DEFAULTS = {
+  INITIAL_ZONE_CONTAMINATION: 15, // Ambient radiation mSv added per round
+  DEFAULT_BUNKER_CAPACITY: 2,     // Standard fallout shelter capacity
+  LETHAL_THRESHOLD: 100,          // Fatal radiation dosage (100 mSv)
+  DECONTAMINATION_HEAL_MSV: 50,  // Dosage removed per decontamination treatment
+  ZONE_CONTAMINATION_INCREMENT: 15, // Rate at which zone contamination increases each round
+} as const;
+
+export interface ChernobylStateOptions {
+  readonly bunkerCapacity?: number;
+  readonly contaminationRate?: number;
+  readonly initialContamination?: number;
+  readonly lethalThreshold?: number;
+  readonly liquidatorPlayerId?: string | null;
+}
+
+export function createInitialChernobylState(
+  playerIds: readonly string[] = [],
+  bunkerCapacityOrOpts: number | ChernobylStateOptions = CHERNOBYL_DEFAULTS.DEFAULT_BUNKER_CAPACITY,
+  initialContamination: number = CHERNOBYL_DEFAULTS.INITIAL_ZONE_CONTAMINATION,
+  lethalThreshold: number = CHERNOBYL_DEFAULTS.LETHAL_THRESHOLD,
+  liquidatorPlayerId: string | null = null
+): ChernobylState {
+  let capacity: number = CHERNOBYL_DEFAULTS.DEFAULT_BUNKER_CAPACITY;
+  let contamination: number = initialContamination;
+  let threshold: number = lethalThreshold;
+  let liquidator: string | null = liquidatorPlayerId;
+
+  if (typeof bunkerCapacityOrOpts === 'object' && bunkerCapacityOrOpts !== null) {
+    capacity = bunkerCapacityOrOpts.bunkerCapacity ?? CHERNOBYL_DEFAULTS.DEFAULT_BUNKER_CAPACITY;
+    contamination =
+      bunkerCapacityOrOpts.initialContamination ??
+      bunkerCapacityOrOpts.contaminationRate ??
+      initialContamination;
+    threshold = bunkerCapacityOrOpts.lethalThreshold ?? lethalThreshold;
+    liquidator = bunkerCapacityOrOpts.liquidatorPlayerId ?? liquidatorPlayerId;
+  } else if (typeof bunkerCapacityOrOpts === 'number') {
+    capacity = bunkerCapacityOrOpts;
+  }
+
+  const radiationDosage: Record<string, number> = {};
+  for (const id of playerIds) {
+    radiationDosage[id] = 0;
+  }
+
+  return {
+    radiationDosage,
+    shelteredPlayerIds: [],
+    bunkerCapacity: capacity,
+    zoneContaminationLevel: contamination,
+    decontaminatedPlayerIds: [],
+    radiationCasualties: [],
+    lethalThreshold: threshold,
+    liquidatorPlayerId: liquidator,
+  };
+}
+

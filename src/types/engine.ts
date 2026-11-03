@@ -14,8 +14,18 @@ export interface NightResolutionFlags {
   readonly isTimeWarped: boolean;
   readonly isBlocked: boolean;
   readonly isProtected: boolean;
+  /** IDs of all players who protected this player tonight */
+  readonly protectorIds: readonly string[];
+  /** IDs of players acting as Bodyguard protecting this player tonight */
+  readonly bodyguardProtectorIds: readonly string[];
   /** Charges remaining on BULLETPROOF_VEST / SURGICAL_RESILIENCE trait */
   readonly vestChargesRemaining: number;
+  /** Charges remaining on IRON_WILL trait (1-time lethal attack absorption) */
+  readonly ironWillChargesRemaining: number;
+  /** PHANTOM_STEP: immune to BLOCK actions */
+  readonly hasPhantomStep: boolean;
+  /** NIGHT_VISION: observes all visitors to the target */
+  readonly isNightVision: boolean;
   /** Target was misdirected; actual action resolves against redirectedTargetId */
   readonly redirectedTargetId: string | null;
   /** Target appears guilty/mafia to investigators (FRAME effect) */
@@ -36,6 +46,9 @@ export type DeathCause =
   | 'VOID_CULT_SACRIFICE'
   | 'NEUTRAL_KILLER_KILL'
   | 'RETALIATION_FUSE_COUNTER'
+  | 'BODYGUARD_SACRIFICE'
+  | 'BODYGUARD_COUNTER'
+  | 'RADIATION_SICKNESS'
   | 'BRIEFCASE_DETONATION'
   | 'GORT_VAPORISATION'
   | 'JESTER_REVENGE'
@@ -58,6 +71,9 @@ export interface InvestigationResult {
   readonly revealedFaction: CoreFaction;
   readonly isBlurred: boolean; // CIRCLE_8_FRAUD: result is 50/50 guess
   readonly alternateBlurredFaction: CoreFaction | null;
+  /** NIGHT_VISION / Observer intel: player IDs of all visitors who targeted the destination */
+  readonly visitors?: readonly string[];
+  readonly observedVisitors?: readonly string[];
 }
 
 export interface MorningNewspaper {
@@ -76,6 +92,8 @@ export interface MorningNewspaper {
   readonly lastWills?: Readonly<Record<string, string>>;
   /** IDs of players who were attacked but saved by a protector */
   readonly protectedIds?: readonly string[];
+  /** IDs of players whose armor (e.g. IRON_WILL) shattered absorbing a lethal strike */
+  readonly armorBrokenPlayerIds?: readonly string[];
 }
 
 export interface NightResolutionOutput {
@@ -96,6 +114,8 @@ export interface NightResolutionOutput {
   readonly vestSpentPlayerIds: readonly string[];
   readonly mutinyActive?: boolean;
   readonly mutineerIds?: readonly string[];
+  /** Unlocked achievements during night resolution keyed by userId */
+  readonly achievementsJustUnlocked?: Readonly<Record<string, readonly string[]>>;
 }
 
 // ─── Voting Engine Output ────────────────────────────────────────────────────
@@ -113,6 +133,30 @@ export type LynchOutcome =
   | { readonly kind: 'TIE'; readonly tiedCandidateIds: readonly string[] }
   | { readonly kind: 'NO_LYNCH'; readonly reason: 'ABSTAIN' | 'QUORUM_NOT_MET' };
 
+export type VerdictVote = 'GUILTY' | 'INNOCENT';
+
+export interface VerdictOutcome {
+  readonly verdict: 'GUILTY' | 'INNOCENT';
+  readonly accusedPlayerId: string | null;
+  readonly convictedPlayerId: string | null;
+  readonly guiltyWeight: number;
+  readonly innocentWeight: number;
+  readonly guiltyCount: number;
+  readonly innocentCount: number;
+  readonly reason?: 'MAJORITY_GUILTY' | 'MAJORITY_INNOCENT' | 'TIE' | 'NO_VOTES';
+  readonly outcome: LynchOutcome;
+  readonly achievementsJustUnlocked?: Readonly<Record<string, readonly string[]>>;
+}
+
+export type TrialVerdictOutcome = VerdictOutcome;
+
+export interface MayorRevealResult {
+  readonly success: boolean;
+  readonly error?: string;
+  readonly updatedLobby: import('./game').LobbyState;
+  readonly achievementsJustUnlocked?: Readonly<Record<string, readonly string[]>>;
+}
+
 export interface DistrictVoteResult {
   readonly district: AllInDistrict;
   readonly tallies: readonly VoteTally[];
@@ -126,6 +170,10 @@ export interface VotingEngineOutput {
   readonly districtResults: readonly DistrictVoteResult[];
   /** Secret ballot map; null until Treachery phase lock reveals it */
   readonly blindBallotReveal: Readonly<Record<string, string>> | null;
+  /** Indicted player ID advancing to TRIAL_DEFENSE (null if no majority) */
+  readonly accusedCandidateId?: string | null;
+  /** Unlocked achievements during voting */
+  readonly achievementsJustUnlocked?: Readonly<Record<string, readonly string[]>>;
 }
 
 // ─── Phase Manager Output ───────────────────────────────────────────────────

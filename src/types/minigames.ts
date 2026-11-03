@@ -97,6 +97,8 @@ export interface StanfordPrisonState {
   /** Inmates currently placed in solitary confinement */
   readonly solitaryConfinementPlayerIds: readonly string[];
   readonly riotTriggered: boolean;
+  /** Remaining sanctions guards can issue across the game (default 3) */
+  readonly guardSanctionsRemaining: number;
 }
 
 export interface CatenaccioState {
@@ -110,10 +112,31 @@ export interface CatenaccioState {
   readonly wallBreached: boolean;
 }
 
+export interface ChernobylState {
+  /** Radiation dosage per player in mSv (userId -> accumulated mSv) */
+  readonly radiationDosage: Readonly<Record<string, number>>;
+  /** Player IDs currently occupying the fallout bunker (immune to ambient radiation) */
+  readonly shelteredPlayerIds: readonly string[];
+  /** Maximum number of simultaneous occupants permitted inside the bunker */
+  readonly bunkerCapacity: number;
+  /** Current ambient radiation output of the Exclusion Zone per round (e.g. 15 mSv) */
+  readonly zoneContaminationLevel: number;
+  /** Player IDs scheduled/cleansed by decontamination treatment (-50 mSv) */
+  readonly decontaminatedPlayerIds: readonly string[];
+  /** Player IDs who have accumulated >= lethalThreshold mSv and succumbed */
+  readonly radiationCasualties: readonly string[];
+  /** Lethal radiation threshold in mSv (defaults to 100) */
+  readonly lethalThreshold: number;
+  /** Player ID assigned as Likvidator / Dozimetrist */
+  readonly liquidatorPlayerId?: string | null;
+}
+
 export interface MinigameSubStates {
   readonly dantesInferno?: DantesInfernoState;
   readonly earthStoodStill?: EarthStoodStillState;
   readonly valkyrie?: ValkyrieState;
   readonly stanfordPrison?: StanfordPrisonState;
   readonly catenaccio?: CatenaccioState;
+  readonly chernobyl?: ChernobylState;
 }
+

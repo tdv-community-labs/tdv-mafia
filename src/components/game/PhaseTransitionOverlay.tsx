@@ -32,14 +32,14 @@ const PhaseTransitionOverlayComponent: React.FC<PhaseTransitionOverlayProps> = (
 
     if (
       phase !== currentPhase &&
-      ['DAY_DISCUSSION', 'DAY_CENTRAL_ASSEMBLY', 'DAY_REGIONAL_CAUCUS', 'DAY_VOTING', 'NIGHT_ACTION', 'NIGHT_BUFFER'].includes(phase)
+      ['DAY_DISCUSSION', 'DAY_CENTRAL_ASSEMBLY', 'DAY_REGIONAL_CAUCUS', 'DAY_VOTING', 'TRIAL_DEFENSE', 'NIGHT_ACTION', 'NIGHT_BUFFER'].includes(phase)
     ) {
       setCurrentPhase(phase);
       setShow(true);
       
       if (phase.includes('NIGHT')) {
         playNight();
-      } else if (phase.includes('VOTING')) {
+      } else if (phase.includes('VOTING') || phase === 'TRIAL_DEFENSE') {
         playGavel();
       } else if (phase.includes('DAY')) {
         playDay();
@@ -68,6 +68,12 @@ const PhaseTransitionOverlayComponent: React.FC<PhaseTransitionOverlayProps> = (
     subtitle = phase === 'DAY_REGIONAL_CAUCUS' ? 'Kvartal sakinləri toplaşır və finalçıları müəyyənləşdirir.' : 'Şəhər oyanır. Hadisələri müzakirə etmək vaxtıdır.';
     bgClass = 'bg-amber-500/10';
     textClass = 'text-amber-500';
+  } else if (phase === 'TRIAL_DEFENSE') {
+    Icon = Scale;
+    title = 'Müdafiə Kürsüsü';
+    subtitle = 'İttiham olunan şəxs özünü müdafiə edir. Hökm verməyə hazırlaşın.';
+    bgClass = 'bg-amber-950/40';
+    textClass = 'text-amber-400';
   } else if (phase.includes('DAY_VOTING')) {
     Icon = Scale;
     title = 'Məhkəmə Başlayır';

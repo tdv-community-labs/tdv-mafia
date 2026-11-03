@@ -15,6 +15,7 @@ export const AZ_PHASES: Readonly<Record<GamePhase, string>> = {
   DAY_REGIONAL_CAUCUS: 'Regional Məclis (Rayon Palatası)',
   DAY_CENTRAL_ASSEMBLY: 'Mərkəzi Parlament İclası',
   DAY_VOTING: 'Ümumşəhər Məhkəməsi & Səsvermə',
+  TRIAL_DEFENSE: 'Məhkəmə Müdafiəsi (Podium)',
   NIGHT_BUFFER: 'Qaranlıq Gecə (Gizli Əməliyyatlar)',
   ENDED: 'Oyun Başa Çatdı',
 } as const;
@@ -62,7 +63,9 @@ export const AZ_CIVIC_OFFICES: Readonly<Record<CivicOfficeType, string>> = {
 // === INNATE TRAIT TRANSLATIONS ===
 export const AZ_INNATE_TRAITS: Readonly<Record<InnateTraitType, string>> = {
   BULLETPROOF_VEST: 'Gülləkeçirməz Jilet',
+  IRON_WILL: 'Dəmir İradə',
   PHANTOM_STEP: 'Kabus Addımı',
+  NIGHT_VISION: 'Gecə Görməsi',
   RETALIATION_FUSE: 'Qisas Qoruyucusu',
   SILENCER_ATTACHMENT: 'Səsboğucu Qurğu',
   INSIDER_ACCESS: 'Daxili Giriş İcazəsi',
@@ -124,6 +127,9 @@ export const AZ_DEATH_CAUSES: Readonly<Record<DeathCause, string>> = {
   VOID_CULT_SACRIFICE: 'Boşluq Təriqətinin Qurbanı',
   NEUTRAL_KILLER_KILL: 'Müstəqil Qatil Zərbəsi',
   RETALIATION_FUSE_COUNTER: 'Qisas Qoruyucusunun Əks-zərbəsi',
+  BODYGUARD_SACRIFICE: 'Cangüdənin Nəcib Fədakarlığı (Şəhid)',
+  BODYGUARD_COUNTER: 'Cangüdənin Qisas Zərbəsi',
+  RADIATION_SICKNESS: 'Ölümcül Radiasiya Zəhərlənməsi',
   BRIEFCASE_DETONATION: 'Partlayıcı Çantanın Qəlpələnməsi',
   GORT_VAPORISATION: 'Qortun Planetar Lazer Buxarlandırması',
   JESTER_REVENGE: 'Lusiferin Kölgəsinin Lənəti',
@@ -231,6 +237,30 @@ export const AZ_UI = {
   districtPlebiscite: 'Kvartal İlkin Səsverməsi',
   districtFinalists: 'Mərkəzi Parlamentə Yüksələn Namizədlər',
   centralAssemblyVote: 'Mərkəzi Parlament Yekun Hökmü',
+} as const;
+
+// === BOT PERSONALITY TRANSLATIONS ===
+export const AZ_BOT_PERSONALITIES = {
+  AGGRESSIVE_ACCUSER: {
+    name: 'Aqressiv İttihamçı',
+    description: 'Həmişə başqalarını şübhə altına alır, sərt və emosional danışır, dərhal ittiham irəli sürür.',
+  },
+  ANALYTICAL_DETECTIVE: {
+    name: 'Analitik Xəfiyyə',
+    description: 'Sakit və məntiqli mülahizələr yürüdür, səsvermə statistikasını və faktları təhlil edir.',
+  },
+  QUIET_FOLLOWER: {
+    name: 'Sakit İzləyici',
+    description: 'Az danışır, diqqət çəkməməyə çalışır, çoxluğun fikrinə və qərarlarına ehtiyatla qoşulur.',
+  },
+  ERRATIC_WILDCARD: {
+    name: 'Qeyri-proqnozlaşdırılan Xaosçu',
+    description: 'Gözlənilməz iddialar irəli sürür, sarkastik və zarafatcıl tonda danışır, tez-tez fikrini dəyişir.',
+  },
+  SMOOTH_DEFENDER: {
+    name: 'Soyuqqanlı Müdafiəçi',
+    description: 'Gərginliyi yatırmağa çalışır, ittiham olunanları əsaslı dəlillər olmadan asılmaqdan qoruyur, təmkinli danışır.',
+  },
 } as const;
 
 // Helper to get localized role name safely

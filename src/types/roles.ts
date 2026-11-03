@@ -36,7 +36,9 @@ export type CivicOfficeType =
 
 export type InnateTraitType =
   | 'BULLETPROOF_VEST'
+  | 'IRON_WILL'
   | 'PHANTOM_STEP'
+  | 'NIGHT_VISION'
   | 'RETALIATION_FUSE'
   | 'SILENCER_ATTACHMENT'
   | 'INSIDER_ACCESS'

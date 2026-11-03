@@ -16,6 +16,7 @@
 
 import {
   CatenaccioState,
+  ChernobylState,
   DanteCircle,
   DantesInfernoState,
   EarthStoodStillState,
@@ -500,6 +501,7 @@ export function processStanfordPrisonRound(input: StanfordPrisonEngineInput): St
     secretAssassinInmateId:       currentState.secretAssassinInmateId,
     solitaryConfinementPlayerIds: newSolitary,
     riotTriggered:                riotTriggered || currentState.riotTriggered,
+    guardSanctionsRemaining:      Math.max(0, (currentState.guardSanctionsRemaining ?? 3) - guardSanctionIds.length),
   };
 
   return {
@@ -509,6 +511,218 @@ export function processStanfordPrisonRound(input: StanfordPrisonEngineInput): St
     currentRevoltMeter: newMeter,
   };
 }
+
+export interface PrisonActionResult {
+  readonly success: boolean;
+  readonly error?: string;
+  readonly updatedLobby: LobbyState;
+  readonly riotTriggered?: boolean;
+}
+
+/**
+ * Executes a Guard sanction against an Inmate.
+ * - Guard authorization check
+ * - Inmate target check
+ * - Decrements guardSanctionsRemaining (-1)
+ * - Increments revoltMeter (+15), clamped to 100
+ * - Triggers riot when meter reaches 100
+ */
+export function executePrisonSanction(
+  lobby: LobbyState,
+  actorUserId: string,
+  targetInmateId: string
+): PrisonActionResult {
+  if (lobby.phase === 'LOBBY' || lobby.phase === 'ENDED') {
+    return { success: false, error: 'INVALID_PHASE', updatedLobby: lobby };
+  }
+  const prison = lobby.minigameSubStates?.stanfordPrison;
+  if (!prison) {
+    return { success: false, error: 'NOT_STANFORD_PRISON_MODE', updatedLobby: lobby };
+  }
+  if (prison.riotTriggered) {
+    return { success: false, error: 'RIOT_ALREADY_TRIGGERED', updatedLobby: lobby };
+  }
+  const actor = lobby.players[actorUserId];
+  if (!actor || !actor.isAlive) {
+    return { success: false, error: 'ACTOR_NOT_ALIVE', updatedLobby: lobby };
+  }
+  if (!prison.guardPlayerIds.includes(actorUserId)) {
+    return { success: false, error: 'NOT_A_GUARD', updatedLobby: lobby };
+  }
+  const sanctionsRemaining = prison.guardSanctionsRemaining ?? 3;
+  if (sanctionsRemaining <= 0) {
+    return { success: false, error: 'NO_SANCTIONS_REMAINING', updatedLobby: lobby };
+  }
+  const target = lobby.players[targetInmateId];
+  if (!target || !target.isAlive) {
+    return { success: false, error: 'TARGET_NOT_ALIVE', updatedLobby: lobby };
+  }
+  if (!prison.inmatePlayerIds.includes(targetInmateId)) {
+    return { success: false, error: 'TARGET_NOT_AN_INMATE', updatedLobby: lobby };
+  }
+
+  const newMeter = Math.min(100, Math.max(0, prison.revoltMeter + 15));
+  const riotTriggered = newMeter >= 100 || prison.riotTriggered;
+
+  const updatedPrison: StanfordPrisonState = {
+    ...prison,
+    revoltMeter: newMeter,
+    guardSanctionsRemaining: Math.max(0, sanctionsRemaining - 1),
+    riotTriggered,
+  };
+
+  const updatedLobby: LobbyState = {
+    ...lobby,
+    minigameSubStates: {
+      ...lobby.minigameSubStates,
+      stanfordPrison: updatedPrison,
+    },
+  };
+
+  return { success: true, updatedLobby, riotTriggered };
+}
+
+/**
+ * Places an Inmate in Solitary Confinement.
+ * - Guard or Warden authorization check
+ * - Inmate target check
+ * - Duplicate solitary check
+ * - Appends target to solitaryConfinementPlayerIds
+ * - Decrements revoltMeter (-5), clamped to 0
+ * - Purges active votes in flight
+ */
+export function executePrisonSolitary(
+  lobby: LobbyState,
+  actorUserId: string,
+  targetInmateId: string
+): PrisonActionResult {
+  if (lobby.phase === 'LOBBY' || lobby.phase === 'ENDED') {
+    return { success: false, error: 'INVALID_PHASE', updatedLobby: lobby };
+  }
+  const prison = lobby.minigameSubStates?.stanfordPrison;
+  if (!prison) {
+    return { success: false, error: 'NOT_STANFORD_PRISON_MODE', updatedLobby: lobby };
+  }
+  if (prison.riotTriggered) {
+    return { success: false, error: 'RIOT_ALREADY_TRIGGERED', updatedLobby: lobby };
+  }
+  const actor = lobby.players[actorUserId];
+  if (!actor || !actor.isAlive) {
+    return { success: false, error: 'ACTOR_NOT_ALIVE', updatedLobby: lobby };
+  }
+  const isGuardOrWarden = prison.guardPlayerIds.includes(actorUserId) || prison.wardenPlayerId === actorUserId;
+  if (!isGuardOrWarden) {
+    return { success: false, error: 'NOT_A_GUARD_OR_WARDEN', updatedLobby: lobby };
+  }
+  const target = lobby.players[targetInmateId];
+  if (!target || !target.isAlive) {
+    return { success: false, error: 'TARGET_NOT_ALIVE', updatedLobby: lobby };
+  }
+  if (!prison.inmatePlayerIds.includes(targetInmateId)) {
+    return { success: false, error: 'TARGET_NOT_AN_INMATE', updatedLobby: lobby };
+  }
+  if (prison.solitaryConfinementPlayerIds.includes(targetInmateId)) {
+    return { success: false, error: 'ALREADY_IN_SOLITARY', updatedLobby: lobby };
+  }
+
+  const newMeter = Math.min(100, Math.max(0, prison.revoltMeter - 5));
+  const updatedSolitary = [...prison.solitaryConfinementPlayerIds, targetInmateId];
+
+  const updatedLiveVotes = { ...(lobby.liveVotes ?? {}) };
+  delete updatedLiveVotes[targetInmateId];
+
+  const updatedVerdictVotes = { ...(lobby.trialVerdictVotes ?? {}) };
+  delete updatedVerdictVotes[targetInmateId];
+
+  const updatedPrison: StanfordPrisonState = {
+    ...prison,
+    revoltMeter: newMeter,
+    solitaryConfinementPlayerIds: updatedSolitary,
+  };
+
+  const updatedLobby: LobbyState = {
+    ...lobby,
+    liveVotes: updatedLiveVotes,
+    trialVerdictVotes: updatedVerdictVotes,
+    minigameSubStates: {
+      ...lobby.minigameSubStates,
+      stanfordPrison: updatedPrison,
+    },
+  };
+
+  return { success: true, updatedLobby, riotTriggered: prison.riotTriggered };
+}
+
+/**
+ * State-level helper: applies a Guard sanction directly to StanfordPrisonState.
+ */
+export function applyPrisonSanction(
+  currentState: StanfordPrisonState,
+  actorUserId: string,
+  targetInmateId: string
+): { success: boolean; error?: string; updatedState: StanfordPrisonState } {
+  if (currentState.riotTriggered) {
+    return { success: false, error: 'RIOT_ALREADY_TRIGGERED', updatedState: currentState };
+  }
+  if (!currentState.guardPlayerIds.includes(actorUserId)) {
+    return { success: false, error: 'GUARD_ONLY_ACTION', updatedState: currentState };
+  }
+  if (!currentState.inmatePlayerIds.includes(targetInmateId)) {
+    return { success: false, error: 'INVALID_INMATE_TARGET', updatedState: currentState };
+  }
+  const sanctionsRemaining = currentState.guardSanctionsRemaining ?? 3;
+  if (sanctionsRemaining <= 0) {
+    return { success: false, error: 'NO_SANCTIONS_REMAINING', updatedState: currentState };
+  }
+
+  const newMeter = Math.min(100, Math.max(0, currentState.revoltMeter + 15));
+  const riotTriggered = newMeter >= 100 || currentState.riotTriggered;
+
+  const updatedState: StanfordPrisonState = {
+    ...currentState,
+    revoltMeter: newMeter,
+    guardSanctionsRemaining: Math.max(0, sanctionsRemaining - 1),
+    riotTriggered,
+  };
+
+  return { success: true, updatedState };
+}
+
+/**
+ * State-level helper: places an Inmate into solitary confinement directly on StanfordPrisonState.
+ */
+export function applyPrisonSolitary(
+  currentState: StanfordPrisonState,
+  actorUserId: string,
+  targetInmateId: string
+): { success: boolean; error?: string; updatedState: StanfordPrisonState } {
+  if (currentState.riotTriggered) {
+    return { success: false, error: 'RIOT_ALREADY_TRIGGERED', updatedState: currentState };
+  }
+  const isGuardOrWarden =
+    currentState.guardPlayerIds.includes(actorUserId) ||
+    currentState.wardenPlayerId === actorUserId;
+  if (!isGuardOrWarden) {
+    return { success: false, error: 'NOT_A_GUARD_OR_WARDEN', updatedState: currentState };
+  }
+  if (!currentState.inmatePlayerIds.includes(targetInmateId)) {
+    return { success: false, error: 'INVALID_INMATE_TARGET', updatedState: currentState };
+  }
+  if (currentState.solitaryConfinementPlayerIds.includes(targetInmateId)) {
+    return { success: false, error: 'ALREADY_IN_SOLITARY', updatedState: currentState };
+  }
+
+  const newMeter = Math.min(100, Math.max(0, currentState.revoltMeter - 5));
+
+  const updatedState: StanfordPrisonState = {
+    ...currentState,
+    revoltMeter: newMeter,
+    solitaryConfinementPlayerIds: [...currentState.solitaryConfinementPlayerIds, targetInmateId],
+  };
+
+  return { success: true, updatedState };
+}
+
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 5. CATENACCIO ENGINE
@@ -597,6 +811,206 @@ export function processCatenaccioRound(input: CatenaccioEngineInput): Catenaccio
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 6. CHERNOBYL EXCLUSION ZONE RADIATION ENGINE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export interface ChernobylEngineInput {
+  readonly currentState: ChernobylState;
+  /** Player IDs currently alive in the game (optional if players record passed as 2nd param) */
+  readonly alivePlayerIds?: readonly string[];
+  /** Optional override for sheltered players this round; defaults to currentState.shelteredPlayerIds */
+  readonly shelteredPlayerIds?: readonly string[];
+  /** Optional override for decontaminated players this round; defaults to currentState.decontaminatedPlayerIds */
+  readonly decontaminatedPlayerIds?: readonly string[];
+  /** Amount to increment zone contamination by (defaults to 15 mSv) */
+  readonly contaminationIncrement?: number;
+}
+
+export interface ChernobylEngineOutput {
+  readonly updatedState: ChernobylState;
+  /** Player IDs newly eliminated this round due to reaching lethal radiation dosage */
+  readonly newCasualtyPlayerIds: readonly string[];
+  /** Alias for newCasualtyPlayerIds */
+  readonly newRadiationVictims: readonly string[];
+  /** Generated NightDeathRecord objects for casualties with cause 'RADIATION_SICKNESS' */
+  readonly radiationDeaths: readonly NightDeathRecord[];
+  /** Alias for radiationDeaths */
+  readonly deathRecords: readonly NightDeathRecord[];
+  /** Current active zone contamination level after round tick */
+  readonly currentZoneContamination: number;
+  /** Detailed mapping of dosage deltas applied this round: playerId -> delta */
+  readonly dosageDeltas: Readonly<Record<string, number>>;
+}
+
+/**
+ * Process one round of Chernobyl Exclusion Zone radiation dynamics:
+ *  - Enforces bunker capacity limit (only first bunkerCapacity valid alive players in shelteredPlayerIds are sheltered).
+ *  - Applies decontamination healing (-50 mSv, clamped to 0) to designated players.
+ *  - Applies ambient zone contamination to all unsheltered alive players. Sheltered players take 0 damage.
+ *  - Eliminates players whose cumulative radiation reaches or exceeds lethalThreshold (100 mSv) with 'RADIATION_SICKNESS'.
+ *  - Increments ambient zone contamination by +15 mSv for subsequent rounds.
+ */
+export function processChernobylRound(
+  input: ChernobylEngineInput,
+  players?: Readonly<Record<string, PlayerSession>>
+): ChernobylEngineOutput {
+  const {
+    currentState,
+    contaminationIncrement = 15,
+  } = input;
+
+  let aliveIds: readonly string[];
+  if (input.alivePlayerIds && input.alivePlayerIds.length > 0) {
+    aliveIds = input.alivePlayerIds;
+  } else if (players) {
+    aliveIds = Object.values(players).filter(p => p.isAlive).map(p => p.userId);
+  } else {
+    aliveIds = Object.keys(currentState.radiationDosage).filter(
+      id => !currentState.radiationCasualties.includes(id)
+    );
+  }
+
+  // 1. Determine sheltered players respecting bunker capacity limit
+  const requestedSheltered = input.shelteredPlayerIds ?? currentState.shelteredPlayerIds;
+  const validSheltered = requestedSheltered.filter(id => aliveIds.includes(id));
+  const effectiveSheltered = validSheltered.slice(0, currentState.bunkerCapacity);
+  const shelteredSet = new Set(effectiveSheltered);
+
+  // 2. Determine decontaminated players
+  const requestedDecontaminated = input.decontaminatedPlayerIds ?? [];
+  const effectiveDecontaminated = requestedDecontaminated.filter(id => aliveIds.includes(id));
+  const decontaminateSet = new Set(effectiveDecontaminated);
+
+  // 3. Current ambient zone dosage to apply this round
+  const currentDosageToApply = currentState.zoneContaminationLevel;
+
+  // 4. Update radiation dosage for all alive players
+  const updatedDosage: Record<string, number> = { ...currentState.radiationDosage };
+  const dosageDeltas: Record<string, number> = {};
+  const newCasualties: string[] = [];
+  const radiationDeaths: NightDeathRecord[] = [];
+  const existingCasualtiesSet = new Set(currentState.radiationCasualties);
+
+  for (const playerId of aliveIds) {
+    let currentDose = updatedDosage[playerId] ?? 0;
+    let netDelta = 0;
+
+    // Apply decontamination healing (-50 mSv, clamped at 0)
+    if (decontaminateSet.has(playerId)) {
+      const reduction = Math.min(currentDose, 50);
+      currentDose = Math.max(0, currentDose - 50);
+      netDelta -= reduction;
+    }
+
+    // Sheltered players take 0 damage. Unsheltered take zone dosage.
+    if (!shelteredSet.has(playerId)) {
+      currentDose += currentDosageToApply;
+      netDelta += currentDosageToApply;
+    }
+
+    updatedDosage[playerId] = currentDose;
+    dosageDeltas[playerId] = netDelta;
+
+    // Check lethal threshold (100 mSv)
+    if (currentDose >= currentState.lethalThreshold && !existingCasualtiesSet.has(playerId)) {
+      newCasualties.push(playerId);
+      radiationDeaths.push({
+        victimPlayerId: playerId,
+        cause: 'RADIATION_SICKNESS',
+        killerFaction: null,
+        isCleaned: false,
+      });
+    }
+  }
+
+  // 5. Increment zone contamination level for future rounds (+15 mSv)
+  const nextZoneContamination = currentState.zoneContaminationLevel + contaminationIncrement;
+
+  // 6. Assemble updated state
+  const updatedState: ChernobylState = {
+    radiationDosage: updatedDosage,
+    shelteredPlayerIds: effectiveSheltered,
+    bunkerCapacity: currentState.bunkerCapacity,
+    zoneContaminationLevel: nextZoneContamination,
+    decontaminatedPlayerIds: [],
+    radiationCasualties: [...currentState.radiationCasualties, ...newCasualties],
+    lethalThreshold: currentState.lethalThreshold,
+    liquidatorPlayerId: currentState.liquidatorPlayerId ?? null,
+  };
+
+  return {
+    updatedState,
+    newCasualtyPlayerIds: newCasualties,
+    newRadiationVictims: newCasualties,
+    radiationDeaths,
+    deathRecords: radiationDeaths,
+    currentZoneContamination: nextZoneContamination,
+    dosageDeltas,
+  };
+}
+
+/**
+ * State-level helper: manages entering/leaving the fallout bunker on ChernobylState.
+ */
+export function applyChernobylShelter(
+  state: ChernobylState,
+  playerId: string,
+  leave: boolean = false
+): { success: boolean; error?: string; updatedState: ChernobylState } {
+  const current = state.shelteredPlayerIds || [];
+  if (leave) {
+    return {
+      success: true,
+      updatedState: {
+        ...state,
+        shelteredPlayerIds: current.filter(id => id !== playerId),
+      },
+    };
+  }
+  if (current.includes(playerId)) {
+    return { success: true, updatedState: state };
+  }
+  if (current.length >= state.bunkerCapacity) {
+    return {
+      success: false,
+      error: 'BUNKER_CAPACITY_EXCEEDED',
+      updatedState: state,
+    };
+  }
+  return {
+    success: true,
+    updatedState: {
+      ...state,
+      shelteredPlayerIds: [...current, playerId],
+    },
+  };
+}
+
+/**
+ * State-level helper: administers decontamination healing directly to ChernobylState.
+ */
+export function applyChernobylDecontamination(
+  state: ChernobylState,
+  targetPlayerId: string,
+  reductionAmount: number = 50
+): { success: boolean; error?: string; updatedState: ChernobylState } {
+  const currentDose = state.radiationDosage[targetPlayerId] ?? 0;
+  const newDose = Math.max(0, currentDose - reductionAmount);
+
+  return {
+    success: true,
+    updatedState: {
+      ...state,
+      radiationDosage: {
+        ...state.radiationDosage,
+        [targetPlayerId]: newDose,
+      },
+      decontaminatedPlayerIds: state.decontaminatedPlayerIds || [],
+    },
+  };
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // MINIGAME DISPATCH ROUTER
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -621,6 +1035,12 @@ export interface MinigamePhaseEventInput {
   // Catenaccio inputs
   readonly catenaccioSniperTarget: string | null;
   readonly catenaccioWallAttackers: readonly string[];
+  // Chernobyl inputs
+  readonly chernobylShelteredPlayerIds?: readonly string[];
+  readonly chernobylDecontaminatePlayerIds?: readonly string[];
+  /** Whether this dispatch represents the morning arrival transition (resolving night effects) */
+  readonly isMorningArrival?: boolean;
+  readonly phase?: string;
   // Common
   readonly publicDeaths: readonly NightDeathRecord[];
 }
@@ -632,6 +1052,7 @@ export interface MinigamePhaseEventOutput {
   readonly valkyrieResult: ValkyrieEngineOutput | null;
   readonly prisonResult: StanfordPrisonEngineOutput | null;
   readonly catenaccioResult: CatenaccioEngineOutput | null;
+  readonly chernobylResult: ChernobylEngineOutput | null;
 }
 
 /**
@@ -648,6 +1069,7 @@ export function dispatchMinigamePhaseEvent(input: MinigamePhaseEventInput): Mini
       valkyrieResult:   null,
       prisonResult:     null,
       catenaccioResult: null,
+      chernobylResult:  null,
     };
   }
 
@@ -731,12 +1153,35 @@ export function dispatchMinigamePhaseEvent(input: MinigamePhaseEventInput): Mini
     updatedCatenaccio = catenaccioResult.updatedState;
   }
 
+  // ── Chernobyl Exclusion Zone ─────────────────────────────────────────────
+  let chernobylResult: ChernobylEngineOutput | null = null;
+  let updatedChernobyl = minigameSubStates.chernobyl;
+
+  // Chernobyl radiation accumulation strictly resolves overnight
+  // and ticks only once per 24-hour cycle upon morning arrival.
+  const isMorningTransition = input.isMorningArrival ?? ((input.phase ?? phase) === 'NIGHT_BUFFER');
+
+  if (minigameSubStates.chernobyl && isMorningTransition) {
+    const alivePlayerIds = Object.values(players)
+      .filter(p => p.isAlive)
+      .map(p => p.userId);
+
+    chernobylResult = processChernobylRound({
+      currentState: minigameSubStates.chernobyl,
+      alivePlayerIds,
+      shelteredPlayerIds: input.chernobylShelteredPlayerIds,
+      decontaminatedPlayerIds: input.chernobylDecontaminatePlayerIds ?? minigameSubStates.chernobyl.decontaminatedPlayerIds,
+    }, players);
+    updatedChernobyl = chernobylResult.updatedState;
+  }
+
   const updatedSubStates: MinigameSubStates = {
     dantesInferno:  updatedDante,
     earthStoodStill: updatedEarth,
     valkyrie:        updatedValkyrie,
     stanfordPrison:  updatedPrison,
     catenaccio:      updatedCatenaccio,
+    chernobyl:       updatedChernobyl,
   };
 
   return {
@@ -746,5 +1191,7 @@ export function dispatchMinigamePhaseEvent(input: MinigamePhaseEventInput): Mini
     valkyrieResult,
     prisonResult,
     catenaccioResult,
+    chernobylResult,
   };
 }
+

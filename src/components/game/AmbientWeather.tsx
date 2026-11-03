@@ -9,7 +9,7 @@ interface AmbientWeatherProps {
 
 const AmbientWeatherComponent: React.FC<AmbientWeatherProps> = ({ phase }) => {
   const isNight = phase === 'NIGHT_BUFFER';
-  const isVoting = phase === 'DAY_VOTING';
+  const isVoting = phase === 'DAY_VOTING' || phase === 'TRIAL_DEFENSE';
   const isDay = phase === 'DAY_CENTRAL_ASSEMBLY' || phase === 'DAY_REGIONAL_CAUCUS';
 
   const [lightning, setLightning] = useState(false);

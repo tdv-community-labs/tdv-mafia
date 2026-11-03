@@ -13,6 +13,7 @@ export type GamePhase =
   | 'DAY_REGIONAL_CAUCUS'
   | 'DAY_CENTRAL_ASSEMBLY'
   | 'DAY_VOTING'
+  | 'TRIAL_DEFENSE'
   | 'NIGHT_BUFFER'
   | 'ENDED';
 
@@ -98,6 +99,12 @@ export interface LobbyState {
   /** Voter player ID -> Nominated / Target player ID */
   readonly activeEmotes?: Record<string, { emote: string; expiresAt: number }>;
   readonly liveVotes: Readonly<Record<string, string>>;
+  /** Accused player currently on the defense podium during TRIAL_DEFENSE phase */
+  readonly accusedPlayerId?: string | null;
+  /** Final verdict votes during TRIAL_DEFENSE phase: voterId -> 'GUILTY' | 'INNOCENT' */
+  readonly trialVerdictVotes?: Readonly<Record<string, 'GUILTY' | 'INNOCENT'>>;
+  /** User IDs of Mayors who have publicly revealed their identity */
+  readonly mayorRevealedUserIds?: readonly string[];
   /** Ordered player IDs with current or upcoming speaking floor */
   readonly speakerQueue: readonly string[];
   readonly bufferedNightActions: readonly NightActionBufferItem[];

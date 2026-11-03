@@ -37,7 +37,7 @@ function getAudioContext(): AudioContext | null {
 export function isSoundMuted(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    return localStorage.getItem(STORAGE_KEY) === 'true';
+    return window.localStorage?.getItem(STORAGE_KEY) === 'true';
   } catch {
     return false;
   }
@@ -47,8 +47,8 @@ export function isSoundMuted(): boolean {
 export function setSoundMuted(muted: boolean): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEY, muted ? 'true' : 'false');
-    window.dispatchEvent(new CustomEvent(SOUND_EVENT_KEY, { detail: { muted } }));
+    window.localStorage?.setItem(STORAGE_KEY, muted ? 'true' : 'false');
+    window.dispatchEvent?.(new CustomEvent(SOUND_EVENT_KEY, { detail: { muted } }));
   } catch {
     // Ignore
   }
@@ -228,9 +228,13 @@ export function playDay(): void {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. MƏHKƏMƏ / EDAM (playGavel)
-// Quru, əks-sədasız, təmiz və ağır ikiqat taxta məhkəmə çəkici taqqıltısı (tok... tok!).
+// 3. MƏHKƏMƏ HÖKMÜ VƏ ÇƏKİC (playGavel / playCourtVerdict)
+// Dərin ikiqat taxta məhkəmə çəkici və hökm növünə uyğun rezonans.
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Enhanced Courtroom Gavel: Deep wooden thud with secondary reverberation / echo reflections.
+ */
 export function playGavel(): void {
   if (isSoundMuted()) return;
 
@@ -241,42 +245,141 @@ export function playGavel(): void {
     // Continue to resilient fallback
   }
 
-  // Resilient Web Audio Fallback: Dry dense wood knocks
+  // Resilient Web Audio Fallback: Dual wooden strikes with room reverberation
   const ctx = getAudioContext();
   if (!ctx) return;
 
   try {
     const now = ctx.currentTime;
     const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(MASTER_VOLUME * 0.8, now);
+    masterGain.gain.setValueAtTime(MASTER_VOLUME * 0.85, now);
     masterGain.connect(ctx.destination);
 
-    const strikes = [0.01, 0.12];
-    strikes.forEach((st, idx) => {
-      const strikeTime = now + st;
+    // Primary strike, secondary strike, and 2 room reverberation reflections
+    const strikes: Array<{ delay: number; freq: number; gain: number; duration: number }> = [
+      { delay: 0.01, freq: 160, gain: 0.60, duration: 0.08 },
+      { delay: 0.13, freq: 140, gain: 0.75, duration: 0.10 },
+      { delay: 0.25, freq: 110, gain: 0.20, duration: 0.14 }, // Reverb reflection 1
+      { delay: 0.38, freq: 90,  gain: 0.08, duration: 0.18 }, // Reverb reflection 2
+    ];
+
+    strikes.forEach((st) => {
+      const strikeTime = now + st.delay;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       const filter = ctx.createBiquadFilter();
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(idx === 0 ? 150 : 130, strikeTime);
-      osc.frequency.exponentialRampToValueAtTime(55, strikeTime + 0.06);
+      osc.frequency.setValueAtTime(st.freq, strikeTime);
+      osc.frequency.exponentialRampToValueAtTime(45, strikeTime + st.duration * 0.8);
 
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(280, strikeTime);
+      filter.frequency.setValueAtTime(260, strikeTime);
 
-      gain.gain.setValueAtTime(0.5, strikeTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, strikeTime + 0.07);
+      gain.gain.setValueAtTime(st.gain, strikeTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, strikeTime + st.duration);
 
       osc.connect(filter);
       filter.connect(gain);
       gain.connect(masterGain);
 
       osc.start(strikeTime);
-      osc.stop(strikeTime + 0.08);
+      osc.stop(strikeTime + st.duration + 0.01);
     });
   } catch {
     // Never crash
+  }
+}
+
+/**
+ * Play courtroom verdict sound based on GUILTY (conviction) vs INNOCENT (acquittal).
+ */
+export function playCourtVerdict(verdict: 'GUILTY' | 'INNOCENT'): void {
+  if (isSoundMuted()) return;
+
+  if (verdict === 'GUILTY') {
+    // GUILTY: Authoritative heavy gavel strikes + deep sub-bass condemnation drop (55Hz -> 28Hz)
+    playGavel();
+
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const subOsc = ctx.createOscillator();
+      const subGain = ctx.createGain();
+      const subFilter = ctx.createBiquadFilter();
+
+      subOsc.type = 'sine';
+      subOsc.frequency.setValueAtTime(55, now + 0.14);
+      subOsc.frequency.exponentialRampToValueAtTime(28, now + 0.9);
+
+      subFilter.type = 'lowpass';
+      subFilter.frequency.setValueAtTime(110, now);
+
+      subGain.gain.setValueAtTime(0.001, now);
+      subGain.gain.linearRampToValueAtTime(MASTER_VOLUME * 0.7, now + 0.18);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+      subOsc.connect(subFilter);
+      subFilter.connect(subGain);
+      subGain.connect(ctx.destination);
+
+      subOsc.start(now + 0.14);
+      subOsc.stop(now + 1.3);
+    } catch {
+      // Never crash
+    }
+  } else {
+    // INNOCENT: Single light gavel tap + warm exoneration resolution chime (C5, E5, G5)
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(MASTER_VOLUME * 0.65, now);
+      masterGain.connect(ctx.destination);
+
+      // Light gavel tap
+      const tapOsc = ctx.createOscillator();
+      const tapGain = ctx.createGain();
+      tapOsc.type = 'sine';
+      tapOsc.frequency.setValueAtTime(220, now);
+      tapOsc.frequency.exponentialRampToValueAtTime(90, now + 0.06);
+      tapGain.gain.setValueAtTime(0.4, now);
+      tapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+      tapOsc.connect(tapGain);
+      tapGain.connect(masterGain);
+      tapOsc.start(now);
+      tapOsc.stop(now + 0.08);
+
+      // Exoneration resolution chord (C5 523.25Hz, E5 659.25Hz, G5 783.99Hz)
+      const notes = [523.25, 659.25, 783.99];
+      notes.forEach((freq, idx) => {
+        const noteTime = now + 0.08 + idx * 0.04;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, noteTime);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(800, noteTime);
+
+        gain.gain.setValueAtTime(0.001, noteTime);
+        gain.gain.linearRampToValueAtTime(0.2, noteTime + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 1.2);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(noteTime);
+        osc.stop(noteTime + 1.3);
+      });
+    } catch {
+      // Never crash
+    }
   }
 }
 
@@ -378,23 +481,183 @@ export function playElimination(): void {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. BRIEFCASE DETONATION / DOOMSDAY EXPLOSION (playBriefcaseExplosion)
+// White/pink noise burst + dynamic lowpass filter sweep + sub-bass pitch drop.
+// ─────────────────────────────────────────────────────────────────────────────
 
-export function playTick(): void {
+export function playBriefcaseExplosion(): void {
+  if (isSoundMuted()) return;
+
+  try {
+    const played = playAudioFile('/sounds/explosion.wav', 1.0);
+    if (played) return;
+  } catch {
+    // Continue to resilient fallback
+  }
+
   const ctx = getAudioContext();
-  if (!ctx || isSoundMuted()) return;
-  const now = ctx.currentTime;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(800, now);
-  osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
-  gain.gain.setValueAtTime(MASTER_VOLUME * 0.3, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(now);
-  osc.stop(now + 0.1);
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(MASTER_VOLUME * 0.9, now);
+    masterGain.connect(ctx.destination);
+
+    // 1. Noise burst (detonation transient and fireball rumble)
+    const duration = 2.2;
+    const bufferSize = Math.floor(ctx.sampleRate * duration);
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1;
+    }
+
+    const whiteNoise = ctx.createBufferSource();
+    whiteNoise.buffer = noiseBuffer;
+
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.setValueAtTime(900, now);
+    noiseFilter.frequency.exponentialRampToValueAtTime(50, now + duration * 0.8);
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.8, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    whiteNoise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(masterGain);
+
+    whiteNoise.start(now);
+    whiteNoise.stop(now + duration + 0.05);
+
+    // 2. Low-frequency pitch drop sub-bass rumble (140Hz -> 28Hz)
+    const subOsc = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    const subFilter = ctx.createBiquadFilter();
+
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(140, now);
+    subOsc.frequency.exponentialRampToValueAtTime(28, now + 1.2);
+
+    subFilter.type = 'lowpass';
+    subFilter.frequency.setValueAtTime(120, now);
+
+    subGain.gain.setValueAtTime(0.75, now);
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+
+    subOsc.connect(subFilter);
+    subFilter.connect(subGain);
+    subGain.connect(masterGain);
+
+    subOsc.start(now);
+    subOsc.stop(now + 1.9);
+  } catch {
+    // Never crash
+  }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7. COUNTDOWN TIMER TICK (playTimerTick / playTick)
+// Crisp click / high-frequency blip, with accelerating pitch rise during last 5s.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function playTimerTick(secondsRemaining?: number, isUrgent?: boolean): void {
+  if (isSoundMuted()) return;
+
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    const isUnder5 = secondsRemaining !== undefined && secondsRemaining <= 5 && secondsRemaining > 0;
+    const urgent = isUrgent ?? isUnder5;
+
+    if (urgent) {
+      // Urgent tick: higher pitch scaling upwards as seconds deplete (1200Hz - 1800Hz)
+      const pitchOffset = secondsRemaining !== undefined ? Math.max(0, 5 - secondsRemaining) * 150 : 300;
+      const startFreq = 1200 + pitchOffset;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(startFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(startFreq * 0.5, now + 0.04);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(2400, now);
+
+      gain.gain.setValueAtTime(MASTER_VOLUME * 0.45, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.05);
+    } else {
+      // Normal tick: subtle, tactile mechanical click (850Hz -> 350Hz)
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(850, now);
+      osc.frequency.exponentialRampToValueAtTime(350, now + 0.03);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1000, now);
+
+      gain.gain.setValueAtTime(MASTER_VOLUME * 0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.04);
+    }
+  } catch {
+    // Never crash
+  }
+}
+
+/**
+ * Standard tick backwards compatibility wrapper.
+ */
+export function playTick(): void {
+  playTimerTick();
+}
+
+/**
+ * Initializes one-time gesture listeners to unlock AudioContext in strict browsers.
+ */
+export function initAudioUnlock(): void {
+  if (typeof window === 'undefined') return;
+
+  const unlock = () => {
+    try {
+      const ctx = getAudioContext();
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+    } catch {}
+    window.removeEventListener('click', unlock);
+    window.removeEventListener('keydown', unlock);
+    window.removeEventListener('touchstart', unlock);
+  };
+
+  window.addEventListener('click', unlock, { once: true, passive: true });
+  window.addEventListener('keydown', unlock, { once: true, passive: true });
+  window.addEventListener('touchstart', unlock, { once: true, passive: true });
+}
+
 
 
 // ─────────────────────────────────────────────────────────────────────────────

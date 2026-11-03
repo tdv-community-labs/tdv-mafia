@@ -12,7 +12,7 @@
 import { inMemoryLobbyStore } from '../src/server/state/memory';
 import { PlayerSession, LobbyState } from '../src/types/game';
 import { formatRoleDisplay } from '../src/types/roles';
-import { botTakeoverController } from '../src/server/ai/bot-takeover';
+import { botTakeoverController, selectStrategicTarget } from '../src/server/ai/bot-takeover';
 import { resolveNightActions } from '../src/server/engine/night-action-resolver';
 import { runVotingEngine } from '../src/server/engine/voting-engine';
 import { evaluateWinCondition } from '../src/server/engine/phase-manager';
@@ -259,11 +259,54 @@ async function runSimulation() {
     });
   }
 
+  // 7b. Bot Contextual Day Chat Synthesis
+  console.log('\n--- Step 7b: Bot Contextual Day Chat Synthesis ---');
+  for (const pId of ['bot-1', 'bot-2', 'bot-3', 'bot-4']) {
+    if (lobby.players[pId]?.isAlive) {
+      const chatRecord = await botTakeoverController.synthesizeBotChatMessage(pId, lobbyId);
+      if (chatRecord) {
+        if (!chatRecord.message || chatRecord.message.trim().length === 0) {
+          throw new Error(`Bot ${pId} generated empty chat message!`);
+        }
+        if (/\bescort\b|\bmadam\b/i.test(chatRecord.message)) {
+          throw new Error(`Sanitization failure: forbidden term found in bot chat: "${chatRecord.message}"`);
+        }
+        console.log(`  💬 ${chatRecord.inCharacterPersona} (${pId}): "${chatRecord.message}"`);
+      }
+    }
+  }
+
   // 8. Test Win Condition
   console.log('\n--- Step 8: Evaluating Win Condition ---');
   lobby = inMemoryLobbyStore.getLobby(lobbyId)!;
   const win = evaluateWinCondition(lobby);
   console.log(`  Win condition outcome: ${win.kind} (${win.reason})`);
+
+  // 8b. Sheriff Non-Repeat Investigation Heuristic
+  console.log('\n--- Step 8b: Sheriff Non-Repeat Investigation Invariant Verification ---');
+  const sheriffPlayer = lobby.players['bot-3'];
+  if (sheriffPlayer) {
+    const priorTarget = 'usr-human';
+    const testLobbyWithHistory: LobbyState = {
+      ...lobby,
+      privateInvestigations: {
+        'bot-3': [
+          {
+            investigatorPlayerId: 'bot-3',
+            targetPlayerId: priorTarget,
+            revealedFaction: 'TOWN',
+            isBlurred: false,
+            alternateBlurredFaction: null,
+          },
+        ],
+      },
+    };
+    const nextTarget = selectStrategicTarget(sheriffPlayer, testLobbyWithHistory, 'INVESTIGATE', null);
+    if (nextTarget === priorTarget) {
+      throw new Error(`Sheriff repeated investigation on ${nextTarget} despite prior investigation!`);
+    }
+    console.log(`  ✅ Sheriff non-repeat verified: next target is "${nextTarget}" (distinct from "${priorTarget}")`);
+  }
 
   // 9. Verify Reveal on Game End or Death
   console.log('\n--- Step 9: Dead Player True Role Reveal ---');

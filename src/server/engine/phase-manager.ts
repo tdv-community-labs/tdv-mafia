@@ -21,6 +21,8 @@ import {
 } from '../../types/engine';
 import { computeCryptoJitterMs } from './night-action-resolver';
 import { inMemoryLobbyStore } from '../state/memory';
+import { runVotingEngine, determineVerdictOutcome } from './voting-engine';
+import { dispatchMinigamePhaseEvent } from './minigames-engine';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -235,6 +237,8 @@ export function computePhaseDuration(
       return { durationSeconds: timings.dayCentralAssemblySeconds, jitterMs: 0 };
     case 'DAY_VOTING':
       return { durationSeconds: timings.dayVotingSeconds, jitterMs: 0 };
+    case 'TRIAL_DEFENSE':
+      return { durationSeconds: 30, jitterMs: 0 };
     case 'NIGHT_BUFFER': {
       const jitterMs = computeCryptoJitterMs(3, 7);
       const jitterS  = Math.ceil(jitterMs / 1000);
@@ -258,8 +262,35 @@ export function nextPhaseAfter(current: GamePhase, lobby: LobbyState): GamePhase
       return 'DAY_CENTRAL_ASSEMBLY';
     case 'DAY_CENTRAL_ASSEMBLY':
       return 'DAY_VOTING';
-    case 'DAY_VOTING':
+    case 'DAY_VOTING': {
+      // Check if leading candidate reached indictment quorum / majority
+      if (lobby.accusedPlayerId) {
+        return 'TRIAL_DEFENSE';
+      }
+      const voteOutput = runVotingEngine({ lobby });
+      if (voteOutput.outcome.kind === 'LYNCHED') {
+        return 'TRIAL_DEFENSE';
+      }
       return 'NIGHT_BUFFER';
+    }
+    case 'TRIAL_DEFENSE': {
+      // Evaluate final verdict
+      const verdict = determineVerdictOutcome(lobby);
+      let postTrialLobby = lobby;
+      if (verdict.verdict === 'GUILTY' && verdict.convictedPlayerId) {
+        const victimId = verdict.convictedPlayerId;
+        postTrialLobby = {
+          ...lobby,
+          players: {
+            ...lobby.players,
+            [victimId]: { ...lobby.players[victimId], isAlive: false },
+          },
+          lastLynchedUserId: victimId,
+        };
+      }
+      const win = evaluateWinCondition(postTrialLobby);
+      return win.kind === 'GAME_CONTINUES' ? 'NIGHT_BUFFER' : 'ENDED';
+    }
     case 'NIGHT_BUFFER': {
       // Re-enter day cycle unless win condition already triggered
       const win = evaluateWinCondition(lobby);
@@ -305,8 +336,90 @@ export function executePhaseTransition(input: PhaseManagerInput): PhaseTransitio
     };
   }
 
-  const toPhase = forceToPhase ?? nextPhaseAfter(fromPhase, lobby);
-  const { durationSeconds, jitterMs } = computePhaseDuration(toPhase, lobby);
+  // ── Milestone 2 Courtroom State Processing ────────────────────────────────
+  // 1. When exiting DAY_VOTING: determine indictment candidate
+  if (fromPhase === 'DAY_VOTING') {
+    const voteOutput = runVotingEngine({ lobby });
+    if (voteOutput.outcome.kind === 'LYNCHED') {
+      const accusedId = voteOutput.outcome.victimId;
+      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+        ...l,
+        accusedPlayerId: accusedId,
+        trialVerdictVotes: {},
+        liveVotes: {},
+      }));
+    } else {
+      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+        ...l,
+        accusedPlayerId: null,
+        trialVerdictVotes: {},
+        liveVotes: {},
+        lastLynchedUserId: null,
+      }));
+    }
+  }
+
+  // 2. When exiting TRIAL_DEFENSE: evaluate verdict, apply lynch if convicted
+  if (fromPhase === 'TRIAL_DEFENSE') {
+    const currentLobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+    const verdict = determineVerdictOutcome(currentLobby);
+
+    if (verdict.verdict === 'GUILTY' && verdict.convictedPlayerId) {
+      const victimId = verdict.convictedPlayerId;
+      const isTownLynched = currentLobby.players[victimId]?.allInIdentity?.layer1Faction === 'TOWN';
+      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+        ...l,
+        players: {
+          ...l.players,
+          [victimId]: {
+            ...l.players[victimId],
+            isAlive: false,
+          },
+        },
+        lastLynchedUserId: victimId,
+        accusedPlayerId: null,
+        trialVerdictVotes: {},
+      }));
+
+      // Advance minigames on lynch
+      if (currentLobby.minigameSubStates && Object.keys(currentLobby.minigameSubStates).length > 0) {
+        const minigameOutput = dispatchMinigamePhaseEvent({
+          lobbyId,
+          danteGreedAbilityUsers: [],
+          danteLynchedPlayerId: victimId,
+          earthInnocentsLynched: isTownLynched ? [victimId] : [],
+          earthKlaatuFreezeActivated: false,
+          earthGortTarget: null,
+          valkyrieBriefcasePassTarget: null,
+          prisonGuardSanctions: [],
+          prisonWardenAppeased: [],
+          prisonInmatesLynched: isTownLynched ? [victimId] : [],
+          prisonSolitary: [],
+          prisonAssassinStrike: false,
+          prisonAssassinTarget: null,
+          catenaccioSniperTarget: null,
+          catenaccioWallAttackers: [],
+          publicDeaths: [],
+        });
+        inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+          ...l,
+          minigameSubStates: minigameOutput.updatedSubStates,
+        }));
+      }
+    } else {
+      // Acquitted
+      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+        ...l,
+        lastLynchedUserId: null,
+        accusedPlayerId: null,
+        trialVerdictVotes: {},
+      }));
+    }
+  }
+
+  const activeLobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+  const toPhase = forceToPhase ?? nextPhaseAfter(fromPhase, activeLobby);
+  const { durationSeconds, jitterMs } = computePhaseDuration(toPhase, activeLobby);
 
   const updatedLobby = inMemoryLobbyStore.transitionPhase(lobbyId, toPhase, durationSeconds);
   if (!updatedLobby) return null;

@@ -10,7 +10,7 @@ interface CinematicVignetteProps {
 export const CinematicVignette: React.FC<CinematicVignetteProps> = ({ phase }) => {
   const isNight = phase === 'NIGHT_BUFFER';
   const isVoting = phase === 'DAY_VOTING';
-  const isExecution = false;
+  const isExecution = phase === 'TRIAL_DEFENSE';
 
   return (
     <>

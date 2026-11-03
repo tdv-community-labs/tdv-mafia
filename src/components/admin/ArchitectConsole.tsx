@@ -19,6 +19,7 @@ const PHASES_LIST: readonly GamePhase[] = [
   'DAY_REGIONAL_CAUCUS',
   'DAY_CENTRAL_ASSEMBLY',
   'DAY_VOTING',
+  'TRIAL_DEFENSE',
   'NIGHT_BUFFER',
   'ENDED',
 ];

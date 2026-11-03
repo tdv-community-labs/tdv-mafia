@@ -24,6 +24,8 @@ import { Button } from '../ui/Button';
 import { PlayerCard } from './PlayerCard';
 import { getTheme } from '../../config/themes.config';
 import { VotingCourtPanel } from './VotingCourtPanel';
+import { TrialDefensePanel } from './TrialDefensePanel';
+import { MinigameStatusToolbar } from './MinigameStatusToolbar';
 import {
   AZ_DANTE_CIRCLES,
   AZ_DISTRICTS,
@@ -34,6 +36,10 @@ import {
   playNight,
   playDay,
   playGavel,
+  playCourtVerdict,
+  playBriefcaseExplosion,
+  playTimerTick,
+  initAudioUnlock,
   playCard,
   playElimination,
   isSoundMuted,
@@ -48,6 +54,9 @@ export interface GameBoardProps {
   readonly onOpenNewspaper?: () => void;
   readonly onCastVote?: (candidateId: string) => void;
   readonly onRetractVote?: () => void;
+  readonly onCastVerdictVote?: (verdict: 'GUILTY' | 'INNOCENT') => void;
+  readonly onMayorReveal?: () => void;
+  readonly onShelterChernobyl?: () => void;
   readonly onTriggerAction?: (actionType: NightActionType, targetPlayerId: string) => void;
   readonly onTriggerKlaatuFreeze?: () => void;
   readonly onKickPlayer?: (playerId: string) => void;
@@ -66,6 +75,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   onOpenNewspaper,
   onCastVote,
   onRetractVote,
+  onCastVerdictVote,
+  onMayorReveal,
+  onShelterChernobyl,
   onTriggerAction,
   onTriggerKlaatuFreeze,
   districtFinalists = [],
@@ -85,8 +97,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const theme = getTheme(lobbyState.mode);
   const phase = lobbyState.phase;
 
-  // Track sound status
+  // Track sound status & initialize audio gesture unlock
   useEffect(() => {
+    initAudioUnlock();
     setSoundMuted(isSoundMuted());
     const unsub = subscribeSound((muted) => setSoundMuted(muted));
     return () => unsub();
@@ -94,6 +107,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   // Audio Phase Engine: Detect phase transitions & trigger zero-latency audio
   const prevPhaseRef = useRef<string>(lobbyState.phase);
+  const prevAccusedIdRef = useRef<string | null>(lobbyState.accusedPlayerId ?? null);
+  const prevValkyrieDetonatedRef = useRef<boolean>(
+    Boolean(lobbyState.minigameSubStates.valkyrie?.briefcaseDetonated)
+  );
+  const prevEarthWipeRef = useRef<boolean>(
+    Boolean(lobbyState.minigameSubStates.earthStoodStill?.planetaryWipeTriggered)
+  );
+  const prevTimeRemainingRef = useRef<number>(lobbyState.phaseTimeRemaining);
   const prevAliveCountRef = useRef<number>(
     Object.values(lobbyState.players).filter((p) => p.isAlive).length
   );
@@ -104,8 +125,17 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
     if (curPhase !== prevPhase) {
       if (curPhase === 'NIGHT_BUFFER') {
-        playNight();
-      } else if (curPhase === 'DAY_VOTING') {
+        // If transitioning from TRIAL_DEFENSE, evaluate verdict outcome
+        if (prevPhase === 'TRIAL_DEFENSE' && prevAccusedIdRef.current) {
+          const accusedId = prevAccusedIdRef.current;
+          const isConvicted =
+            lobbyState.lastLynchedUserId === accusedId ||
+            lobbyState.players[accusedId]?.isAlive === false;
+          playCourtVerdict(isConvicted ? 'GUILTY' : 'INNOCENT');
+        } else {
+          playNight();
+        }
+      } else if (curPhase === 'DAY_VOTING' || curPhase === 'TRIAL_DEFENSE') {
         playGavel();
       } else if (
         curPhase === 'DAY_CENTRAL_ASSEMBLY' ||
@@ -116,18 +146,54 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       prevPhaseRef.current = curPhase;
     }
 
+    prevAccusedIdRef.current = lobbyState.accusedPlayerId ?? null;
+
+    // Minigame explosion triggers
+    const isValkyrieDetonated = Boolean(lobbyState.minigameSubStates.valkyrie?.briefcaseDetonated);
+    if (isValkyrieDetonated && !prevValkyrieDetonatedRef.current) {
+      playBriefcaseExplosion();
+    }
+    prevValkyrieDetonatedRef.current = isValkyrieDetonated;
+
+    const isEarthWiped = Boolean(
+      lobbyState.minigameSubStates.earthStoodStill?.planetaryWipeTriggered ||
+        (lobbyState.minigameSubStates.earthStoodStill?.doomsdayClockHours ?? 0) >= 12
+    );
+    if (isEarthWiped && !prevEarthWipeRef.current) {
+      playBriefcaseExplosion();
+    }
+    prevEarthWipeRef.current = isEarthWiped;
+
     const curAliveCount = Object.values(lobbyState.players).filter((p) => p.isAlive).length;
     if (curAliveCount < prevAliveCountRef.current) {
       playElimination();
     }
     prevAliveCountRef.current = curAliveCount;
-  }, [lobbyState.phase, lobbyState.players]);
+  }, [
+    lobbyState.phase,
+    lobbyState.players,
+    lobbyState.minigameSubStates,
+    lobbyState.accusedPlayerId,
+    lobbyState.lastLynchedUserId,
+  ]);
 
-  const dante = lobbyState.minigameSubStates.dantesInferno;
-  const earth = lobbyState.minigameSubStates.earthStoodStill;
-  const valkyrie = lobbyState.minigameSubStates.valkyrie;
-  const prison = lobbyState.minigameSubStates.stanfordPrison;
-  const catenaccio = lobbyState.minigameSubStates.catenaccio;
+  // Synchronize countdown timer audio ticks
+  useEffect(() => {
+    const time = lobbyState.phaseTimeRemaining;
+    const prevTime = prevTimeRemainingRef.current;
+
+    if (time !== prevTime) {
+      prevTimeRemainingRef.current = time;
+
+      if (
+        (lobbyState.phase === 'TRIAL_DEFENSE' || lobbyState.phase === 'DAY_VOTING') &&
+        time > 0 &&
+        time <= 10
+      ) {
+        playTimerTick(time, time <= 5);
+      }
+    }
+  }, [lobbyState.phaseTimeRemaining, lobbyState.phase]);
 
   const handleCardClick = (player: PlayerSession | ScrubbedPlayerView) => {
     playCard();
@@ -217,7 +283,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const progressPercentage = Math.max(0, Math.min(100, (lobbyState.phaseTimeRemaining / Math.max(1, lobbyState.phaseDurationSeconds)) * 100));
 
   const isNightPhase = phase === 'NIGHT_BUFFER';
-  const isVotingPhase = phase === 'DAY_VOTING';
+  const isVotingPhase = phase === 'DAY_VOTING' || phase === 'TRIAL_DEFENSE';
   const hasCastVote = Boolean(lobbyState.liveVotes[currentUserId]);
   const canSeeVotes = true;
   const isDayDiscussion =
@@ -307,18 +373,38 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           </button>
 
           {/* Timer Display */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950">
-            <Clock className="w-4 h-4 text-zinc-400" />
+          <div
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all ${
+              phase === 'TRIAL_DEFENSE'
+                ? lobbyState.phaseTimeRemaining <= 5
+                  ? 'border-red-500 bg-red-950/80 ring-4 ring-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.5)]'
+                  : 'border-amber-500/40 bg-amber-950/40 ring-2 ring-amber-400/30'
+                : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950'
+            }`}
+          >
+            <Clock
+              className={`w-4 h-4 ${
+                phase === 'TRIAL_DEFENSE'
+                  ? lobbyState.phaseTimeRemaining <= 5
+                    ? 'text-red-400 animate-spin'
+                    : 'text-amber-400'
+                  : 'text-zinc-400'
+              }`}
+            />
             <div className="text-right">
               <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block leading-none">
-                {AZ_UI.timeRemaining}
+                {phase === 'TRIAL_DEFENSE' ? 'Müdafiə Vaxtı' : AZ_UI.timeRemaining}
               </span>
               <span
                 className={`text-base font-black leading-tight ${
-                  lobbyState.phaseTimeRemaining <= 10
-                      ? 'text-red-600 animate-pulse'
-                      : 'text-zinc-900 dark:text-zinc-100'
-                  } tabular-nums`}
+                  lobbyState.phaseTimeRemaining <= 5
+                    ? 'text-red-600 animate-pulse'
+                    : phase === 'TRIAL_DEFENSE'
+                    ? 'text-amber-300'
+                    : lobbyState.phaseTimeRemaining <= 10
+                    ? 'text-red-600 animate-pulse'
+                    : 'text-zinc-900 dark:text-zinc-100'
+                } tabular-nums`}
               >
                 {lobbyState.phaseTimeRemaining}s
               </span>
@@ -327,99 +413,31 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         </div>
       </div>
 
-      {/* ─── DYNAMIC MINIGAME BANNERS ───────────────────────────────── */}
-      {/* 1. Dante's Inferno */}
-      {dante && (
-        <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-950 dark:text-red-200 flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <span className="font-extrabold text-sm text-red-700 dark:text-red-300 flex items-center gap-2">
-              <Flame className="w-4 h-4 text-red-500" />
-              <span>{AZ_UI.danteCircle}: {AZ_DANTE_CIRCLES[dante.currentCircle]?.name ?? dante.currentCircle}</span>
-            </span>
-            <Badge tone="red">{dante.completedCircles.length + 1} / 9 Dairə</Badge>
-          </div>
-          <p className="text-xs text-red-800 dark:text-red-300 leading-relaxed">
-            {AZ_DANTE_CIRCLES[dante.currentCircle]?.rule}
-          </p>
-        </div>
+      {/* ─── COMPACT MINIGAME STATUS TOOLBAR ─────────────────────── */}
+      <MinigameStatusToolbar
+        minigames={lobbyState.minigameSubStates}
+        players={lobbyState.players}
+        currentUserId={currentUserId}
+        onTriggerKlaatuFreeze={onTriggerKlaatuFreeze}
+        onShelterChernobyl={onShelterChernobyl}
+      />
+
+      {/* ─── TRIAL DEFENSE COURT PANEL (WHEN IN TRIAL_DEFENSE) ─────── */}
+      {phase === 'TRIAL_DEFENSE' && (
+        <TrialDefensePanel
+          lobbyState={lobbyState}
+          currentUserId={currentUserId}
+          onCastVerdictVote={(verdict) => {
+            if (onCastVerdictVote) {
+              onCastVerdictVote(verdict);
+            } else if (onCastVote) {
+              onCastVote(verdict);
+            }
+          }}
+          onMayorReveal={onMayorReveal}
+        />
       )}
 
-      {/* 2. The Day The Earth Stood Still */}
-      {earth && (
-        <div className="p-4 rounded-xl border border-blue-500/30 bg-blue-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-sm text-blue-700 dark:text-blue-300">
-                {AZ_UI.doomsdayClock}: {earth.doomsdayClockHours} / 12 Saat
-              </span>
-              <Badge tone={earth.doomsdayClockHours >= 10 ? 'red' : 'blue'}>
-                {earth.doomsdayClockHours >= 12 ? 'PLANETAR MƏHV' : 'QORT AKTİV'}
-              </Badge>
-            </div>
-            <p className="text-xs text-blue-800 dark:text-blue-300 mt-1">
-              Hər günahsız vətəndaş edamı saatı 1 pillə irəli aparır.
-            </p>
-          </div>
-
-          {!earth.worldFrozenUsed && onTriggerKlaatuFreeze && (
-            <Button variant="warning" size="sm" onClick={onTriggerKlaatuFreeze}>
-              {AZ_UI.freezeWorld}
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* 3. Operation Valkyrie */}
-      {valkyrie && valkyrie.briefcaseLocationPlayerId && (
-        <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-between gap-3">
-          <div>
-            <span className="font-bold text-sm text-amber-800 dark:text-amber-300">
-              {AZ_UI.briefcaseLocation}: {lobbyState.players[valkyrie.briefcaseLocationPlayerId]?.username ?? valkyrie.briefcaseLocationPlayerId}
-            </span>
-            <div className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
-              {AZ_UI.fuseCountdown}: {valkyrie.fuseTimerDaysRemaining} gün qalır.
-            </div>
-          </div>
-          <Badge tone="amber">{valkyrie.fuseTimerDaysRemaining} GÜN</Badge>
-        </div>
-      )}
-
-      {/* 4. Stanford Prison */}
-      {prison && (
-        <div className="p-4 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800/60 flex flex-col gap-2">
-          <div className="flex items-center justify-between text-xs font-bold">
-            <span className="text-zinc-800 dark:text-zinc-200">
-              ⛓️ {AZ_UI.revoltMeter}: {prison.revoltMeter}%
-            </span>
-            <Badge tone={prison.revoltMeter >= 80 ? 'red' : 'neutral'}>
-              {prison.riotTriggered ? 'QİYAM BAŞLADI' : 'NƏZARƏT ALTINDA'}
-            </Badge>
-          </div>
-          <div className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-300 ${
-                prison.revoltMeter >= 75 ? 'bg-red-600' : 'bg-amber-500'
-              }`}
-              style={{ width: `${prison.revoltMeter}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* 5. Catenaccio */}
-      {catenaccio && (
-        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 flex items-center justify-between">
-          <span className="font-bold text-sm text-zinc-800 dark:text-zinc-200 flex items-center gap-2">
-            <Shield className="w-4 h-4 text-emerald-500" />
-            <span>{AZ_UI.defensiveWall} ({catenaccio.defensiveWallPlayerIds.length} Qalxan)</span>
-          </span>
-          <Badge tone={catenaccio.wallBreached ? 'red' : 'emerald'}>
-            {catenaccio.wallBreached ? AZ_UI.wallBreachedAlert : 'SƏDD BÖLÜNMƏZ'}
-          </Badge>
-        </div>
-      )}
-
-      
       {/* ─── OBJECTIVE BANNER ────────────────────────────────────────── */}
       {currentUser && (
         <div className={`p-4 rounded-xl border ${
@@ -555,34 +573,46 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         </div>
 
         <div className={`grid ${isAllIn ? 'grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2' : theme.gridContainer}`}>
-          {displayedPlayers.map((player, index) => (
-            <PlayerCard
-              key={player.userId}
-              style={{ animationDelay: `${index * 30}ms` }}
-              player={player}
-              isSelf={player.userId === currentUserId}
-              isSelected={selectedPlayerId === player.userId}
-              targetIntent={selectedPlayerId === player.userId ? primaryActionType : undefined}
-              isAccused={
-                canSeeVotes &&
+          {displayedPlayers.map((player, index) => {
+            const isAccused = phase === 'TRIAL_DEFENSE'
+              ? player.userId === lobbyState.accusedPlayerId
+              : canSeeVotes &&
                 isVotingPhase &&
                 Boolean(leadingCandidateId) &&
                 player.userId === leadingCandidateId &&
-                (voteCounts[player.userId] ?? 0) > 0
-              }
-              isCurrentTurn={lobbyState.speakerQueue[0] === player.userId}
-              hasVoteOnTarget={lobbyState.liveVotes[currentUserId] === player.userId}
-              voteCount={canSeeVotes ? (voteCounts[player.userId] ?? 0) : 0}
-              voterUsernames={canSeeVotes ? Object.entries(lobbyState.liveVotes || {}).filter(([voterId, targetId]) => targetId === player.userId).map(([voterId]) => lobbyState.players[voterId]?.username || voterId) : []}
-              isSpeaking={speakingIds?.has(player.userId) ?? false}
-              isViewerMafia={isMafia}
-              onKick={lobbyState.phase === 'LOBBY' && lobbyState.hostUserId === currentUserId && player.userId !== currentUserId && onKickPlayer ? () => onKickPlayer(player.userId) : undefined}
-              activeEmote={lobbyState.activeEmotes?.[player.userId]?.emote}
-              isGameOver={lobbyState.phase === 'ENDED'}
-              isLobbyPhase={lobbyState.phase === 'LOBBY'}
-              onSelect={handleCardClick}
-            />
-          ))}
+                (voteCounts[player.userId] ?? 0) > 0;
+
+            const isTargetable = isNightPhase
+              ? isAlive && canActAtNight && player.isAlive && (primaryActionType === 'PROTECT' || player.userId !== currentUserId)
+              : isVotingPhase
+              ? isAlive && player.isAlive && player.userId !== currentUserId
+              : false;
+
+            return (
+              <PlayerCard
+                key={player.userId}
+                style={{ animationDelay: `${index * 30}ms` }}
+                player={player}
+                isSelf={player.userId === currentUserId}
+                isSelected={selectedPlayerId === player.userId}
+                isTargetable={isTargetable}
+                actionType={isNightPhase ? primaryActionType : null}
+                targetIntent={isNightPhase && selectedPlayerId === player.userId ? primaryActionType : undefined}
+                isAccused={isAccused}
+                isCurrentTurn={lobbyState.speakerQueue[0] === player.userId}
+                hasVoteOnTarget={lobbyState.liveVotes[currentUserId] === player.userId}
+                voteCount={canSeeVotes ? (voteCounts[player.userId] ?? 0) : 0}
+                voterUsernames={canSeeVotes ? Object.entries(lobbyState.liveVotes || {}).filter(([voterId, targetId]) => targetId === player.userId).map(([voterId]) => lobbyState.players[voterId]?.username || voterId) : []}
+                isSpeaking={speakingIds?.has(player.userId) ?? false}
+                isViewerMafia={isMafia}
+                onKick={lobbyState.phase === 'LOBBY' && lobbyState.hostUserId === currentUserId && player.userId !== currentUserId && onKickPlayer ? () => onKickPlayer(player.userId) : undefined}
+                activeEmote={lobbyState.activeEmotes?.[player.userId]?.emote}
+                isGameOver={lobbyState.phase === 'ENDED'}
+                isLobbyPhase={lobbyState.phase === 'LOBBY'}
+                onSelect={handleCardClick}
+              />
+            );
+          })}
         </div>
 
         {displayedPlayers.some(p => !p.isAlive) && (

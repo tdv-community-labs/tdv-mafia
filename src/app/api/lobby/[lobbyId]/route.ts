@@ -11,17 +11,18 @@ import {
   createInitialValkyrieState,
   createInitialStanfordPrisonState,
   createInitialCatenaccioState,
+  createInitialChernobylState,
 } from '../../../../config/minigames.config';
 import { MinigameSubStates } from '../../../../types/minigames';
 import { PlayerTier } from '../../../../types/access';
 import { CoreFaction } from '../../../../types/roles';
 import { resolveNightActions } from '../../../../server/engine/night-action-resolver';
-import { runVotingEngine } from '../../../../server/engine/voting-engine';
+import { runVotingEngine, determineVerdictOutcome, executeMayorReveal, castVerdictVote, isMayor } from '../../../../server/engine/voting-engine';
 import { evaluateWinCondition } from '../../../../server/engine/phase-manager';
 import { botTakeoverController } from '../../../../server/ai/bot-takeover';
 import { InvestigationResult } from '../../../../types/engine';
 import { generateMorningNewspaperStory } from '../../../../server/ai/ai-narrator';
-import { dispatchMinigamePhaseEvent } from '../../../../server/engine/minigames-engine';
+import { dispatchMinigamePhaseEvent, executePrisonSanction, executePrisonSolitary } from '../../../../server/engine/minigames-engine';
 
 
 interface RouteContext {
@@ -111,6 +112,14 @@ function initializeMinigameSubStates(lobby: LobbyState): MinigameSubStates {
     const defenders = pList.filter(p => p.allInIdentity?.layer1Faction === 'TOWN').slice(0, 3).map(p => p.userId);
     const sniper = pList.find(p => p.allInIdentity?.layer1Faction === 'NEUTRAL_KILLER' || p.allInIdentity?.layer1Faction === 'MAFIA')?.userId || pIds[0] || null;
     return { catenaccio: createInitialCatenaccioState(defenders.length > 0 ? defenders : pIds.slice(0, 2), sniper, 2) };
+  }
+  if (lobby.mode === 'CHERNOBYL_EXCLUSION_ZONE') {
+    const liquidator = pList.find(
+      p => p.allInIdentity?.layer1Faction === 'TOWN' &&
+      (p.displayRole?.originalRoleName === 'Doctor' || p.displayRole?.localizedRoleName?.includes('Həkim') || p.displayRole?.localizedRoleName?.toLowerCase().includes('likvidator') || p.displayRole?.localizedRoleName?.toLowerCase().includes('dozimetrist'))
+    )?.userId || pIds[0] || null;
+    const capacity = Math.max(2, Math.floor(pIds.length / 4));
+    return { chernobyl: createInitialChernobylState(pIds, capacity, 15, 100, liquidator) };
   }
 
   return {};
@@ -349,6 +358,7 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
     if (lobby.minigameSubStates && Object.keys(lobby.minigameSubStates).length > 0) {
       const minigameOutput = dispatchMinigamePhaseEvent({
         lobbyId,
+        isMorningArrival: true,
         danteGreedAbilityUsers: [],
         danteLynchedPlayerId: null,
         earthInnocentsLynched: [],
@@ -365,10 +375,26 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
         catenaccioWallAttackers: [],
         publicDeaths: resolution.newspaper.publicDeaths,
       });
-      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
-        ...l,
-        minigameSubStates: minigameOutput.updatedSubStates,
-      }));
+      if (minigameOutput.chernobylResult?.newCasualtyPlayerIds && minigameOutput.chernobylResult.newCasualtyPlayerIds.length > 0) {
+        inMemoryLobbyStore.updateLobby(lobbyId, (l) => {
+          const updatedP = { ...l.players };
+          for (const deadId of minigameOutput.chernobylResult!.newCasualtyPlayerIds) {
+            if (updatedP[deadId]) {
+              updatedP[deadId] = { ...updatedP[deadId], isAlive: false };
+            }
+          }
+          return {
+            ...l,
+            players: updatedP,
+            minigameSubStates: minigameOutput.updatedSubStates,
+          };
+        });
+      } else {
+        inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+          ...l,
+          minigameSubStates: minigameOutput.updatedSubStates,
+        }));
+      }
     }
 
     lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
@@ -389,11 +415,47 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
 
     // 2. Run voting court engine
     const voteOutput = runVotingEngine({ lobby });
+    if (voteOutput.outcome.kind === 'LYNCHED') {
+      const accusedId = voteOutput.outcome.victimId;
+      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+        ...l,
+        accusedPlayerId: accusedId,
+        trialVerdictVotes: {},
+        liveVotes: {},
+      }));
+      inMemoryLobbyStore.transitionPhase(lobbyId, 'TRIAL_DEFENSE', 30);
+      return inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+    } else {
+      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+        ...l,
+        accusedPlayerId: null,
+        trialVerdictVotes: {},
+        liveVotes: {},
+        lastLynchedUserId: null,
+      }));
+      lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+      const win = evaluateWinCondition(lobby);
+      if (win.kind !== 'GAME_CONTINUES') {
+        inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({ ...l, winnerResult: win }));
+        inMemoryLobbyStore.transitionPhase(lobbyId, 'ENDED', 0);
+      } else {
+        inMemoryLobbyStore.transitionPhase(lobbyId, 'NIGHT_BUFFER', lobby.phaseDurationSeconds > 0 ? lobby.phaseDurationSeconds : 45);
+        await botTakeoverController.executeAllBotActions(lobbyId);
+      }
+      return inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+    }
+
+  } else if (lobby.phase === 'TRIAL_DEFENSE') {
+    lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+
+    // Evaluate final verdict outcome
+    const verdictResult = determineVerdictOutcome(lobby);
     const updatedPlayers = { ...lobby.players };
     let lynchedId: string | null = null;
     let isTownLynched = false;
-    if (voteOutput.outcome.kind === 'LYNCHED') {
-      lynchedId = voteOutput.outcome.victimId;
+
+    if (verdictResult.verdict === 'GUILTY' && verdictResult.convictedPlayerId) {
+      lynchedId = verdictResult.convictedPlayerId;
       if (updatedPlayers[lynchedId]) {
         isTownLynched = updatedPlayers[lynchedId].allInIdentity?.layer1Faction === 'TOWN';
         updatedPlayers[lynchedId] = {
@@ -407,13 +469,15 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
       ...l,
       players: updatedPlayers,
       lastLynchedUserId: lynchedId,
-      liveVotes: {},
+      accusedPlayerId: null,
+      trialVerdictVotes: {},
     }));
 
     // Advance minigames on lynch / night transition
     if (lobby.minigameSubStates && Object.keys(lobby.minigameSubStates).length > 0) {
       const minigameOutput = dispatchMinigamePhaseEvent({
         lobbyId,
+        isMorningArrival: false,
         danteGreedAbilityUsers: [],
         danteLynchedPlayerId: lynchedId,
         earthInnocentsLynched: isTownLynched && lynchedId ? [lynchedId] : [],
@@ -430,10 +494,26 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
         catenaccioWallAttackers: [],
         publicDeaths: [],
       });
-      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
-        ...l,
-        minigameSubStates: minigameOutput.updatedSubStates,
-      }));
+      if (minigameOutput.chernobylResult?.newCasualtyPlayerIds && minigameOutput.chernobylResult.newCasualtyPlayerIds.length > 0) {
+        inMemoryLobbyStore.updateLobby(lobbyId, (l) => {
+          const updatedP = { ...l.players };
+          for (const deadId of minigameOutput.chernobylResult!.newCasualtyPlayerIds) {
+            if (updatedP[deadId]) {
+              updatedP[deadId] = { ...updatedP[deadId], isAlive: false };
+            }
+          }
+          return {
+            ...l,
+            players: updatedP,
+            minigameSubStates: minigameOutput.updatedSubStates,
+          };
+        });
+      } else {
+        inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+          ...l,
+          minigameSubStates: minigameOutput.updatedSubStates,
+        }));
+      }
     }
 
     lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
@@ -820,12 +900,19 @@ export async function POST(request: Request, context: RouteContext) {
       lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
 
     } else if (action === 'VOTE') {
+      const solitaryInmates = new Set(lobby.minigameSubStates?.stanfordPrison?.solitaryConfinementPlayerIds ?? []);
+      if (solitaryInmates.has(userId)) {
+        return NextResponse.json(
+          { success: false, error: 'IN_SOLITARY_CONFINEMENT' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
       const candidateId = String(body.candidateId);
       inMemoryLobbyStore.castVote(lobbyId, userId, candidateId);
       await botTakeoverController.executeAllBotActions(lobbyId);
       lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
 
-      const alivePlayers = Object.values(lobby.players).filter(p => p.isAlive);
+      const alivePlayers = Object.values(lobby.players).filter(p => p.isAlive && !solitaryInmates.has(p.userId));
       const votedCount = Object.keys(lobby.liveVotes).length;
       if (votedCount >= alivePlayers.length && alivePlayers.length > 0) {
         lobby = await progressLobbyPhase(lobbyId);
@@ -970,6 +1057,215 @@ export async function POST(request: Request, context: RouteContext) {
         }));
         lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
       }
+    } else if (action === 'MAYOR_REVEAL') {
+      const player = lobby.players[userId];
+      if (!player || !player.isAlive) {
+        return NextResponse.json(
+          { success: false, error: 'PLAYER_NOT_ALIVE_OR_FOUND' },
+          { status: 400, headers: corsHeaders }
+        );
+      }
+      if (!isMayor(player)) {
+        return NextResponse.json(
+          { success: false, error: 'NOT_A_MAYOR' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+      const revealRes = executeMayorReveal(lobby, userId);
+      if (revealRes.success) {
+        inMemoryLobbyStore.updateLobby(lobbyId, () => revealRes.updatedLobby);
+        lobby = inMemoryLobbyStore.getLobby(lobbyId) || revealRes.updatedLobby;
+      } else {
+        return NextResponse.json(
+          { success: false, error: revealRes.error },
+          { status: 400, headers: corsHeaders }
+        );
+      }
+    } else if (action === 'CAST_VERDICT_VOTE' || (action === 'VOTE' && lobby?.phase === 'TRIAL_DEFENSE')) {
+      const solitaryInmates = new Set(lobby.minigameSubStates?.stanfordPrison?.solitaryConfinementPlayerIds ?? []);
+      if (solitaryInmates.has(userId)) {
+        return NextResponse.json(
+          { success: false, error: 'IN_SOLITARY_CONFINEMENT' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+      if (lobby.phase !== 'TRIAL_DEFENSE') {
+        return NextResponse.json(
+          { success: false, error: 'INVALID_PHASE' },
+          { status: 400, headers: corsHeaders }
+        );
+      }
+      const rawVote = String(body.verdict || body.vote || body.candidateId || '').toUpperCase();
+      if (rawVote !== 'GUILTY' && rawVote !== 'INNOCENT') {
+        return NextResponse.json(
+          { success: false, error: 'INVALID_VERDICT_VALUE' },
+          { status: 400, headers: corsHeaders }
+        );
+      }
+      const verdictRes = castVerdictVote(lobby, userId, rawVote as 'GUILTY' | 'INNOCENT');
+      if (!verdictRes.success) {
+        return NextResponse.json(
+          { success: false, error: verdictRes.error },
+          { status: 400, headers: corsHeaders }
+        );
+      }
+      inMemoryLobbyStore.updateLobby(lobbyId, () => verdictRes.updatedLobby);
+      lobby = inMemoryLobbyStore.getLobby(lobbyId) || verdictRes.updatedLobby;
+
+      if (lobby) {
+        const accusedId = lobby.accusedPlayerId;
+        const livingEligibleVoters = Object.values(lobby.players).filter(
+          p => p.isAlive && p.userId !== accusedId && !solitaryInmates.has(p.userId)
+        );
+        const voteCount = Object.keys(lobby.trialVerdictVotes || {}).length;
+        if (voteCount >= livingEligibleVoters.length && livingEligibleVoters.length > 0) {
+          lobby = await progressLobbyPhase(lobbyId);
+        }
+      }
+    } else if (action === 'PRISON_SANCTION') {
+      const targetPlayerId = String(body.targetPlayerId || body.targetUserId || '');
+      const sanctionRes = executePrisonSanction(lobby, userId, targetPlayerId);
+      if (!sanctionRes.success) {
+        return NextResponse.json(
+          { success: false, error: sanctionRes.error },
+          { status: sanctionRes.error === 'NOT_A_GUARD' || sanctionRes.error === 'GUARD_ONLY_ACTION' ? 403 : 400, headers: corsHeaders }
+        );
+      }
+      inMemoryLobbyStore.updateLobby(lobbyId, () => sanctionRes.updatedLobby);
+      lobby = inMemoryLobbyStore.getLobby(lobbyId) || sanctionRes.updatedLobby;
+
+      if (sanctionRes.riotTriggered) {
+        const win = evaluateWinCondition(lobby);
+        if (win.kind !== 'GAME_CONTINUES') {
+          inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({ ...l, winnerResult: win }));
+          inMemoryLobbyStore.transitionPhase(lobbyId, 'ENDED', 0);
+          lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+        }
+      }
+    } else if (action === 'PRISON_SOLITARY') {
+      const targetPlayerId = String(body.targetPlayerId || body.targetUserId || '');
+      const solitaryRes = executePrisonSolitary(lobby, userId, targetPlayerId);
+      if (!solitaryRes.success) {
+        return NextResponse.json(
+          { success: false, error: solitaryRes.error },
+          { status: solitaryRes.error === 'NOT_A_GUARD_OR_WARDEN' ? 403 : 400, headers: corsHeaders }
+        );
+      }
+      inMemoryLobbyStore.updateLobby(lobbyId, () => solitaryRes.updatedLobby);
+      lobby = inMemoryLobbyStore.getLobby(lobbyId) || solitaryRes.updatedLobby;
+    } else if (action === 'CHERNOBYL_SHELTER') {
+      if (!lobby.minigameSubStates?.chernobyl) {
+        return NextResponse.json(
+          { success: false, error: 'CHERNOBYL_NOT_ACTIVE' },
+          { status: 400, headers: corsHeaders }
+        );
+      }
+      const player = lobby.players[userId];
+      if (!player || !player.isAlive) {
+        return NextResponse.json(
+          { success: false, error: 'PLAYER_NOT_ALIVE_OR_FOUND' },
+          { status: 400, headers: corsHeaders }
+        );
+      }
+
+      const chernobyl = lobby.minigameSubStates.chernobyl;
+      const currentSheltered = chernobyl.shelteredPlayerIds || [];
+      const isLeaving = Boolean(body.leave);
+
+      if (isLeaving) {
+        const updatedSheltered = currentSheltered.filter(id => id !== userId);
+        inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+          ...l,
+          minigameSubStates: {
+            ...l.minigameSubStates,
+            chernobyl: {
+              ...l.minigameSubStates.chernobyl!,
+              shelteredPlayerIds: updatedSheltered,
+            },
+          },
+        }));
+        lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+      } else {
+        if (currentSheltered.includes(userId)) {
+          // Idempotent
+        } else if (currentSheltered.length >= chernobyl.bunkerCapacity) {
+          return NextResponse.json(
+            { success: false, error: 'BUNKER_CAPACITY_FULL', capacity: chernobyl.bunkerCapacity },
+            { status: 400, headers: corsHeaders }
+          );
+        } else {
+          const updatedSheltered = [...currentSheltered, userId];
+          inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+            ...l,
+            minigameSubStates: {
+              ...l.minigameSubStates,
+              chernobyl: {
+                ...l.minigameSubStates.chernobyl!,
+                shelteredPlayerIds: updatedSheltered,
+              },
+            },
+          }));
+          lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+        }
+      }
+    } else if (action === 'CHERNOBYL_DECONTAMINATE') {
+      if (!lobby.minigameSubStates?.chernobyl) {
+        return NextResponse.json(
+          { success: false, error: 'CHERNOBYL_NOT_ACTIVE' },
+          { status: 400, headers: corsHeaders }
+        );
+      }
+      const actor = lobby.players[userId];
+      if (!actor || !actor.isAlive) {
+        return NextResponse.json(
+          { success: false, error: 'PLAYER_NOT_ALIVE_OR_FOUND' },
+          { status: 400, headers: corsHeaders }
+        );
+      }
+
+      const chernobyl = lobby.minigameSubStates.chernobyl;
+      const isLiquidator =
+        chernobyl.liquidatorPlayerId === userId ||
+        actor.displayRole?.originalRoleName === 'Doctor' ||
+        actor.displayRole?.localizedRoleName?.toLowerCase().includes('likvidator') ||
+        actor.displayRole?.localizedRoleName?.toLowerCase().includes('həkim') ||
+        actor.displayRole?.localizedRoleName?.toLowerCase().includes('dozimetrist');
+
+      if (!isLiquidator) {
+        return NextResponse.json(
+          { success: false, error: 'NOT_AUTHORIZED_AS_LIQUIDATOR' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+
+      const targetPlayerId = String(body.targetPlayerId || body.targetUserId || '');
+      const targetPlayer = lobby.players[targetPlayerId];
+      if (!targetPlayer || !targetPlayer.isAlive) {
+        return NextResponse.json(
+          { success: false, error: 'TARGET_NOT_ALIVE_OR_FOUND' },
+          { status: 400, headers: corsHeaders }
+        );
+      }
+
+      const currentDecon = chernobyl.decontaminatedPlayerIds || [];
+      const updatedDecon = currentDecon.includes(targetPlayerId)
+        ? currentDecon
+        : [...currentDecon, targetPlayerId];
+
+      inMemoryLobbyStore.updateLobby(lobbyId, (l) => {
+        const cur = l.minigameSubStates.chernobyl!;
+        return {
+          ...l,
+          minigameSubStates: {
+            ...l.minigameSubStates,
+            chernobyl: {
+              ...cur,
+              decontaminatedPlayerIds: updatedDecon,
+            },
+          },
+        };
+      });
+      lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
     }
 
     const scrubbed = buildScrubbedLobbyView(lobby, userId);
