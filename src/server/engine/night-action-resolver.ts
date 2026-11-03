@@ -974,7 +974,8 @@ export function resolveNightActions(input: NightResolverInput): NightResolutionO
     publicDeaths,
     players,
     killResult.protectedIds,
-    minigameSubStates
+    minigameSubStates,
+    killResult.armorBrokenPlayerIds
   );
 
   const newspaper: MorningNewspaper = {

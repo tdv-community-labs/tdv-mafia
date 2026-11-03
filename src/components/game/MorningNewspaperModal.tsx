@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Newspaper, X, Skull, AlertTriangle, Flame, Clock, Search, Mail, Shield, Heart } from 'lucide-react';
+import { Newspaper, X, Skull, AlertTriangle, Flame, Clock, Search, Mail, Shield, Heart, Biohazard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MorningNewspaper, InvestigationResult } from '../../types/engine';
 import { MinigameSubStates } from '../../types/minigames';
@@ -49,6 +49,7 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
   const valkyrie = minigameSubStates?.valkyrie;
   const prison = minigameSubStates?.stanfordPrison;
   const catenaccio = minigameSubStates?.catenaccio;
+  const chernobyl = minigameSubStates?.chernobyl;
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -129,6 +130,29 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
                   </div>
                   <div className="text-sm text-emerald-900 dark:text-emerald-300 leading-relaxed">
                     <strong className="font-bold">{playerNames[id] || 'Kimsə'}</strong> gecə amansız hücuma məruz qaldı, lakin son anda <span className="font-bold underline decoration-emerald-500/50 underline-offset-2">Mühafizəçi</span> tərəfindən ölümdən xilas edildi!
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {newspaper.armorBrokenPlayerIds && newspaper.armorBrokenPlayerIds.length > 0 && (
+          <div className="font-sans">
+            <div className="flex items-center gap-2 border-b border-amber-300 dark:border-amber-800 pb-2 mb-3">
+              <Shield className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              <h2 className="text-base font-extrabold uppercase tracking-wide text-amber-800 dark:text-amber-400">
+                Qırılan Zirehlər (Dəmir İradə)
+              </h2>
+            </div>
+            <div className="flex flex-col gap-2">
+              {newspaper.armorBrokenPlayerIds.map((id, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-lg">
+                  <div className="w-8 h-8 rounded-full bg-amber-200 dark:bg-amber-900/50 flex items-center justify-center shrink-0">
+                    <Shield className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+                  </div>
+                  <div className="text-sm text-amber-900 dark:text-amber-300 leading-relaxed">
+                    <strong className="font-bold">{playerNames[id] || 'Kimsə'}</strong> gecə ölümcül hücuma məruz qaldı, lakin <span className="font-bold underline decoration-amber-500/50 underline-offset-2">Dəmir İradə</span> sayəsində sağ qaldı! (Zireh qırıldı)
                   </div>
                 </div>
               ))}
@@ -300,6 +324,18 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
           <div className="p-3.5 rounded-[8px] border border-emerald-300 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/20 font-sans">
             <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
               Katenatçio: {catenaccio.wallBreached ? 'Müdafiə səddi dağıdıldı!' : `${catenaccio.defensiveWallPlayerIds.length} qalxanlıq müdafiə səddi aktivdir.`}
+            </div>
+          </div>
+        )}
+
+        {chernobyl && (
+          <div className="p-3.5 rounded-[8px] border border-amber-300 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/20 font-sans">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+              <Biohazard className="w-4 h-4 text-amber-500 shrink-0" />
+              <span>Çernobıl Təcrid Zonası: Radiasiya {chernobyl.zoneContaminationLevel} mSv/raund</span>
+            </div>
+            <div className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+              Sığınacaq: {chernobyl.shelteredPlayerIds?.length ?? 0}/{chernobyl.bunkerCapacity} nəfər qorunur. Ölümcül hədd: {chernobyl.lethalThreshold} mSv.
             </div>
           </div>
         )}

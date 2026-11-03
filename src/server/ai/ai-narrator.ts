@@ -18,7 +18,8 @@ export function generateProceduralStory(
   deaths: readonly NightDeathRecord[],
   players: Readonly<Record<string, PlayerSession>>,
   protectedIds?: readonly string[],
-  minigames?: MinigameSubStates
+  minigames?: MinigameSubStates,
+  armorBrokenPlayerIds?: readonly string[]
 ): NewspaperStoryResult {
   const getVictimName = (id: string): string => players[id]?.username ?? id;
 
@@ -38,6 +39,15 @@ export function generateProceduralStory(
       story += ` Lakin şayiələrə görə, ${savedNames} gecə hədəfə alınsa da, ayıq-sayıq mühafizəçilər tərəfindən ölümdən xilas edildi!`;
     } else {
       story += ` Lakin kölgələrdəki fısıltılar kəsilmir — hər kəs növbəti gecənin gətirəcəyi təhlükəni gözləyir.`;
+    }
+
+    if (armorBrokenPlayerIds && armorBrokenPlayerIds.length > 0) {
+      const armorNames = armorBrokenPlayerIds.map(getVictimName).join(', ');
+      story += ` Qeyd: ${armorNames} gecə ağır hücuma məruz qalsa da, Dəmir İradə zirehi sayəsində sağ qaldı (zireh qırıldı)!`;
+    }
+
+    if (minigames?.chernobyl) {
+      story += ` Çernobıl radiasiya sızması: ${minigames.chernobyl.zoneContaminationLevel} mSv/raund.`;
     }
 
     if (minigames?.dantesInferno) {
@@ -80,6 +90,12 @@ export function generateProceduralStory(
         return `${name} tək fəaliyyət göstərən amansız qatil tərəfindən məhv edildi.`;
       case 'JESTER_REVENGE':
         return `${name} Təlxəyin qisas lənətinə tuş gəldi.`;
+      case 'BODYGUARD_SACRIFICE':
+        return `${name} (Mühafizəçi) öz bədənini sipər edərək qoruduğu vətəndaşın həyatını xilas etdi və qəhrəmancasına şəhid oldu.`;
+      case 'BODYGUARD_COUNTER':
+        return `${name} sui-qəsd törətmək istəyərkən ayıq-sayıq Mühafizəçinin qisas zərbəsi ilə zərərsizləşdirildi!`;
+      case 'RADIATION_SICKNESS':
+        return `${name} Çernobıl təcrid zonasının ölümcül radiasiya dozasına tab gətirə bilməyərək şüa xəstəliyindən həyatını itirdi.`;
       default:
         return `${name} müəmmalı şəraitdə həyatını itirdi.`;
     }
@@ -92,12 +108,19 @@ export function generateProceduralStory(
     story += ` Xoşbəxtlikdən, ${savedNames} son anda ölümdən xilas ola bildi.`;
   }
 
+  if (armorBrokenPlayerIds && armorBrokenPlayerIds.length > 0) {
+    const armorNames = armorBrokenPlayerIds.map(getVictimName).join(', ');
+    story += ` Həmçinin ${armorNames} ağır hücuma məruz qalsa da, Dəmir İradə bacarığı sayəsində ölümdən döndü (zireh qırıldı)!`;
+  }
+
   if (minigames?.valkyrie?.briefcaseLocationPlayerId) {
     story += ` Partlayıcı portfelin vaxtı daralır: ${minigames.valkyrie.fuseTimerDaysRemaining} gün qalır.`;
   } else if (minigames?.earthStoodStill) {
     story += ` Qiyamət Saatı: ${minigames.earthStoodStill.doomsdayClockHours}/12 saat.`;
   } else if (minigames?.stanfordPrison) {
     story += ` Həbsxanada gərginlik yüksəlir: üsyan göstəricisi ${minigames.stanfordPrison.revoltMeter}%.`;
+  } else if (minigames?.chernobyl) {
+    story += ` Çernobıl təcrid zonası: radiasiya səviyyəsi ${minigames.chernobyl.zoneContaminationLevel} mSv/raund təşkil edir.`;
   }
 
   return { headline, story };
@@ -108,9 +131,10 @@ export async function generateMorningNewspaperStory(
   deaths: NightDeathRecord[],
   players: Record<string, PlayerSession>,
   protectedIds?: readonly string[],
-  minigames?: MinigameSubStates
+  minigames?: MinigameSubStates,
+  armorBrokenPlayerIds?: readonly string[]
 ): Promise<NewspaperStoryResult> {
-  const fallback = generateProceduralStory(roundNumber, deaths, players, protectedIds, minigames);
+  const fallback = generateProceduralStory(roundNumber, deaths, players, protectedIds, minigames, armorBrokenPlayerIds);
 
   const keys = getGeminiApiKeyPool();
   if (keys.length === 0) return fallback;
@@ -132,6 +156,10 @@ export async function generateMorningNewspaperStory(
   if (protectedIds && protectedIds.length > 0) {
     const names = protectedIds.map(id => players[id]?.username ?? id).join(', ');
     prompt += `Players saved from death by protectors: ${names}.\n`;
+  }
+  if (armorBrokenPlayerIds && armorBrokenPlayerIds.length > 0) {
+    const names = armorBrokenPlayerIds.map(id => players[id]?.username ?? id).join(', ');
+    prompt += `Players who survived lethal attack due to Iron Will armor shatter: ${names}.\n`;
   }
 
   prompt += `Respond strictly in valid JSON format:

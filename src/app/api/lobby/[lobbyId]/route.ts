@@ -319,7 +319,8 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
         [...resolution.newspaper.publicDeaths],
         lobby.players,
         resolution.newspaper.protectedIds,
-        lobby.minigameSubStates
+        lobby.minigameSubStates,
+        resolution.newspaper.armorBrokenPlayerIds
       );
       if (aiStory?.headline) finalHeadline = aiStory.headline;
       if (aiStory?.story) finalStory = aiStory.story;
