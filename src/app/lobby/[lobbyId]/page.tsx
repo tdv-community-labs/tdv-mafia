@@ -60,7 +60,7 @@ import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { PACKS_CONFIG, deriveModeFromLobbyId } from '../../../config/packs.config';
 import { getTheme } from '../../../config/themes.config';
-import { playCard, playElimination, playDay, playNight, isSoundMuted, toggleSound, subscribeSound, startAmbient, stopAmbient } from '../../../utils/sfx';
+import { playCard, playElimination, playDay, playNight, playGavel, isSoundMuted, toggleSound, subscribeSound, startAmbient, stopAmbient } from '../../../utils/sfx';
 
 interface LobbyPageProps {
   readonly params: {
@@ -523,6 +523,8 @@ export default function LobbyPage({ params }: LobbyPageProps) {
 
       if (currentPhase === 'NIGHT_BUFFER') {
         playNight();
+      } else if (currentPhase === 'TRIAL_DEFENSE') {
+        playGavel();
       } else if (
         currentPhase === 'DAY_VOTING' ||
         currentPhase === 'DAY_CENTRAL_ASSEMBLY' ||
@@ -1068,6 +1070,9 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             onOpenNewspaper={() => setIsNewspaperOpen(true)}
             onCastVote={handleCastVote}
             onRetractVote={handleRetractVote}
+            onCastVerdictVote={(verdict) => dispatchAction({ action: 'CAST_VERDICT_VOTE', verdict })}
+            onMayorReveal={() => dispatchAction({ action: 'MAYOR_REVEAL' })}
+            onShelterChernobyl={() => dispatchAction({ action: 'CHERNOBYL_SHELTER' })}
             onTriggerAction={handleTriggerAction}
             onKickPlayer={handleKickPlayer}
             onSendEmote={(emote) => dispatchAction({ action: 'EMOTE', emote })}

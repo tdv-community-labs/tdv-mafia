@@ -45,9 +45,9 @@
 | M2 | Courtroom Podium Defense & Voting Engine (R2) | `TRIAL_DEFENSE` phase (30s), GUILTY/INNOCENT verdict, Mayor 3x reveal | M1 (types) | DONE |
 | M3 | Asymmetric Minigames Interactivity & Chernobyl (R3) | Stanford sanctions/solitary disenfranchisement, Chernobyl radiation engine | M1, M2 | DONE |
 | M4 | Contextual AI Bot Dialogue & Heuristics (R4) | Personality chat cascade, Mafia anti-friendly fire, Sheriff non-repeat | M1, M2 | DONE |
-| M5 | Immersive Battleground HUD, Spotlight & Audio (R5) | Podium spotlight, defense timer, reticles, compact minigame HUD, SFX | M2, M3 | IN_PROGRESS |
-| E2E | E2E Testing Suite Track | Comprehensive unit tests for R1-R4, test runner configuration | M1, M2, M3, M4 | PLANNED |
-| M6 | Final Verification Gates & Simulation (All) | `simulate-allin.js` bug fix, typecheck, tests, simulation, build | M1, M2, M3, M4, M5, E2E | PLANNED |
+| M5 | Immersive Battleground HUD, Spotlight & Audio (R5) | Podium spotlight, defense timer, reticles, compact minigame HUD, SFX | M2, M3 | DONE |
+| E2E | E2E Testing Suite Track | Comprehensive unit tests for R1-R4, test runner configuration | M1, M2, M3, M4 | DONE |
+| M6 | Final Verification Gates & Simulation (All) | `simulate-allin.js` bug fix, typecheck, tests, simulation, build | M1, M2, M3, M4, M5, E2E | DONE |
 
 ## Interface Contracts
 ### `night-action-resolver.ts` ↔ `engine.ts`
