@@ -730,7 +730,7 @@ function applyResurrections(
     if (!targetPlayer) continue;
 
     // Revive them!
-    players[target] = { ...targetPlayer, isAlive: true };
+    players[target] = { ...targetPlayer, isAlive: true, deathCause: undefined, deathRound: undefined };
     
     // Remove from publicDeaths if they were killed tonight
     const deathIdx = publicDeaths.findIndex(d => d.victimPlayerId === target);
@@ -935,6 +935,18 @@ export function resolveNightActions(input: NightResolverInput): NightResolutionO
   for (const [id, p] of Object.entries(killedPlayers)) {
     updatedPlayers[id] = p;
   }
+  for (const death of publicDeaths) {
+    if (updatedPlayers[death.victimPlayerId]) {
+      updatedPlayers[death.victimPlayerId] = {
+        ...updatedPlayers[death.victimPlayerId],
+        deathCause: death.cause,
+        deathRound: roundNumber,
+      };
+    }
+  }
+
+  // P7: Resurrect
+  applyResurrections(actions, flags, updatedPlayers, publicDeaths);
 
   // ── Vest & Iron Will depletion persistence ──────────────────────────────────
   // The flags struct is transient — it is rebuilt from PlayerSession each night.

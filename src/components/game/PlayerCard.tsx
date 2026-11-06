@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import {  Crown, Bot, Check, Clock, Mic, Shield, Sparkles, Target, Gavel , WifiOff, Ghost, X } from 'lucide-react';
+import {  Crown, Bot, Check, Clock, Mic, Shield, Sparkles, Target, Gavel , WifiOff, Ghost, X, Skull } from 'lucide-react';
 import { PlayerSession } from '../../types/game';
 import { ScrubbedPlayerView } from '../../types/engine';
 import { AllInDistrict, CivicOfficeType } from '../../types/roles';
@@ -10,6 +10,7 @@ import { AZ_CIVIC_OFFICES, AZ_DISTRICTS, AZ_UI } from '../../config/i18n/az';
 import { motion } from 'framer-motion';
 import { playCard } from '../../utils/sfx';
 import { RoleActionReticle, ActionReticleType } from './RoleActionReticle';
+import { TombstoneModal } from './TombstoneModal';
 
 export interface PlayerCardProps {
   readonly player: PlayerSession | ScrubbedPlayerView;
@@ -46,6 +47,22 @@ const DISTRICT_TONES: Record<AllInDistrict, BadgeTone> = {
   INDUSTRIAL: 'amber',
 };
 
+const DEATH_CAUSE_LABELS: Record<string, { label: string; tone: BadgeTone }> = {
+  MAFIA_KILL: { label: 'Güllələnib', tone: 'red' },
+  YAKUZA_KILL: { label: 'Qılınclanıb', tone: 'red' },
+  VOID_CULT_SACRIFICE: { label: 'Qurban Edilib', tone: 'purple' },
+  NEUTRAL_KILLER_KILL: { label: 'Qətlə Yetirilib', tone: 'red' },
+  RETALIATION_FUSE_COUNTER: { label: 'Əks-Zərbə', tone: 'amber' },
+  BODYGUARD_SACRIFICE: { label: 'Fədakarlıq', tone: 'blue' },
+  BODYGUARD_COUNTER: { label: 'Mühafizəçi Zərbəsi', tone: 'blue' },
+  RADIATION_SICKNESS: { label: 'Radiasiya', tone: 'amber' },
+  BRIEFCASE_DETONATION: { label: 'Portfel Partlayışı', tone: 'red' },
+  GORT_VAPORISATION: { label: 'Buxarlanıb', tone: 'purple' },
+  JESTER_REVENGE: { label: 'Təlxək Qisası', tone: 'purple' },
+  CROSSFIRE: { label: 'Çarpaz Atəş', tone: 'red' },
+  LYNCH: { label: 'Asılıb', tone: 'red' },
+};
+
 const PlayerCardComponent: React.FC<PlayerCardProps> = ({
   player,
   isLobbyPhase = false,
@@ -69,10 +86,15 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
   activeEmote,
   style,
 }) => {
+  const [isTombstoneOpen, setIsTombstoneOpen] = React.useState(false);
   const isAlive = player.isAlive;
   const isHost = player.isHost;
   const isBot = isFullSession(player) ? player.isAiBotControlled : false;
   const isAfk = !isBot && isFullSession(player) && player.lastSeenAt && (Date.now() - player.lastSeenAt > 15000);
+
+  const deathCause = isFullSession(player) ? player.deathCause : undefined;
+  const deathRound = isFullSession(player) ? player.deathRound : undefined;
+  const deathBadge = deathCause ? DEATH_CAUSE_LABELS[deathCause] || { label: deathCause, tone: 'red' as BadgeTone } : null;
 
   const effectiveActionType = (actionType ?? targetIntent) as ActionReticleType | undefined;
 
@@ -110,6 +132,9 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
 
   const handleClick = () => {
     playCard();
+    if (!isAlive && !isLobbyPhase) {
+      setIsTombstoneOpen(true);
+    }
     onSelect?.(player);
   };
 
@@ -346,7 +371,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
         </div>
       </div>
 
-      {/* Badges Bar (District or Host) */}
+      {/* Badges Bar (District or Host, Death Cause, Death Round) */}
       {!isLobbyPhase && (
         <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
           {district && (
@@ -355,6 +380,16 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
             </Badge>
           )}
           {isHost && <Badge tone="amber">{AZ_UI.host}</Badge>}
+          {!isAlive && deathBadge && (
+            <Badge tone={deathBadge.tone} icon={<Skull className="w-3 h-3" />}>
+              {deathBadge.label}
+            </Badge>
+          )}
+          {!isAlive && deathRound !== undefined && (
+            <Badge tone="neutral">
+              Raund {deathRound}
+            </Badge>
+          )}
         </div>
       )}
 
@@ -366,6 +401,16 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
             {AZ_CIVIC_OFFICES[officeRaw] ?? officeRaw}
           </strong>
         </div>
+      )}
+
+      {/* Tombstone Modal on click */}
+      {!isAlive && !isLobbyPhase && isFullSession(player) && (
+        <TombstoneModal
+          isOpen={isTombstoneOpen}
+          onClose={() => setIsTombstoneOpen(false)}
+          deadPlayer={player}
+          lastWill={player.lastWill || null}
+        />
       )}
     </div>
   );

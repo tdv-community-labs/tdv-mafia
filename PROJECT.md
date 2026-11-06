@@ -48,6 +48,10 @@
 | M5 | Immersive Battleground HUD, Spotlight & Audio (R5) | Podium spotlight, defense timer, reticles, compact minigame HUD, SFX | M2, M3 | DONE |
 | E2E | E2E Testing Suite Track | Comprehensive unit tests for R1-R4, test runner configuration | M1, M2, M3, M4 | DONE |
 | M6 | Final Verification Gates & Simulation (All) | `simulate-allin.js` bug fix, typecheck, tests, simulation, build | M1, M2, M3, M4, M5, E2E | DONE |
+| M7 | Spectator Mode & Dead Chat (R1) | SpectatorSession, zero-knowledge DEAD chat isolation, graveyard UI, tombstone modal | M1-M6 | DONE |
+| M8 | WebRTC Audio Spatialization (R2) | StereoPannerNode, circular player audio graph, dynamic speaking sonar badges | M7 | IN_PROGRESS |
+| M9 | Role Loadout Balancing & Achievements (R3) | Standard/Asymmetric/Chaos/All-In 40p presets, trackable achievement engine | M7 | PLANNED |
+| M10 | Simulation Harmonization & Production Certification | Macro 40-player simulation updates, regression sweeps, production bundle | M7-M9 | PLANNED |
 
 ## Interface Contracts
 ### `night-action-resolver.ts` ↔ `engine.ts`

@@ -430,8 +430,9 @@ export default function LobbyPage({ params }: LobbyPageProps) {
     if (lobbyState.phase === 'LOBBY') {
       return [{ id: 'LOBBY', label: 'Otaq Söhbəti' }];
     }
-    const isPlayerAlive = myPlayerSession?.isAlive ?? true;
-    if (!isPlayerAlive) {
+    const isPlayerAlive = myPlayerSession?.isAlive ?? false;
+    const isSpectator = Boolean(lobbyState.spectators?.[currentUserId]) || !myPlayerSession;
+    if (isSpectator || !isPlayerAlive) {
       return [
         { id: 'DEAD', label: 'Ruhlar (Qəbiristanlıq)' },
         { id: 'LOBBY', label: 'Şəhər (Yalnız Oxu)' },
@@ -444,7 +445,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
       ];
     }
     return [{ id: 'LOBBY', label: 'Şəhər Məclisi' }];
-  }, [lobbyState.phase, myPlayerSession?.isAlive, myFaction]);
+  }, [lobbyState.phase, myPlayerSession, myFaction, lobbyState.spectators, currentUserId]);
 
   
   const [isLastWillOpen, setIsLastWillOpen] = useState<boolean>(false);
@@ -1262,7 +1263,8 @@ export default function LobbyPage({ params }: LobbyPageProps) {
           messages={lobbyState.chatMessages || []}
           currentUserId={currentUserId}
           availableChannels={availableChatChannels}
-          isPlayerAlive={myPlayerSession?.isAlive ?? true}
+          isPlayerAlive={myPlayerSession?.isAlive ?? false}
+          isSpectator={Boolean(lobbyState.spectators?.[currentUserId]) || !myPlayerSession}
           onSendMessage={(content, channel) => dispatchAction({ action: 'SEND_MESSAGE', content, channel })}
         />
       )}

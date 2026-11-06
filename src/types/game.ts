@@ -17,6 +17,13 @@ export type GamePhase =
   | 'NIGHT_BUFFER'
   | 'ENDED';
 
+export interface SpectatorSession {
+  readonly userId: string;
+  readonly username: string;
+  readonly joinedAt: number;
+  readonly lastSeenAt?: number;
+}
+
 export interface PlayerSession {
   readonly socketId: string;
   readonly userId: string;
@@ -35,6 +42,8 @@ export interface PlayerSession {
   readonly isAiBotControlled: boolean;
   readonly isReady?: boolean;
   readonly lastWill?: string;
+  readonly deathCause?: import('./engine').DeathCause;
+  readonly deathRound?: number;
 }
 
 export type NightActionType =
@@ -77,6 +86,7 @@ export interface ChatMessage {
   content: string;
   channel: ChatChannel;
   timestamp: number;
+  isSpectator?: boolean;
 }
 
 export interface LobbyState {
@@ -86,6 +96,7 @@ export interface LobbyState {
   readonly mode: GameMode;
   readonly phase: GamePhase;
   readonly players: Readonly<Record<string, PlayerSession>>;
+  readonly spectators?: Readonly<Record<string, SpectatorSession>>;
   readonly hostReady: boolean;
   readonly adminMasterUnlock: AdminMasterUnlockState;
   readonly assignedArchitectId: string | null;

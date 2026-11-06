@@ -63,6 +63,31 @@ export const TombstoneModal: React.FC<TombstoneModalProps> = ({ isOpen, onClose,
             </div>
           </div>
 
+          {(deadPlayer.deathCause || deadPlayer.deathRound !== undefined) && (
+            <div className="flex items-center justify-around p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 text-xs">
+              {deadPlayer.deathCause && (
+                <div className="flex flex-col items-center">
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Ölüm Səbəbi</span>
+                  <span className="font-bold text-red-400 mt-0.5">
+                    {deadPlayer.deathCause === 'MAFIA_KILL'
+                      ? 'Güllələnib'
+                      : deadPlayer.deathCause === 'LYNCH'
+                      ? 'Asılıb'
+                      : deadPlayer.deathCause === 'RADIATION_SICKNESS'
+                      ? 'Radiasiya'
+                      : deadPlayer.deathCause}
+                  </span>
+                </div>
+              )}
+              {deadPlayer.deathRound !== undefined && (
+                <div className="flex flex-col items-center">
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Ölüm Raundu</span>
+                  <span className="font-bold text-zinc-300 mt-0.5">Raund {deadPlayer.deathRound}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-col gap-2">
             <div className="text-xs font-bold text-amber-500/70 uppercase tracking-wider flex items-center gap-1.5">
               <Scroll className="w-4 h-4" />

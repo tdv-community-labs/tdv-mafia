@@ -10,11 +10,11 @@ import {
   LobbyState,
   NightActionBufferItem,
   PlayerSession,
+  SpectatorSession,
+  ChatMessage,
 } from '../../types/game';
 import { GameMode } from '../../types/packs';
 import { PACKS_CONFIG } from '../../config/packs.config';
-
-import { ChatMessage } from '../../types/game';
 
 export class InMemoryLobbyStore {
   private lobbies: Map<string, LobbyState> = new Map();
@@ -59,6 +59,7 @@ export class InMemoryLobbyStore {
       mode,
       phase: 'LOBBY',
       players: { [hostSession.userId]: hostSession },
+      spectators: {},
       hostReady: false,
       adminMasterUnlock: initialUnlock,
       assignedArchitectId: null,
@@ -139,6 +140,36 @@ export class InMemoryLobbyStore {
 
     this.lobbies.set(lobbyId, updatedLobby);
     return { success: true, lobby: updatedLobby };
+  }
+
+  /** Join a user as a spectator */
+  public joinSpectator(lobbyId: string, spectator: SpectatorSession): LobbyState | null {
+    const lobby = this.lobbies.get(lobbyId);
+    if (!lobby) return null;
+    const updatedLobby: LobbyState = {
+      ...lobby,
+      spectators: {
+        ...(lobby.spectators || {}),
+        [spectator.userId]: spectator,
+      },
+      stateVersion: (lobby.stateVersion ?? 0) + 1,
+    };
+    this.lobbies.set(lobbyId, updatedLobby);
+    return updatedLobby;
+  }
+
+  /** Remove a spectator from the lobby */
+  public removeSpectator(lobbyId: string, userId: string): LobbyState | null {
+    const lobby = this.lobbies.get(lobbyId);
+    if (!lobby || !lobby.spectators) return lobby ?? null;
+    const { [userId]: _, ...rest } = lobby.spectators;
+    const updatedLobby: LobbyState = {
+      ...lobby,
+      spectators: rest,
+      stateVersion: (lobby.stateVersion ?? 0) + 1,
+    };
+    this.lobbies.set(lobbyId, updatedLobby);
+    return updatedLobby;
   }
 
   /**

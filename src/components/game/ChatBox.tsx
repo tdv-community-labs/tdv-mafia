@@ -12,6 +12,7 @@ interface ChatBoxProps {
   onSendMessage: (content: string, channel: ChatChannel) => void;
   availableChannels: { id: ChatChannel; label: string }[];
   isPlayerAlive?: boolean;
+  isSpectator?: boolean;
 }
 
 export const ChatBox = React.memo(({
@@ -20,6 +21,7 @@ export const ChatBox = React.memo(({
   onSendMessage,
   availableChannels,
   isPlayerAlive = true,
+  isSpectator = false,
 }: ChatBoxProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeChannel, setActiveChannel] = useState<ChatChannel>(availableChannels[0]?.id || 'LOBBY');
@@ -96,7 +98,7 @@ export const ChatBox = React.memo(({
   };
 
   const channelMessages = messages.filter((m) => m.channel === activeChannel);
-  const isDeadAndLobby = !isPlayerAlive && activeChannel === 'LOBBY';
+  const isRestrictedFromLobby = (!isPlayerAlive || isSpectator) && activeChannel === 'LOBBY';
 
   // Floating Button
   if (!isOpen) {
@@ -192,7 +194,14 @@ export const ChatBox = React.memo(({
                   isMe ? 'self-end items-end' : 'self-start items-start'
                 }`}
               >
-                <span className="text-[10px] text-zinc-500 mb-0.5 px-1">{m.senderName}</span>
+                <span className="text-[10px] text-zinc-500 mb-0.5 px-1 flex items-center gap-1.5">
+                  {m.isSpectator && (
+                    <span className="bg-purple-900/60 text-purple-300 border border-purple-600/40 px-1.5 py-0.2 rounded text-[9px] font-bold">
+                      [Müşahidəçi]
+                    </span>
+                  )}
+                  <span>{m.senderName}</span>
+                </span>
                 <div
                   className={`px-3 py-2 rounded-2xl text-sm leading-relaxed ${
                     isMe
@@ -219,7 +228,7 @@ export const ChatBox = React.memo(({
         <button
           type="button"
           onClick={() => processAndSendMessage('/roll', activeChannel)}
-          disabled={isDeadAndLobby}
+          disabled={isRestrictedFromLobby}
           title="Təsadüfi zər at (1-6)"
           className="shrink-0 snap-start bg-indigo-900/40 hover:bg-indigo-700 text-indigo-300 hover:text-white text-[10px] font-bold tracking-wider uppercase px-2.5 py-1.5 rounded-full whitespace-nowrap transition-colors border border-indigo-700/50 flex items-center gap-1 disabled:opacity-40"
         >
@@ -229,7 +238,7 @@ export const ChatBox = React.memo(({
         <button
           type="button"
           onClick={() => processAndSendMessage('/flip', activeChannel)}
-          disabled={isDeadAndLobby}
+          disabled={isRestrictedFromLobby}
           title="Qəpik at (Xət / Yazı)"
           className="shrink-0 snap-start bg-amber-900/40 hover:bg-amber-700 text-amber-300 hover:text-white text-[10px] font-bold tracking-wider uppercase px-2.5 py-1.5 rounded-full whitespace-nowrap transition-colors border border-amber-700/50 flex items-center gap-1 disabled:opacity-40"
         >
@@ -237,18 +246,25 @@ export const ChatBox = React.memo(({
           Qəpik at
         </button>
 
-        {[
+        {(activeChannel === 'DEAD' ? [
+          '👻 Ruhlar görür!',
+          'Məni niyə asdınız?',
+          'Mafiyanı tapın!',
+          'Axirətdən salamlar',
+          'Mən günahsız idim...',
+          'Don kimdir bildim!',
+        ] : [
           'Məncə mafiyadır!',
           'Mən şerifəm',
           'Məni qoruyun',
           'Təmizəm',
           'Səs verin asaq',
           'Tələsməyin!',
-        ].map((phrase, idx) => (
+        ]).map((phrase, idx) => (
           <button
             key={idx}
             type="button"
-            disabled={isDeadAndLobby}
+            disabled={isRestrictedFromLobby}
             onClick={() => processAndSendMessage(phrase, activeChannel)}
             className="shrink-0 snap-start bg-zinc-800/80 hover:bg-indigo-600/80 text-zinc-300 hover:text-white text-[10px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full whitespace-nowrap transition-colors border border-zinc-700 hover:border-indigo-500 shadow-sm disabled:opacity-40"
           >
@@ -263,19 +279,23 @@ export const ChatBox = React.memo(({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={
-            isDeadAndLobby
-              ? 'Ruhlar Şəhərə yaza bilməz (Yalnız Oxu)'
+            isRestrictedFromLobby
+              ? isSpectator
+                ? 'Müşahidəçilər Şəhərə yaza bilməz (Yalnız Oxu)'
+                : 'Ruhlar Şəhərə yaza bilməz (Yalnız Oxu)'
               : activeChannel === 'DEAD'
               ? 'Ruhlar aləminə mesaj yazın...'
               : 'Mesaj yazın (/roll, /flip dəstəklənir)...'
           }
+          title={isRestrictedFromLobby ? 'Yalnız canlı oyunçular Şəhər söhbətinə yaza bilər' : undefined}
           maxLength={300}
-          disabled={isDeadAndLobby}
+          disabled={isRestrictedFromLobby}
           className="flex-1 bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-50 disabled:bg-zinc-900"
         />
         <button
           type="submit"
-          disabled={!input.trim() || isDeadAndLobby}
+          disabled={!input.trim() || isRestrictedFromLobby}
+          title={isRestrictedFromLobby ? 'Yalnız canlı oyunçular Şəhər söhbətinə yaza bilər' : 'Göndər'}
           className="bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:hover:bg-blue-600 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
         >
           <Send className="w-4 h-4" />

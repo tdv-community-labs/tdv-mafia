@@ -160,7 +160,7 @@ export function emitScrubbedLobbyViewToAll(
     // SECURITY & PERFORMANCE FIX: Only broadcast to players actually in this lobby!
     // Previously, this loop was broadcasting EVERY lobby update to EVERY connected user on the entire server,
     // resulting in exponential network saturation O(N^2) and leaking game existence to unrelated users.
-    if (!lobby.players[userId] && lobby.hostUserId !== userId) {
+    if (!lobby.players[userId] && lobby.hostUserId !== userId && !lobby.spectators?.[userId]) {
       continue;
     }
     const view = buildScrubbedLobbyView(lobby, userId);

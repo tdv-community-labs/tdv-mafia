@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { inMemoryLobbyStore } from '../../../../server/state/memory';
 import { buildScrubbedLobbyView } from '../../../../server/socket/dispatcher';
 import { formatRoleDisplay } from '../../../../types/roles';
-import { GamePhase, LobbyState, NightActionPriority, NightActionType, PlayerSession } from '../../../../types/game';
+import { GamePhase, LobbyState, NightActionPriority, NightActionType, PlayerSession, SpectatorSession } from '../../../../types/game';
 import { GameMode } from '../../../../types/packs';
 import { PACKS_CONFIG, deriveModeFromLobbyId } from '../../../../config/packs.config';
 import {
@@ -215,12 +215,28 @@ function distributeSecretRoles(lobby: LobbyState): LobbyState {
  */
 function sanitizeLobbyForViewer(lobby: LobbyState, viewerUserId: string): LobbyState {
   const viewerSession = lobby.players[viewerUserId];
+  const isViewerAlive = viewerSession ? viewerSession.isAlive : false;
+  const isViewerSpectator = !viewerSession || Boolean(lobby.spectators?.[viewerUserId]);
   const isViewerMafia =
     viewerSession?.allInIdentity?.layer1Faction === 'MAFIA' ||
     viewerSession?.displayRole?.originalRoleName?.toLowerCase().includes('mafia') ||
-    viewerSession?.displayRole?.localizedRoleName?.toLowerCase().includes('mafiya');
+    viewerSession?.displayRole?.localizedRoleName?.toLowerCase().includes('mafiya') ||
+    viewerSession?.displayRole?.originalRoleName === 'Mafioso' ||
+    viewerSession?.displayRole?.originalRoleName === 'Don';
   const isLobbyPhase = lobby.phase === 'LOBBY';
   const isEnded = lobby.phase === 'ENDED';
+
+  const safeChatMessages = (lobby.chatMessages || []).filter(msg => {
+    if (isEnded) return true;
+    if (msg.channel === 'LOBBY') return true;
+    if (msg.channel === 'DEAD') {
+      return !isViewerAlive || isViewerSpectator;
+    }
+    if (msg.channel === 'MAFIA') {
+      return isViewerMafia;
+    }
+    return false;
+  });
 
   const sanitizedPlayers: Record<string, PlayerSession> = {};
   for (const [id, p] of Object.entries(lobby.players)) {
@@ -276,6 +292,7 @@ function sanitizeLobbyForViewer(lobby: LobbyState, viewerUserId: string): LobbyS
   return {
     ...lobby,
     players: sanitizedPlayers,
+    chatMessages: safeChatMessages,
     bufferedNightActions: safeNightActions,
     privateInvestigations: {
       [viewerUserId]: viewerInvestigations,
@@ -462,6 +479,8 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
         updatedPlayers[lynchedId] = {
           ...updatedPlayers[lynchedId],
           isAlive: false,
+          deathCause: 'LYNCH',
+          deathRound: lobby.roundNumber,
         };
       }
     }
@@ -500,7 +519,12 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
           const updatedP = { ...l.players };
           for (const deadId of minigameOutput.chernobylResult!.newCasualtyPlayerIds) {
             if (updatedP[deadId]) {
-              updatedP[deadId] = { ...updatedP[deadId], isAlive: false };
+              updatedP[deadId] = {
+                ...updatedP[deadId],
+                isAlive: false,
+                deathCause: 'RADIATION_SICKNESS',
+                deathRound: l.roundNumber,
+              };
             }
           }
           return {
@@ -619,6 +643,19 @@ export async function GET(request: Request, context: RouteContext) {
          };
        });
        lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+    } else if (lobby && lobby.spectators?.[userId]) {
+       // Update lastSeenAt for the requesting spectator
+       inMemoryLobbyStore.updateLobby(lobbyId, (l) => {
+         if (!l.spectators?.[userId]) return l;
+         return {
+           ...l,
+           spectators: {
+             ...l.spectators,
+             [userId]: { ...l.spectators[userId], lastSeenAt: Date.now() }
+           }
+         };
+       });
+       lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
     }
     if (!lobby) {
       lobby = getOrCreateLobby(lobbyId, userId && userId !== 'anon' ? { userId, username: 'Oyunçu', tier: 'TIER_1' } : undefined);
@@ -719,38 +756,63 @@ export async function POST(request: Request, context: RouteContext) {
     }
 
     if (action === 'JOIN') {
-      const realPlayers = Object.values(lobby.players).filter(p => !p.userId.startsWith('temp-') && !p.userId.startsWith('usr-host-initial'));
-      const isFirstRealPlayer = realPlayers.length === 0 || lobby.hostUserId === '' || lobby.hostUserId === 'usr-host-initial' || lobby.hostUserId === userId;
-
-      if (isFirstRealPlayer && lobby.hostUserId !== userId) {
-        inMemoryLobbyStore.removePlayer(lobbyId, 'usr-host-initial');
-        inMemoryLobbyStore.removePlayer(lobbyId, 'temp-init');
-        inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({ ...l, hostUserId: userId }));
-        lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
-      }
-
-      if (!lobby.players[userId]) {
-        const isHost = isFirstRealPlayer || lobby.hostUserId === userId;
-        const newPlayer: PlayerSession = {
-          socketId: `sock-${userId}`,
+      if (lobby.phase !== 'LOBBY') {
+        // Auto-join mid-game joins as spectator
+        const spectator: SpectatorSession = {
           userId,
           username,
-          tier,
-          adminRole: 'NONE',
-          isHost,
-          isAlive: true,
-          hasHostWaiver: true,
-          hasAdminWaiver: false,
-          displayRole: formatRoleDisplay(username, 'Pending', 'Gözləmədə'),
-          currentDistrict: 'COMMERCIAL',
-          disconnectedAt: null,
-          isAiBotControlled: false,
+          joinedAt: Date.now(),
+          lastSeenAt: Date.now(),
         };
-        const joinRes = inMemoryLobbyStore.joinPlayer(lobbyId, newPlayer);
-        if (joinRes.success && joinRes.lobby) {
-          lobby = joinRes.lobby;
+        const updated = inMemoryLobbyStore.joinSpectator(lobbyId, spectator);
+        if (updated) lobby = updated;
+      } else {
+        const realPlayers = Object.values(lobby.players).filter(p => !p.userId.startsWith('temp-') && !p.userId.startsWith('usr-host-initial'));
+        const isFirstRealPlayer = realPlayers.length === 0 || lobby.hostUserId === '' || lobby.hostUserId === 'usr-host-initial' || lobby.hostUserId === userId;
+
+        if (isFirstRealPlayer && lobby.hostUserId !== userId) {
+          inMemoryLobbyStore.removePlayer(lobbyId, 'usr-host-initial');
+          inMemoryLobbyStore.removePlayer(lobbyId, 'temp-init');
+          inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({ ...l, hostUserId: userId }));
+          lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
+        }
+
+        if (!lobby.players[userId]) {
+          const isHost = isFirstRealPlayer || lobby.hostUserId === userId;
+          const newPlayer: PlayerSession = {
+            socketId: `sock-${userId}`,
+            userId,
+            username,
+            tier,
+            adminRole: 'NONE',
+            isHost,
+            isAlive: true,
+            hasHostWaiver: true,
+            hasAdminWaiver: false,
+            displayRole: formatRoleDisplay(username, 'Pending', 'Gözləmədə'),
+            currentDistrict: 'COMMERCIAL',
+            disconnectedAt: null,
+            isAiBotControlled: false,
+          };
+          const joinRes = inMemoryLobbyStore.joinPlayer(lobbyId, newPlayer);
+          if (joinRes.success && joinRes.lobby) {
+            lobby = joinRes.lobby;
+          }
         }
       }
+    } else if (action === 'JOIN_SPECTATOR') {
+      const spectator: SpectatorSession = {
+        userId,
+        username,
+        joinedAt: Date.now(),
+        lastSeenAt: Date.now(),
+      };
+      const updated = inMemoryLobbyStore.joinSpectator(lobbyId, spectator);
+      if (updated) lobby = updated;
+
+    } else if (action === 'LEAVE_SPECTATOR') {
+      const updated = inMemoryLobbyStore.removeSpectator(lobbyId, userId);
+      if (updated) lobby = updated;
     } else if (action === 'ADD_BOT') {
       const existingNames = new Set(Object.values(lobby.players).map(p => p.username));
       const chosenName = BOT_NAME_POOL.find(n => !existingNames.has(n)) || `Bot_${Math.floor(100 + Math.random() * 900)}`;
@@ -989,22 +1051,38 @@ export async function POST(request: Request, context: RouteContext) {
       let channel = String(body.channel || 'LOBBY') as any;
       
       const p = lobby?.players[userId];
-      if (p && !p.isAlive) {
+      const isSpectator = Boolean(lobby?.spectators?.[userId]) || (!p && userId !== lobby?.hostUserId);
+
+      if (isSpectator) {
+        // Spectators can only talk in DEAD channel
+        channel = 'DEAD';
+      } else if (p && !p.isAlive) {
         // Dead players can only talk in DEAD channel
         channel = 'DEAD';
       } else if (p && p.isAlive && channel === 'DEAD') {
-        // Living players cannot talk in DEAD channel
-        channel = 'LOBBY';
+        // Living players cannot send to DEAD channel
+        return NextResponse.json(
+          { success: false, error: 'LIVING_PLAYERS_CANNOT_TALK_IN_DEAD_CHAT' },
+          { status: 403, headers: corsHeaders }
+        );
       }
 
       if (content) {
+        const senderName = String(
+          body.username ||
+          (isSpectator
+            ? lobby?.spectators?.[userId]?.username || 'Müşahidəçi'
+            : p?.username || 'Anon')
+        );
+
         inMemoryLobbyStore.addChatMessage(lobbyId, {
           id: Math.random().toString(36).substring(2, 9),
           senderId: userId,
-          senderName: String(body.username || 'Anon'),
+          senderName,
           content,
           channel,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          isSpectator: isSpectator || undefined,
         });
       }
       lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;

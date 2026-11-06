@@ -283,7 +283,12 @@ export function nextPhaseAfter(current: GamePhase, lobby: LobbyState): GamePhase
           ...lobby,
           players: {
             ...lobby.players,
-            [victimId]: { ...lobby.players[victimId], isAlive: false },
+            [victimId]: {
+              ...lobby.players[victimId],
+              isAlive: false,
+              deathCause: 'LYNCH',
+              deathRound: lobby.roundNumber,
+            },
           },
           lastLynchedUserId: victimId,
         };
@@ -374,6 +379,8 @@ export function executePhaseTransition(input: PhaseManagerInput): PhaseTransitio
           [victimId]: {
             ...l.players[victimId],
             isAlive: false,
+            deathCause: 'LYNCH',
+            deathRound: l.roundNumber,
           },
         },
         lastLynchedUserId: victimId,
