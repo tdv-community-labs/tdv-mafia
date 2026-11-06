@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "tsx tests/verify-architecture.ts && tsx tests/test-ai-bot-game.ts && tsx tests/test-minigames-engine.ts && tsx tests/test-night-action-matrix.ts && tsx tests/test-courtroom-voting.ts && tsx tests/test-bot-social-deduction.ts && tsx tests/test-ui-sound-sfx.ts && tsx tests/test-spectator-dead-chat.ts && tsx tests/test-webrtc-spatial-audio.ts"
+    "test": "tsx tests/verify-architecture.ts && tsx tests/test-ai-bot-game.ts && tsx tests/test-minigames-engine.ts && tsx tests/test-night-action-matrix.ts && tsx tests/test-courtroom-voting.ts && tsx tests/test-bot-social-deduction.ts && tsx tests/test-ui-sound-sfx.ts && tsx tests/test-spectator-dead-chat.ts && tsx tests/test-webrtc-spatial-audio.ts && tsx tests/test-role-loadout-achievements.ts"
   },
   "dependencies": {
     "@google/genai": "^2.3.0",

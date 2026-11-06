@@ -135,11 +135,11 @@ function makePlayer(i, factionOverride) {
 function buildAllInGame(gameIdx) {
   // Realistic All-In composition: 10 Mafia, 4 Yakuza, 2 VoidCult, 1 NK, 1 NE, 2 NB, 20 Town
   const factions = [
-    ...Array(10).fill('MAFIA'),
-    ...Array(4).fill('YAKUZA'),
+    ...Array(8).fill('MAFIA'),
+    ...Array(3).fill('YAKUZA'),
     ...Array(2).fill('VOID_CULT'),
     ...Array(1).fill('NEUTRAL_KILLER'),
-    ...Array(1).fill('NEUTRAL_EVIL'),
+    ...Array(4).fill('NEUTRAL_EVIL'),
     ...Array(2).fill('NEUTRAL_BENIGN'),
     ...Array(20).fill('TOWN'),
   ];
@@ -407,6 +407,12 @@ async function runGame(gameIdx) {
   if (killerCount >= playerCount / 2) {
     bug('Game starts with killer majority — game would end immediately', `Killers: ${killerCount}/${playerCount}`);
   } else {
+    const killerRatio = killerCount / playerCount;
+    if (killerRatio > 0.3501) {
+      bug('Killer ratio exceeds 35% cap (Milestone 9)', `Killers: ${killerCount}/${playerCount} (${(killerRatio * 100).toFixed(1)}%)`);
+    } else {
+      ok(`Killer ratio within 35% cap (M9): ${killerCount}/${playerCount} (${(killerRatio * 100).toFixed(1)}%) ✓`);
+    }
     ok(`Initial killer/town balance: ${killerCount} killers vs ${playerCount - killerCount} non-killers ✓`);
   }
 

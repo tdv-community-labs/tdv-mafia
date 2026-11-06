@@ -35,6 +35,7 @@ import { CinematicVignette } from '../../../components/ui/CinematicVignette';
 import confetti from 'canvas-confetti';
 import { ExecutionOverlay } from '../../../components/game/ExecutionOverlay';
 import { AchievementToastSystem, unlockAchievement } from '../../../components/ui/AchievementToast';
+import { ACHIEVEMENTS_REGISTRY } from '../../../config/achievements.config';
 import { AchievementShowcaseModal } from '../../../components/modals/AchievementShowcaseModal';
 import { ProfileModal } from '../../../components/modals/ProfileModal';
 import { RulesModal } from '../../../components/modals/RulesModal';
@@ -157,6 +158,22 @@ export default function LobbyPage({ params }: LobbyPageProps) {
     const unsub = subscribeSound((muted) => setSoundMuted(muted));
     return () => unsub();
   }, []);
+
+  // Track unlocked achievements and fire toast notifications
+  const shownAchievementIdsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!currentUserId || !lobbyState.achievementsJustUnlocked) return;
+    const userUnlocks = lobbyState.achievementsJustUnlocked[currentUserId] || [];
+    for (const achId of userUnlocks) {
+      if (!shownAchievementIdsRef.current.has(achId)) {
+        shownAchievementIdsRef.current.add(achId);
+        const ach = ACHIEVEMENTS_REGISTRY.find(a => a.id === achId);
+        if (ach) {
+          unlockAchievement(ach);
+        }
+      }
+    }
+  }, [lobbyState.achievementsJustUnlocked, currentUserId]);
 
   // Load user session & join lobby via server API
   useEffect(() => {

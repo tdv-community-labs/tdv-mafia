@@ -23,6 +23,14 @@ import { botTakeoverController } from '../../../../server/ai/bot-takeover';
 import { InvestigationResult } from '../../../../types/engine';
 import { generateMorningNewspaperStory } from '../../../../server/ai/ai-narrator';
 import { dispatchMinigamePhaseEvent, executePrisonSanction, executePrisonSolitary } from '../../../../server/engine/minigames-engine';
+import { distributeBalancedRoles, LoadoutPresetId } from '../../../../server/engine/role-loadout-balancer';
+import {
+  evaluateNightAchievements,
+  evaluateCourtAchievements,
+  evaluateGameEndAchievements,
+  mergeUnlockedAchievements,
+  recordPlayerAchievement,
+} from '../../../../server/engine/achievement-engine';
 
 
 interface RouteContext {
@@ -129,80 +137,43 @@ function initializeMinigameSubStates(lobby: LobbyState): MinigameSubStates {
  * Distribute secret roles ONLY WHEN GAME STARTS.
  * In LOBBY phase, every player is purely in waiting status without any role assigned.
  */
-function distributeSecretRoles(lobby: LobbyState): LobbyState {
-  const playerList = Object.values(lobby.players);
-  const count = playerList.length;
-  if (count === 0) return lobby;
-
-  // Shuffle player list
-  const shuffled = [...playerList].sort(() => Math.random() - 0.5);
-
-  // Deck generation based on player count and mode
-  const isInferno = lobby.mode === 'DANTES_INFERNO';
-  const roleDeck: Array<{ nickname: string; base: string; az: string; faction: CoreFaction; office: any }> = [];
-
-  const addM1 = () => roleDeck.push({ nickname: isInferno ? 'Malebranche' : 'Qatil (Don)', base: 'Killer', az: 'Mafiya (Qatil)', faction: 'MAFIA', office: 'PUBLIC_DEFENDER' });
-  const addM2 = () => roleDeck.push({ nickname: isInferno ? 'Yalançı Ruh' : 'Şərr Atan (Framer)', base: 'Framer', az: 'Şərr Atan', faction: 'MAFIA', office: 'MEDIA_MOGUL' });
-  const addM3 = () => roleDeck.push({ nickname: isInferno ? 'Zülmət Elçisi' : 'Mafiya Üzvü', base: 'Killer', az: 'Mafiya Üzvü', faction: 'MAFIA', office: 'PUBLIC_DEFENDER' });
-
-  const addT1 = () => roleDeck.push({ nickname: isInferno ? 'Mərhəmət Mələyi' : 'Həkim', base: 'Doctor', az: 'Həkim', faction: 'TOWN', office: 'CITY_SURGEON' });
-  const addT2 = () => roleDeck.push({ nickname: isInferno ? 'Vergili' : 'Şərif', base: 'Investigator', az: 'Şərif', faction: 'TOWN', office: 'CITY_INVESTIGATOR' });
-  const addT3 = () => roleDeck.push({ nickname: isInferno ? 'Sirena' : 'Gözbağlayıcı', base: 'Blocker', az: 'Gözbağlayıcı', faction: 'TOWN', office: 'CHIEF_FIRE_MARSHAL' });
-
-  const addN1 = () => roleDeck.push({ nickname: isInferno ? 'Kafirlərin Lideri' : 'Dəli (Jester)', base: 'Jester', az: 'Dəli', faction: 'NEUTRAL_EVIL', office: 'PUBLIC_DEFENDER' });
-  const addNK1 = () => roleDeck.push({ nickname: isInferno ? 'İblisin Kölgəsi' : 'Manyak (Serial Killer)', base: 'SerialKiller', az: 'Manyak', faction: 'NEUTRAL_KILLER', office: 'PUBLIC_DEFENDER' });
-
-  if (count <= 4) {
-    addM1();
-    if (count >= 4) addT1();
-  } else if (count === 5) {
-    addM1(); addT1(); addT2();
-  } else if (count === 6) {
-    addM1(); addN1(); addT1(); addT2();
-  } else if (count === 7) {
-    addM1(); addM2(); addT1(); addT2(); addNK1();
-  } else if (count === 8) {
-    addM1(); addM2(); addT1(); addT2(); addT3(); addNK1();
-  } else if (count === 9) {
-    addM1(); addM2(); addN1(); addNK1(); addT1(); addT2(); addT3();
-  } else if (count >= 10) {
-    addM1(); addM2(); addM3(); addT1(); addT2(); addT3();
-    if (count >= 11) addN1();
+function distributeSecretRoles(lobby: LobbyState, presetId?: LoadoutPresetId): LobbyState {
+  if (lobby.mode === 'DANTES_INFERNO') {
+    const playerList = Object.values(lobby.players);
+    const count = playerList.length;
+    if (count === 0) return lobby;
+    const shuffled = [...playerList].sort(() => Math.random() - 0.5);
+    const roleDeck: Array<{ nickname: string; base: string; az: string; faction: CoreFaction; office: any }> = [];
+    roleDeck.push({ nickname: 'Malebranche', base: 'Killer', az: 'Mafiya (Qatil)', faction: 'MAFIA', office: 'PUBLIC_DEFENDER' });
+    if (count >= 7) roleDeck.push({ nickname: 'Yalançı Ruh', base: 'Framer', az: 'Şərr Atan', faction: 'MAFIA', office: 'MEDIA_MOGUL' });
+    if (count >= 10) roleDeck.push({ nickname: 'Zülmət Elçisi', base: 'Killer', az: 'Mafiya Üzvü', faction: 'MAFIA', office: 'PUBLIC_DEFENDER' });
+    roleDeck.push({ nickname: 'Mərhəmət Mələyi', base: 'Doctor', az: 'Həkim', faction: 'TOWN', office: 'CITY_SURGEON' });
+    roleDeck.push({ nickname: 'Vergili', base: 'Investigator', az: 'Şərif', faction: 'TOWN', office: 'CITY_INVESTIGATOR' });
+    if (count >= 8) roleDeck.push({ nickname: 'Sirena', base: 'Blocker', az: 'Gözbağlayıcı', faction: 'TOWN', office: 'CHIEF_FIRE_MARSHAL' });
+    if (count >= 6) roleDeck.push({ nickname: 'Kafirlərin Lideri', base: 'Jester', az: 'Dəli', faction: 'NEUTRAL_EVIL', office: 'PUBLIC_DEFENDER' });
+    while (roleDeck.length < count) {
+      roleDeck.push({ nickname: 'Günahkar Ruh', base: 'Citizen', az: 'Məsum Vətəndaş', faction: 'TOWN', office: 'PUBLIC_DEFENDER' });
+    }
+    roleDeck.sort(() => Math.random() - 0.5);
+    const updatedPlayers: Record<string, PlayerSession> = {};
+    for (let i = 0; i < count; i++) {
+      const p = shuffled[i];
+      const assigned = roleDeck[i];
+      updatedPlayers[p.userId] = {
+        ...p,
+        displayRole: formatRoleDisplay(p.username, assigned.base, assigned.az),
+        allInIdentity: {
+          layer1Faction: assigned.faction,
+          layer2Office: assigned.office,
+          layer3Trait: 'PHANTOM_STEP',
+          district: (['ELITE', 'COMMERCIAL', 'INDUSTRIAL'] as const)[i % 3],
+        },
+      };
+    }
+    return { ...lobby, players: updatedPlayers };
   }
 
-  while (roleDeck.length < count) {
-    roleDeck.push({
-      nickname: isInferno ? 'Günahkar Ruh' : 'Vətəndaş',
-      base: 'Citizen',
-      az: 'Məsum Vətəndaş',
-      faction: 'TOWN',
-      office: 'PUBLIC_DEFENDER',
-    });
-  }
-
-  // Shuffle deck
-  roleDeck.sort(() => Math.random() - 0.5);
-
-  const updatedPlayers: Record<string, PlayerSession> = {};
-  for (let i = 0; i < count; i++) {
-    const p = shuffled[i];
-    const assigned = roleDeck[i];
-    updatedPlayers[p.userId] = {
-      ...p,
-      displayRole: formatRoleDisplay(p.username, assigned.base, assigned.az),
-      allInIdentity: {
-        layer1Faction: assigned.faction,
-        layer2Office: assigned.office,
-        layer3Trait: 'PHANTOM_STEP',
-        district: (['ELITE', 'COMMERCIAL', 'INDUSTRIAL'] as const)[i % 3],
-      },
-    };
-  }
-
-  return {
-    ...lobby,
-    players: updatedPlayers,
-  };
+  return distributeBalancedRoles(lobby, presetId);
 }
 
 /**
@@ -345,7 +316,15 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
       // Kept procedural default
     }
 
-    // 5. Update lobby state and increment round
+    // 5. Evaluate night achievements
+    const nightAchievements = evaluateNightAchievements(lobby, {
+      deaths: resolution.newspaper.publicDeaths,
+      protectedIds: resolution.newspaper.protectedIds,
+      armorBrokenPlayerIds: resolution.newspaper.armorBrokenPlayerIds,
+      achievementsJustUnlocked: resolution.achievementsJustUnlocked,
+    });
+
+    // 6. Update lobby state and increment round
     inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
       ...l,
       players: resolution.updatedPlayers,
@@ -353,6 +332,7 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
       bufferedNightActions: [],
       mafiaMutinyActive: resolution.mutinyActive,
       mutineerIds: resolution.mutineerIds,
+      achievementsJustUnlocked: mergeUnlockedAchievements(l.achievementsJustUnlocked, nightAchievements),
       latestNewspaper: {
         ...resolution.newspaper,
         roundNumber: l.roundNumber,
@@ -418,7 +398,12 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
     lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
     const win = evaluateWinCondition(lobby);
     if (win.kind !== 'GAME_CONTINUES') {
-      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({ ...l, winnerResult: win }));
+      const endAchievements = evaluateGameEndAchievements(lobby, win);
+      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+        ...l,
+        winnerResult: win,
+        achievementsJustUnlocked: mergeUnlockedAchievements(l.achievementsJustUnlocked, endAchievements),
+      }));
       inMemoryLobbyStore.transitionPhase(lobbyId, 'ENDED', 0);
     } else {
       inMemoryLobbyStore.transitionPhase(lobbyId, 'DAY_VOTING', lobby.phaseDurationSeconds > 0 ? lobby.phaseDurationSeconds : 60);
@@ -485,12 +470,22 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
       }
     }
 
+    const courtAchievements = evaluateCourtAchievements(lobby, {
+      outcome: verdictResult.verdict === 'GUILTY' ? 'LYNCHED' : 'NO_LYNCH',
+      lynchedPlayerId: lynchedId,
+      accusedPlayerId: lobby.accusedPlayerId,
+      guiltyCount: verdictResult.guiltyCount,
+      innocentCount: verdictResult.innocentCount,
+      achievementsJustUnlocked: verdictResult.achievementsJustUnlocked as any,
+    });
+
     inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
       ...l,
       players: updatedPlayers,
       lastLynchedUserId: lynchedId,
       accusedPlayerId: null,
       trialVerdictVotes: {},
+      achievementsJustUnlocked: mergeUnlockedAchievements(l.achievementsJustUnlocked, courtAchievements),
     }));
 
     // Advance minigames on lynch / night transition
@@ -544,7 +539,12 @@ async function progressLobbyPhase(lobbyId: string): Promise<LobbyState> {
     lobby = inMemoryLobbyStore.getLobby(lobbyId) || lobby;
     const win = evaluateWinCondition(lobby);
     if (win.kind !== 'GAME_CONTINUES') {
-      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({ ...l, winnerResult: win }));
+      const endAchievements = evaluateGameEndAchievements(lobby, win);
+      inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
+        ...l,
+        winnerResult: win,
+        achievementsJustUnlocked: mergeUnlockedAchievements(l.achievementsJustUnlocked, endAchievements),
+      }));
       inMemoryLobbyStore.transitionPhase(lobbyId, 'ENDED', 0);
     } else {
       inMemoryLobbyStore.transitionPhase(lobbyId, 'NIGHT_BUFFER', lobby.phaseDurationSeconds > 0 ? lobby.phaseDurationSeconds : 45);
@@ -808,7 +808,10 @@ export async function POST(request: Request, context: RouteContext) {
         lastSeenAt: Date.now(),
       };
       const updated = inMemoryLobbyStore.joinSpectator(lobbyId, spectator);
-      if (updated) lobby = updated;
+      if (updated) {
+        const withAch = recordPlayerAchievement(updated, userId, 'spectator_first_graveyard_visit');
+        lobby = inMemoryLobbyStore.updateLobby(lobbyId, () => withAch) || withAch;
+      }
 
     } else if (action === 'LEAVE_SPECTATOR') {
       const updated = inMemoryLobbyStore.removeSpectator(lobbyId, userId);
@@ -907,7 +910,8 @@ export async function POST(request: Request, context: RouteContext) {
 
     } else if (action === 'START_GAME' || (action === 'OVERRIDE_PHASE' && lobby?.phase === 'LOBBY')) {
       if (!lobby) lobby = getOrCreateLobby(lobbyId);
-      lobby = distributeSecretRoles(lobby);
+      const requestedPreset = body.presetId as LoadoutPresetId | undefined;
+      lobby = distributeSecretRoles(lobby, requestedPreset);
       const currentPlayers = lobby.players;
       inMemoryLobbyStore.updateLobby(lobbyId, (l) => ({
         ...l,

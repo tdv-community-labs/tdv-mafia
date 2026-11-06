@@ -44,6 +44,7 @@ export interface PlayerSession {
   readonly lastWill?: string;
   readonly deathCause?: import('./engine').DeathCause;
   readonly deathRound?: number;
+  readonly achievements?: readonly string[];
 }
 
 export type NightActionType =

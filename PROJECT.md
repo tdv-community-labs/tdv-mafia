@@ -50,8 +50,8 @@
 | M6 | Final Verification Gates & Simulation (All) | `simulate-allin.js` bug fix, typecheck, tests, simulation, build | M1, M2, M3, M4, M5, E2E | DONE |
 | M7 | Spectator Mode & Dead Chat (R1) | SpectatorSession, zero-knowledge DEAD chat isolation, graveyard UI, tombstone modal | M1-M6 | DONE |
 | M8 | WebRTC Audio Spatialization (R2) | StereoPannerNode, circular player audio graph, dynamic speaking sonar badges | M7 | DONE |
-| M9 | Role Loadout Balancing & Achievements (R3) | Standard/Asymmetric/Chaos/All-In 40p presets, trackable achievement engine | M7 | PLANNED |
-| M10 | Simulation Harmonization & Production Certification | Macro 40-player simulation updates, regression sweeps, production bundle | M7-M9 | PLANNED |
+| M9 | Role Loadout Balancing & Achievements (R3) | Standard/Asymmetric/Chaos/All-In 40p presets, trackable achievement engine | M7 | DONE |
+| M10 | Simulation Harmonization & Production Certification | Macro 40-player simulation updates, regression sweeps, production bundle | M7-M9 | DONE |
 
 ## Interface Contracts
 ### `night-action-resolver.ts` ↔ `engine.ts`
