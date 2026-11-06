@@ -275,7 +275,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
         <div className="flex items-center gap-2.5 min-w-0">
           {/* Avatar Circle */}
           <div
-            className={`w-10 h-10 rounded-[8px] flex items-center justify-center font-black text-sm shrink-0 border shadow-sm transition-transform duration-200 ${
+            className={`relative w-10 h-10 rounded-[8px] flex items-center justify-center font-black text-sm shrink-0 border shadow-sm transition-transform duration-200 ${
               isHost
                 ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white border-amber-400/50 shadow-amber-500/20'
                 : isSelf
@@ -285,6 +285,9 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
                 : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-700'
             }`}
           >
+            {isSpeaking && (
+              <div className="absolute -inset-1 rounded-[10px] border-2 border-emerald-500/70 animate-ping pointer-events-none" />
+            )}
             {!isAlive ? <Ghost className="w-5 h-5 opacity-70" /> : isBot ? <Bot className="w-5 h-5" /> : player.username.charAt(0).toUpperCase()}
           </div>
 
@@ -317,9 +320,14 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
               )}
 
               {isSpeaking && (
-                <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.2 rounded-full font-bold border border-emerald-500/30 animate-pulse shrink-0">
+                <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold border border-emerald-500/30 animate-pulse shrink-0">
                   <Mic className="w-2.5 h-2.5" />
-                  Danışır
+                  <div className="flex items-end gap-0.5 h-2.5">
+                    <span className="w-0.5 bg-emerald-500 rounded-full animate-[bounce_0.6s_ease-in-out_infinite]" />
+                    <span className="w-0.5 bg-emerald-500 rounded-full animate-[bounce_0.4s_ease-in-out_infinite]" />
+                    <span className="w-0.5 bg-emerald-500 rounded-full animate-[bounce_0.5s_ease-in-out_infinite]" />
+                  </div>
+                  <span>Danışır</span>
                 </span>
               )}
             </div>

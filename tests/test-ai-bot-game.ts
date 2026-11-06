@@ -286,7 +286,7 @@ async function runSimulation() {
   console.log('\n--- Step 8b: Sheriff Non-Repeat Investigation Invariant Verification ---');
   const sheriffPlayer = lobby.players['bot-3'];
   if (sheriffPlayer) {
-    const priorTarget = 'usr-human';
+    const priorTarget = 'bot-2';
     const testLobbyWithHistory: LobbyState = {
       ...lobby,
       privateInvestigations: {

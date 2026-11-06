@@ -14,16 +14,23 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Mic, MicOff, Wifi, AlertTriangle, Radio } from 'lucide-react';
 import { GamePhase } from '../../types/game';
+import {
+  calculatePlayerPan,
+  isMicAllowedByPhase,
+  computeRMS,
+  VAD_HANGOVER_MS,
+  DEFAULT_SPEAKING_THRESHOLD,
+} from '../../utils/spatialAudio';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface PeerInfo {
+export interface PeerInfo {
   readonly userId: string;
   readonly faction?: string; // 'MAFIA' | 'TOWN' | etc.
   readonly isAlive: boolean;
 }
 
-interface VoiceChatProps {
+export interface VoiceChatProps {
   readonly lobbyId: string;
   readonly myUserId: string;
   readonly myFaction: string | null; // null = unknown (lobby phase)
@@ -31,6 +38,23 @@ interface VoiceChatProps {
   readonly peers: PeerInfo[]; // all OTHER players (not self)
   readonly myIsAlive?: boolean;
   readonly onSpeakingChange: (speakingIds: Set<string>) => void;
+  readonly accusedPlayerId?: string | null;
+  readonly playerOrder?: readonly string[];
+}
+
+interface RemoteAudioPipeline {
+  source: MediaStreamAudioSourceNode;
+  gain: GainNode;
+  panner: StereoPannerNode | null;
+  analyser: AnalyserNode;
+  data: Uint8Array<ArrayBuffer>;
+  lastSpokeAt: number;
+}
+
+interface LocalAudioPipeline {
+  analyser: AnalyserNode;
+  data: Uint8Array<ArrayBuffer>;
+  lastSpokeAt: number;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -41,17 +65,10 @@ const STUN_SERVERS: RTCIceServer[] = [
 ];
 
 const POLL_INTERVAL_MS = 1500;
-const SPEAKING_THRESHOLD = 20; // RMS amplitude threshold (0-255)
+const SPEAKING_THRESHOLD = DEFAULT_SPEAKING_THRESHOLD; // RMS amplitude threshold (0-255)
 const SPEAKING_CHECK_INTERVAL_MS = 150;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function isMicAllowedByPhase(phase: GamePhase, myFaction: string | null, isAlive: boolean): boolean {
-  if (phase === 'LOBBY' || phase === 'ENDED') return false;
-  if (!isAlive) return false;
-  if (phase === 'NIGHT_BUFFER') return myFaction === 'MAFIA' || myFaction === 'YAKUZA';
-  return true; // DAY phases — all living can speak
-}
 
 async function postSignal(
   lobbyId: string,
@@ -81,6 +98,8 @@ export function VoiceChat({
   peers,
   myIsAlive = true,
   onSpeakingChange,
+  accusedPlayerId = null,
+  playerOrder = [],
 }: VoiceChatProps) {
   const [micEnabled, setMicEnabled] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -92,31 +111,131 @@ export function VoiceChat({
   const localStreamRef = useRef<MediaStream | null>(null);
   const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
   const remoteAudioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
-  const analyserMapRef = useRef<Map<string, { analyser: AnalyserNode; data: Uint8Array<ArrayBuffer> }>>(new Map());
+  const pipelinesRef = useRef<Map<string, RemoteAudioPipeline>>(new Map());
+  const localPipelineRef = useRef<LocalAudioPipeline | null>(null);
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const speakingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const myAnalyserRef = useRef<{ analyser: AnalyserNode; data: Uint8Array<ArrayBuffer> } | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const masterVoiceGainRef = useRef<GainNode | null>(null);
 
-  const micAllowed = isMicAllowedByPhase(phase, myFaction, myIsAlive);
+  const isAccusedSelf = accusedPlayerId === myUserId;
+  const micAllowed = isMicAllowedByPhase(phase, myFaction, myIsAlive, isAccusedSelf);
 
-  // ── Speaking Detection ─────────────────────────────────────────────────────
+  // ── Web Audio Context Initializer ──────────────────────────────────────────
+  const getOrCreateAudioCtx = useCallback((): AudioContext => {
+    if (!audioCtxRef.current) {
+      const AudioCtxClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new AudioCtxClass();
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(1.0, ctx.currentTime);
+      masterGain.connect(ctx.destination);
+      masterVoiceGainRef.current = masterGain;
+      audioCtxRef.current = ctx;
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume().catch(() => {});
+    }
+    return audioCtxRef.current;
+  }, []);
 
+  // ── Dynamic Spatial & Phase Gain Routing ───────────────────────────────────
+  const updateSpatialRouting = useCallback(() => {
+    const ctx = audioCtxRef.current;
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    const totalSeats = playerOrder && playerOrder.length > 0 ? playerOrder.length : peers.length + 1;
+    const myIndex = playerOrder && playerOrder.length > 0 ? Math.max(0, playerOrder.indexOf(myUserId)) : 0;
+
+    for (const [peerId, pipeline] of pipelinesRef.current.entries()) {
+      const peer = peers.find((p) => p.userId === peerId);
+      const peerIsAlive = peer?.isAlive ?? false;
+      const peerFaction = peer?.faction ?? null;
+      const isAccused = peerId === accusedPlayerId;
+
+      // Calculate Stereo Pan
+      let pan = 0.0;
+      if (playerOrder && playerOrder.length > 0) {
+        const pIdx = playerOrder.indexOf(peerId);
+        if (pIdx >= 0) {
+          pan = calculatePlayerPan(pIdx, totalSeats, myIndex, 'TABLE');
+        }
+      } else {
+        const pIdx = peers.findIndex((p) => p.userId === peerId);
+        if (pIdx >= 0) {
+          pan = calculatePlayerPan(pIdx + 1, totalSeats, myIndex, 'TABLE');
+        }
+      }
+
+      if (pipeline.panner) {
+        if (phase === 'TRIAL_DEFENSE' && isAccused) {
+          // Accused speaker is centered on courtroom podium
+          pipeline.panner.pan.setValueAtTime(0.0, now);
+        } else {
+          pipeline.panner.pan.setValueAtTime(pan, now);
+        }
+      }
+
+      // Calculate Gain (Spotlight vs Silence vs Faction vs Normal)
+      let targetGain = 1.0;
+      if (phase === 'LOBBY' || phase === 'ENDED' || !myIsAlive || !peerIsAlive) {
+        targetGain = 0.0;
+      } else if (phase === 'TRIAL_DEFENSE') {
+        if (isAccused) {
+          targetGain = 1.3; // Podium Spotlight Boost (+2.5dB)
+        } else {
+          targetGain = 0.0; // Podium Silence for non-accused peers
+        }
+      } else if (phase === 'NIGHT_BUFFER') {
+        const isTeammate =
+          (myFaction === 'MAFIA' && peerFaction === 'MAFIA') ||
+          (myFaction === 'YAKUZA' && peerFaction === 'YAKUZA');
+        targetGain = isTeammate ? 1.0 : 0.0;
+      } else {
+        targetGain = 1.0;
+      }
+
+      pipeline.gain.gain.setValueAtTime(targetGain, now);
+    }
+  }, [accusedPlayerId, myFaction, myIsAlive, myUserId, peers, phase, playerOrder]);
+
+  // Keep spatial routing in sync with phase, seats, and peers
+  useEffect(() => {
+    updateSpatialRouting();
+  }, [updateSpatialRouting]);
+
+  // ── Smoothed Speaking Detection (350ms Hangover VAD) ──────────────────────
   const checkSpeaking = useCallback(() => {
+    const now = Date.now();
     const newSpeaking = new Set<string>();
 
     // Check self
-    if (myAnalyserRef.current) {
-      myAnalyserRef.current.analyser.getByteTimeDomainData(myAnalyserRef.current.data);
-      const rms = computeRMS(myAnalyserRef.current.data);
-      if (rms > SPEAKING_THRESHOLD) newSpeaking.add(myUserId);
+    if (localPipelineRef.current && micEnabled && micAllowed) {
+      localPipelineRef.current.analyser.getByteTimeDomainData(localPipelineRef.current.data);
+      const rms = computeRMS(localPipelineRef.current.data);
+      if (rms > SPEAKING_THRESHOLD) {
+        localPipelineRef.current.lastSpokeAt = now;
+        newSpeaking.add(myUserId);
+      } else if (now - localPipelineRef.current.lastSpokeAt < VAD_HANGOVER_MS) {
+        newSpeaking.add(myUserId);
+      }
     }
 
     // Check remote peers
-    for (const [peerId, entry] of analyserMapRef.current.entries()) {
-      entry.analyser.getByteTimeDomainData(entry.data);
-      const rms = computeRMS(entry.data);
-      if (rms > SPEAKING_THRESHOLD) newSpeaking.add(peerId);
+    for (const [peerId, pipeline] of pipelinesRef.current.entries()) {
+      const peer = peers.find((p) => p.userId === peerId);
+      if (!peer || !peer.isAlive) continue;
+
+      pipeline.analyser.getByteTimeDomainData(pipeline.data);
+      const rms = computeRMS(pipeline.data);
+      if (rms > SPEAKING_THRESHOLD) {
+        pipeline.lastSpokeAt = now;
+        newSpeaking.add(peerId);
+      } else if (now - pipeline.lastSpokeAt < VAD_HANGOVER_MS) {
+        newSpeaking.add(peerId);
+      }
     }
 
     setSpeakingIds((prev) => {
@@ -129,42 +248,86 @@ export function VoiceChat({
       }
       return prev;
     });
-  }, [myUserId, onSpeakingChange]);
+  }, [micAllowed, micEnabled, myUserId, onSpeakingChange, peers]);
 
-  function computeRMS(data: Uint8Array<ArrayBuffer>): number {
-    let sum = 0;
-    for (const v of data) {
-      const centered = v - 128;
-      sum += centered * centered;
-    }
-    return Math.sqrt(sum / data.length);
-  }
-
-  // ── Setup Analyser for a MediaStream ──────────────────────────────────────
-
-  const setupAnalyser = useCallback(
-    (stream: MediaStream, peerId: string | '__self__'): void => {
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new AudioContext();
-      }
-      const ctx = audioCtxRef.current;
+  // ── Setup Web Audio Pipelines ──────────────────────────────────────────────
+  const setupLocalPipeline = useCallback(
+    (stream: MediaStream): void => {
+      const ctx = getOrCreateAudioCtx();
       const source = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 256;
       const data = new Uint8Array(analyser.fftSize) as Uint8Array<ArrayBuffer>;
+      source.connect(analyser); // Analyser only, do not play back to self
+
+      localPipelineRef.current = {
+        analyser,
+        data,
+        lastSpokeAt: 0,
+      };
+    },
+    [getOrCreateAudioCtx]
+  );
+
+  const setupRemoteAudioPipeline = useCallback(
+    (stream: MediaStream, peerId: string): void => {
+      const ctx = getOrCreateAudioCtx();
+
+      // Clean up existing pipeline if any
+      const existing = pipelinesRef.current.get(peerId);
+      if (existing) {
+        try {
+          existing.source.disconnect();
+          existing.gain.disconnect();
+          existing.panner?.disconnect();
+          existing.analyser.disconnect();
+        } catch {}
+      }
+
+      const source = ctx.createMediaStreamSource(stream);
+      const gain = ctx.createGain();
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      const data = new Uint8Array(analyser.fftSize) as Uint8Array<ArrayBuffer>;
+
+      // Branch to analyser for local client VAD
       source.connect(analyser);
 
-      if (peerId === '__self__') {
-        myAnalyserRef.current = { analyser, data };
+      // Branch to gain and stereo panner
+      source.connect(gain);
+
+      let panner: StereoPannerNode | null = null;
+      if (typeof ctx.createStereoPanner === 'function') {
+        panner = ctx.createStereoPanner();
+        gain.connect(panner);
+        if (masterVoiceGainRef.current) {
+          panner.connect(masterVoiceGainRef.current);
+        } else {
+          panner.connect(ctx.destination);
+        }
       } else {
-        analyserMapRef.current.set(peerId, { analyser, data });
+        if (masterVoiceGainRef.current) {
+          gain.connect(masterVoiceGainRef.current);
+        } else {
+          gain.connect(ctx.destination);
+        }
       }
+
+      pipelinesRef.current.set(peerId, {
+        source,
+        gain,
+        panner,
+        analyser,
+        data,
+        lastSpokeAt: 0,
+      });
+
+      updateSpatialRouting();
     },
-    []
+    [getOrCreateAudioCtx, updateSpatialRouting]
   );
 
   // ── Create RTCPeerConnection for a remote peer ─────────────────────────────
-
   const createPeerConnection = useCallback(
     (remotePeerId: string): RTCPeerConnection => {
       const pc = new RTCPeerConnection({ iceServers: STUN_SERVERS });
@@ -181,17 +344,18 @@ export function VoiceChat({
         const remoteStream = evt.streams[0];
         if (!remoteStream) return;
 
-        // Create or reuse audio element
+        // Maintain muted audio element for stream drain / autoplay keepalive
         let audioEl = remoteAudioRefs.current.get(remotePeerId);
         if (!audioEl) {
           audioEl = new Audio();
           audioEl.autoplay = true;
           remoteAudioRefs.current.set(remotePeerId, audioEl);
         }
+        audioEl.muted = true;
         audioEl.srcObject = remoteStream;
 
-        // Set up analyser for speaking detection
-        setupAnalyser(remoteStream, remotePeerId);
+        // Connect into Web Audio Spatial Graph
+        setupRemoteAudioPipeline(remoteStream, remotePeerId);
       };
 
       // Send ICE candidates to remote peer
@@ -214,18 +378,26 @@ export function VoiceChat({
             next.delete(remotePeerId);
             return next;
           });
-          analyserMapRef.current.delete(remotePeerId);
+          const pipeline = pipelinesRef.current.get(remotePeerId);
+          if (pipeline) {
+            try {
+              pipeline.source.disconnect();
+              pipeline.gain.disconnect();
+              pipeline.panner?.disconnect();
+              pipeline.analyser.disconnect();
+            } catch {}
+            pipelinesRef.current.delete(remotePeerId);
+          }
         }
       };
 
       peerConnectionsRef.current.set(remotePeerId, pc);
       return pc;
     },
-    [lobbyId, myUserId, setupAnalyser]
+    [lobbyId, myUserId, setupRemoteAudioPipeline]
   );
 
   // ── Initiate connection to a peer (caller role) ────────────────────────────
-
   const initiateConnection = useCallback(
     async (remotePeerId: string): Promise<void> => {
       const existing = peerConnectionsRef.current.get(remotePeerId);
@@ -240,7 +412,6 @@ export function VoiceChat({
   );
 
   // ── Process incoming signaling messages ────────────────────────────────────
-
   const processSignal = useCallback(
     async (msg: {
       fromPeerId: string;
@@ -250,7 +421,6 @@ export function VoiceChat({
       const { fromPeerId, type, payload } = msg;
 
       if (type === 'ready') {
-        // Remote peer announced readiness — initiate if we have higher ID (deterministic caller)
         if (myUserId > fromPeerId) {
           await initiateConnection(fromPeerId);
         }
@@ -295,13 +465,22 @@ export function VoiceChat({
           pc.close();
           peerConnectionsRef.current.delete(fromPeerId);
         }
+        const pipeline = pipelinesRef.current.get(fromPeerId);
+        if (pipeline) {
+          try {
+            pipeline.source.disconnect();
+            pipeline.gain.disconnect();
+            pipeline.panner?.disconnect();
+            pipeline.analyser.disconnect();
+          } catch {}
+          pipelinesRef.current.delete(fromPeerId);
+        }
       }
     },
     [myUserId, lobbyId, createPeerConnection, initiateConnection]
   );
 
   // ── Poll for signaling messages ────────────────────────────────────────────
-
   const pollSignaling = useCallback(async () => {
     try {
       const res = await fetch(`/api/signaling/${lobbyId}?peerId=${myUserId}`);
@@ -316,13 +495,12 @@ export function VoiceChat({
   }, [lobbyId, myUserId, processSignal]);
 
   // ── Start Voice ────────────────────────────────────────────────────────────
-
   const startVoice = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       localStreamRef.current = stream;
       setHasPermission(true);
-      setupAnalyser(stream, '__self__');
+      setupLocalPipeline(stream);
 
       // Announce readiness to all peers
       await postSignal(lobbyId, myUserId, '*', 'ready', null);
@@ -341,10 +519,9 @@ export function VoiceChat({
     } catch {
       setHasPermission(false);
     }
-  }, [lobbyId, myUserId, pollSignaling, setupAnalyser, checkSpeaking]);
+  }, [lobbyId, myUserId, pollSignaling, setupLocalPipeline, checkSpeaking]);
 
   // ── Stop Voice ─────────────────────────────────────────────────────────────
-
   const stopVoice = useCallback(async () => {
     // Announce goodbye
     await postSignal(lobbyId, myUserId, '*', 'bye', null);
@@ -366,12 +543,21 @@ export function VoiceChat({
     }
     remoteAudioRefs.current.clear();
 
+    // Clean up Web Audio remote pipelines
+    for (const pipeline of pipelinesRef.current.values()) {
+      try {
+        pipeline.source.disconnect();
+        pipeline.gain.disconnect();
+        pipeline.panner?.disconnect();
+        pipeline.analyser.disconnect();
+      } catch {}
+    }
+    pipelinesRef.current.clear();
+    localPipelineRef.current = null;
+
     // Stop timers
     if (pollTimerRef.current) { clearInterval(pollTimerRef.current); pollTimerRef.current = null; }
     if (speakingTimerRef.current) { clearInterval(speakingTimerRef.current); speakingTimerRef.current = null; }
-
-    analyserMapRef.current.clear();
-    myAnalyserRef.current = null;
 
     setSpeakingIds(new Set());
     onSpeakingChange(new Set());
@@ -381,37 +567,16 @@ export function VoiceChat({
   }, [lobbyId, myUserId, onSpeakingChange]);
 
   // ── Apply phase-based mic mute ─────────────────────────────────────────────
-
   useEffect(() => {
     if (!localStreamRef.current) return;
-    const allowed = isMicAllowedByPhase(phase, myFaction, myIsAlive);
+    const isAccused = accusedPlayerId === myUserId;
+    const allowed = isMicAllowedByPhase(phase, myFaction, myIsAlive, isAccused);
     for (const track of localStreamRef.current.getAudioTracks()) {
       track.enabled = allowed && micEnabled;
     }
-  }, [phase, myFaction, myIsAlive, micEnabled]);
-
-  // ── Selective Remote Audio Gating (Zero-Knowledge Hearing) ───────────────
-  useEffect(() => {
-    for (const [peerId, audioEl] of remoteAudioRefs.current.entries()) {
-      const peer = peers.find((p) => p.userId === peerId);
-      if (!peer || !peer.isAlive) {
-        // Living players cannot hear dead players, and dead cannot broadcast to living
-        audioEl.muted = true;
-        continue;
-      }
-      if (phase === 'NIGHT_BUFFER') {
-        const isTeammate =
-          (myFaction === 'MAFIA' && peer.faction === 'MAFIA') ||
-          (myFaction === 'YAKUZA' && peer.faction === 'YAKUZA');
-        audioEl.muted = !isTeammate;
-      } else {
-        audioEl.muted = !myIsAlive;
-      }
-    }
-  }, [phase, myFaction, peers, myIsAlive]);
+  }, [phase, myFaction, myIsAlive, micEnabled, accusedPlayerId, myUserId]);
 
   // ── Connect to newly joined peers ─────────────────────────────────────────
-
   useEffect(() => {
     if (!voiceActive) return;
     for (const peer of peers) {
@@ -424,16 +589,14 @@ export function VoiceChat({
   }, [peers, voiceActive]);
 
   // ── Cleanup on unmount ─────────────────────────────────────────────────────
-
   useEffect(() => {
     return () => {
       stopVoice();
-      audioCtxRef.current?.close();
+      audioCtxRef.current?.close().catch(() => {});
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Mic Toggle ────────────────────────────────────────────────────────────
-
   const handleMicToggle = () => {
     if (!voiceActive) {
       startVoice();
@@ -442,8 +605,10 @@ export function VoiceChat({
       const next = !micEnabled;
       setMicEnabled(next);
       if (localStreamRef.current) {
+        const isAccused = accusedPlayerId === myUserId;
+        const allowed = isMicAllowedByPhase(phase, myFaction, myIsAlive, isAccused);
         for (const track of localStreamRef.current.getAudioTracks()) {
-          track.enabled = next && micAllowed;
+          track.enabled = next && allowed;
         }
       }
     }
@@ -480,6 +645,8 @@ export function VoiceChat({
             ? 'Səs Çata Qoşul'
             : !myIsAlive
             ? 'Ruhlar Danışa Bilməz'
+            : phase === 'TRIAL_DEFENSE' && !isAccusedSelf
+            ? 'Kürsü Rejimi (Müttəhim Danışır)'
             : isActuallyMuted
             ? 'Mikrofon Bağlıdır'
             : 'Danışırsınız'}
@@ -498,6 +665,22 @@ export function VoiceChat({
         </span>
       )}
 
+      {/* Trial Defense Accused Podium Banner */}
+      {phase === 'TRIAL_DEFENSE' && isAccusedSelf && myIsAlive && (
+        <span className="text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-1 rounded-lg font-bold inline-flex items-center gap-1.5 animate-pulse">
+          <Radio className="w-4 h-4 shrink-0 text-emerald-500" />
+          <span>Kürsüdəsiniz: Müdafiə çıxışınız məhkəmə zalına yayımlanır (+2.5dB)</span>
+        </span>
+      )}
+
+      {/* Trial Defense Silence for Non-Accused */}
+      {phase === 'TRIAL_DEFENSE' && !isAccusedSelf && myIsAlive && (
+        <span className="text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg font-medium inline-flex items-center gap-1.5">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500" />
+          <span>Kürsü Rejimi: Yalnız müttəhimin çıxışına icazə verilir</span>
+        </span>
+      )}
+
       {/* Dead Player Notice */}
       {!myIsAlive && (
         <span className="text-xs text-zinc-400 bg-zinc-800/60 border border-zinc-700 px-2.5 py-1 rounded-lg font-medium inline-flex items-center gap-1.5">
@@ -507,7 +690,7 @@ export function VoiceChat({
       )}
 
       {/* Night phase warning */}
-      {nightMuted && myIsAlive && (
+      {nightMuted && myIsAlive && phase !== 'TRIAL_DEFENSE' && (
         <span className="text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg font-medium inline-flex items-center gap-1.5">
           <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500" />
           <span>Gecə fazasında yalnız mafiya fraksiyası danışa bilər</span>

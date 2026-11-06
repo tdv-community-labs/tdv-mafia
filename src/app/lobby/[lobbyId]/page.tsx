@@ -422,6 +422,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
     .filter((p) => p.userId !== currentUserId && !p.isAiBotControlled)
     .map((p) => ({
       userId: p.userId,
+      faction: p.allInIdentity?.layer1Faction || 'TOWN',
       isAlive: p.isAlive,
     }));
 
@@ -1092,6 +1093,8 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             peers={voicePeers}
             myIsAlive={myPlayerSession?.isAlive ?? true}
             onSpeakingChange={setSpeakingIds}
+            accusedPlayerId={lobbyState.accusedPlayerId}
+            playerOrder={playersList.map((p) => p.userId)}
           />
 
 

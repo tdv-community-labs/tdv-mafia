@@ -15,6 +15,7 @@ import {
   Volume2,
   VolumeX,
   PenTool,
+  Radio,
 } from 'lucide-react';
 import { LobbyState, NightActionType, PlayerSession } from '../../types/game';
 import { ScrubbedPlayerView } from '../../types/engine';
@@ -331,6 +332,19 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Active Speakers HUD Bar */}
+          {speakingIds && speakingIds.size > 0 && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs shadow-lg shadow-emerald-950/50">
+              <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+              <span className="font-bold">Danışırlar:</span>
+              {Array.from(speakingIds).map((id) => (
+                <span key={id} className="px-2 py-0.5 rounded-md bg-emerald-500/20 font-black">
+                  {lobbyState.players[id]?.username ?? id}
+                </span>
+              ))}
+            </div>
+          )}
+
           {isAllIn && (
             <Badge tone="purple">
               {AZ_UI.maxKillsPerNight}: {lobbyState.globalNightKillCap}

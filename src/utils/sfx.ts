@@ -234,15 +234,18 @@ export function playDay(): void {
 
 /**
  * Enhanced Courtroom Gavel: Deep wooden thud with secondary reverberation / echo reflections.
+ * Optional pan parameter (-1.0 to +1.0) spatializes the gavel sound.
  */
-export function playGavel(): void {
+export function playGavel(pan: number = 0.0): void {
   if (isSoundMuted()) return;
 
-  try {
-    const played = playAudioFile('/sounds/gavel.wav', 1.0);
-    if (played) return;
-  } catch {
-    // Continue to resilient fallback
+  if (pan === 0.0) {
+    try {
+      const played = playAudioFile('/sounds/gavel.wav', 1.0);
+      if (played) return;
+    } catch {
+      // Continue to resilient fallback
+    }
   }
 
   // Resilient Web Audio Fallback: Dual wooden strikes with room reverberation
@@ -253,7 +256,15 @@ export function playGavel(): void {
     const now = ctx.currentTime;
     const masterGain = ctx.createGain();
     masterGain.gain.setValueAtTime(MASTER_VOLUME * 0.85, now);
-    masterGain.connect(ctx.destination);
+
+    if (pan !== undefined && typeof ctx.createStereoPanner === 'function') {
+      const panner = ctx.createStereoPanner();
+      panner.pan.setValueAtTime(Math.max(-1.0, Math.min(1.0, pan)), now);
+      masterGain.connect(panner);
+      panner.connect(ctx.destination);
+    } else {
+      masterGain.connect(ctx.destination);
+    }
 
     // Primary strike, secondary strike, and 2 room reverberation reflections
     const strikes: Array<{ delay: number; freq: number; gain: number; duration: number }> = [
@@ -387,14 +398,16 @@ export function playCourtVerdict(verdict: 'GUILTY' | 'INNOCENT'): void {
 // 4. KART VƏ YA DÜYMƏ KLİKLƏNMƏSİ (playCard)
 // Rahatsız etməyən, çox zərif "mat klik" (soft tactile micro-click) toxunuşu.
 // ─────────────────────────────────────────────────────────────────────────────
-export function playCard(): void {
+export function playCard(pan?: number): void {
   if (isSoundMuted()) return;
 
-  try {
-    const played = playAudioFile('/sounds/card.wav', 0.85);
-    if (played) return;
-  } catch {
-    // Continue to resilient fallback
+  if (pan === undefined) {
+    try {
+      const played = playAudioFile('/sounds/card.wav', 0.85);
+      if (played) return;
+    } catch {
+      // Continue to resilient fallback
+    }
   }
 
   // Resilient Web Audio Fallback: Ultra-soft tactile micro-click
@@ -405,7 +418,15 @@ export function playCard(): void {
     const now = ctx.currentTime;
     const masterGain = ctx.createGain();
     masterGain.gain.setValueAtTime(MASTER_VOLUME * 0.45, now);
-    masterGain.connect(ctx.destination);
+
+    if (pan !== undefined && typeof ctx.createStereoPanner === 'function') {
+      const panner = ctx.createStereoPanner();
+      panner.pan.setValueAtTime(Math.max(-1.0, Math.min(1.0, pan)), now);
+      masterGain.connect(panner);
+      panner.connect(ctx.destination);
+    } else {
+      masterGain.connect(ctx.destination);
+    }
 
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -436,14 +457,16 @@ export function playCard(): void {
 // 5. EDAM / QƏTL (playElimination)
 // Dərin, boğuq kinematoqrafik sub-thud zərbəsi.
 // ─────────────────────────────────────────────────────────────────────────────
-export function playElimination(): void {
+export function playElimination(pan?: number): void {
   if (isSoundMuted()) return;
 
-  try {
-    const played = playAudioFile('/sounds/elimination.wav', 1.0);
-    if (played) return;
-  } catch {
-    // Continue to resilient fallback
+  if (pan === undefined) {
+    try {
+      const played = playAudioFile('/sounds/elimination.wav', 1.0);
+      if (played) return;
+    } catch {
+      // Continue to resilient fallback
+    }
   }
 
   // Resilient Web Audio Fallback: Muted cinematic sub-impact
@@ -454,7 +477,15 @@ export function playElimination(): void {
     const now = ctx.currentTime;
     const masterGain = ctx.createGain();
     masterGain.gain.setValueAtTime(MASTER_VOLUME * 0.75, now);
-    masterGain.connect(ctx.destination);
+
+    if (pan !== undefined && typeof ctx.createStereoPanner === 'function') {
+      const panner = ctx.createStereoPanner();
+      panner.pan.setValueAtTime(Math.max(-1.0, Math.min(1.0, pan)), now);
+      masterGain.connect(panner);
+      panner.connect(ctx.destination);
+    } else {
+      masterGain.connect(ctx.destination);
+    }
 
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
