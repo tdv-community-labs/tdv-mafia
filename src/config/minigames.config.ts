@@ -4,8 +4,11 @@
  */
 
 import {
+  BermudaTriangleState,
+  BermudaWeather,
   CatenaccioState,
   ChernobylState,
+  CyberpunkNeoBakuState,
   DanteCircle,
   DantesInfernoCircleConfig,
   DantesInfernoState,
@@ -235,3 +238,74 @@ export function createInitialChernobylState(
   };
 }
 
+// === CYBERPUNK 2077: NEO-BAKU DEFAULTS & FACTORY (M11) ===
+
+export const CYBERPUNK_DEFAULTS = {
+  INITIAL_GRID_INTEGRITY: 100,
+  OVERDRIVE_THRESHOLD: 30,
+  DESTABILIZED_THRESHOLD: 69,
+  BLACKOUT_THRESHOLD: 0,
+  GLITCH_PROBABILITY_DESTABILIZED: 0.15,
+  GLITCH_PROBABILITY_OVERDRIVE: 0.40,
+  OVERDRIVE_NIGHT_BUFFER_SECONDS: 15,
+  DECAY_INNOCENT_LYNCH: 15,
+  DECAY_CORPO_ASSASSINATION: 10,
+  DECAY_NETRUNNER_OVERLOAD: 20,
+  RECOVERY_CORPO_PATCH: 15,
+  RECOVERY_CORPO_ELIMINATION: 20,
+} as const;
+
+export function createInitialCyberpunkState(initialGridIntegrity: number = CYBERPUNK_DEFAULTS.INITIAL_GRID_INTEGRITY): CyberpunkNeoBakuState {
+  const integrity = Math.max(0, Math.min(100, initialGridIntegrity));
+  return {
+    gridIntegrity: integrity,
+    isCyberOverdriveActive: integrity <= CYBERPUNK_DEFAULTS.OVERDRIVE_THRESHOLD && integrity > 0,
+    isSystemBlackout: integrity === 0,
+    activeGlitchEvent: 'NONE',
+    glitchRoundsRemaining: 0,
+    hackedPlayerVoteOverrides: {},
+    cyberwareInventory: {},
+    nodeSpoofPairs: {},
+    corpoBribedPlayerIds: [],
+    gridIntegrityHistory: [integrity],
+  };
+}
+
+// === BERMUDA TRIANGLE DEFAULTS & FACTORY (M12) ===
+
+export const BERMUDA_DEFAULTS = {
+  INITIAL_HULL_INTEGRITY: 100,
+  BASE_ANOMALY_FACTOR: 0.35,
+  ROGUE_WAVE_HULL_DAMAGE: 15,
+  CORSAIR_SABOTAGE_DAMAGE: 10,
+  VANISHED_MASK_DURATION_ROUNDS: 2,
+  NAUTICAL_DICTIONARY: [
+    'KÖLGƏ',
+    'KAPİTAN',
+    'ŞİMAL',
+    'QÜTB',
+    'BURĞAN',
+    'SİRENA',
+    'QƏZA',
+    'DUMAN',
+    'FIRTINA',
+    'QULDUR',
+    'DƏRİNLİK',
+    'MAYAQ',
+  ] as const,
+} as const;
+
+export function createInitialBermudaState(initialHullIntegrity: number = BERMUDA_DEFAULTS.INITIAL_HULL_INTEGRITY): BermudaTriangleState {
+  const hull = Math.max(0, Math.min(100, initialHullIntegrity));
+  return {
+    currentWeather: 'CALM_SEA',
+    weatherRoundsRemaining: 1,
+    shipHullIntegrity: hull,
+    vanishedPlayerIds: [],
+    revealedWreckageIds: [],
+    cursedDrowningPlayerIds: [],
+    stunnedPlayerIds: [],
+    ghostTelegramClues: [],
+    compassScrambleRate: 0.0,
+  };
+}

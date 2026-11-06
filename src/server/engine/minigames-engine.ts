@@ -15,8 +15,12 @@
  */
 
 import {
+  BermudaTriangleState,
+  BermudaWeather,
   CatenaccioState,
   ChernobylState,
+  CyberpunkGlitchEvent,
+  CyberpunkNeoBakuState,
   DanteCircle,
   DantesInfernoState,
   EarthStoodStillState,
@@ -28,7 +32,12 @@ import {
 import { GamePhase, LobbyState, NightActionBufferItem, NightActionPriority, PlayerSession } from '../../types/game';
 import { CoreFaction, AllInDistrict } from '../../types/roles';
 import { NightDeathRecord } from '../../types/engine';
-import { DANTE_CIRCLES_ORDER, DANTE_CIRCLE_DEFINITIONS } from '../../config/minigames.config';
+import {
+  BERMUDA_DEFAULTS,
+  CYBERPUNK_DEFAULTS,
+  DANTE_CIRCLES_ORDER,
+  DANTE_CIRCLE_DEFINITIONS,
+} from '../../config/minigames.config';
 import { inMemoryLobbyStore } from '../state/memory';
 
 // ─── Shared Helpers ────────────────────────────────────────────────────────────
@@ -1011,6 +1020,478 @@ export function applyChernobylDecontamination(
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 7. CYBERPUNK 2077: NEO-BAKU ENGINE (M11)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export interface CyberpunkEngineInput {
+  readonly currentState: CyberpunkNeoBakuState;
+  readonly innocentsLynchedCount?: number;
+  readonly corpoAssassinationsCount?: number;
+  readonly netrunnerOverloadsCount?: number;
+  readonly corpoPatchesCount?: number;
+  readonly corpoExecutivesEliminatedCount?: number;
+  readonly hackedVoteCommands?: readonly { victimId: string; forcedTargetId: string }[];
+  readonly cyberwareDistributions?: readonly { recipientId: string; augment: 'SUBDERMAL' | 'REFLEX' | 'EMP' }[];
+  readonly nodeSpoofPairs?: readonly { infiltratorId: string; spoofTargetId: string }[];
+  readonly corpoBribes?: readonly { targetPlayerId: string }[];
+  readonly isMorningArrival?: boolean;
+  readonly rollRandom?: () => number;
+}
+
+export interface CyberpunkEngineOutput {
+  readonly updatedState: CyberpunkNeoBakuState;
+  readonly integrityDelta: number;
+  readonly glitchTriggered: CyberpunkGlitchEvent | null;
+  readonly overdriveEntered: boolean;
+  readonly blackoutEntered: boolean;
+  readonly anarchistVictoryTriggered: boolean;
+  readonly corpoHegemonyTriggered: boolean;
+  readonly netrunnerLiberationTriggered: boolean;
+}
+
+export function processCyberpunkRound(
+  input: CyberpunkEngineInput,
+  players: Readonly<Record<string, PlayerSession>>
+): CyberpunkEngineOutput {
+  const { currentState, isMorningArrival = false, rollRandom = Math.random } = input;
+
+  // 1. Calculate integrity delta
+  let integrityDelta = 0;
+  if (input.innocentsLynchedCount) {
+    integrityDelta -= input.innocentsLynchedCount * CYBERPUNK_DEFAULTS.DECAY_INNOCENT_LYNCH;
+  }
+  if (input.corpoAssassinationsCount) {
+    integrityDelta -= input.corpoAssassinationsCount * CYBERPUNK_DEFAULTS.DECAY_CORPO_ASSASSINATION;
+  }
+  if (input.netrunnerOverloadsCount) {
+    integrityDelta -= input.netrunnerOverloadsCount * CYBERPUNK_DEFAULTS.DECAY_NETRUNNER_OVERLOAD;
+  }
+  if (input.corpoPatchesCount) {
+    integrityDelta += input.corpoPatchesCount * CYBERPUNK_DEFAULTS.RECOVERY_CORPO_PATCH;
+  }
+  if (input.corpoExecutivesEliminatedCount) {
+    integrityDelta += input.corpoExecutivesEliminatedCount * CYBERPUNK_DEFAULTS.RECOVERY_CORPO_ELIMINATION;
+  }
+
+  const rawIntegrity = currentState.gridIntegrity + integrityDelta;
+  const newIntegrity = Math.max(0, Math.min(100, rawIntegrity));
+
+  const overdriveEntered =
+    currentState.gridIntegrity > CYBERPUNK_DEFAULTS.OVERDRIVE_THRESHOLD &&
+    newIntegrity <= CYBERPUNK_DEFAULTS.OVERDRIVE_THRESHOLD &&
+    newIntegrity > 0;
+  const isCyberOverdriveActive = newIntegrity <= CYBERPUNK_DEFAULTS.OVERDRIVE_THRESHOLD && newIntegrity > 0;
+
+  const blackoutEntered = currentState.gridIntegrity > 0 && newIntegrity === 0;
+  const isSystemBlackout = newIntegrity === 0;
+
+  // 2. Net-Glitch Events handling
+  let activeGlitchEvent: CyberpunkGlitchEvent = currentState.activeGlitchEvent;
+  let glitchRoundsRemaining = currentState.glitchRoundsRemaining;
+  let glitchTriggered: CyberpunkGlitchEvent | null = null;
+
+  if (glitchRoundsRemaining > 1) {
+    glitchRoundsRemaining -= 1;
+  } else if (isMorningArrival && newIntegrity < 70) {
+    const glitchChance = isCyberOverdriveActive
+      ? CYBERPUNK_DEFAULTS.GLITCH_PROBABILITY_OVERDRIVE
+      : CYBERPUNK_DEFAULTS.GLITCH_PROBABILITY_DESTABILIZED;
+    const roll = rollRandom();
+    if (roll < glitchChance) {
+      const glitchChoices: CyberpunkGlitchEvent[] = ['SIGNAL_SCRAMBLE', 'FIREWALL_BREACH', 'BLACKOUT_CYCLE'];
+      const chosen = glitchChoices[Math.floor(rollRandom() * glitchChoices.length)] ?? 'SIGNAL_SCRAMBLE';
+      activeGlitchEvent = chosen;
+      glitchRoundsRemaining = 1;
+      glitchTriggered = chosen;
+    } else {
+      activeGlitchEvent = 'NONE';
+      glitchRoundsRemaining = 0;
+    }
+  } else {
+    activeGlitchEvent = 'NONE';
+    glitchRoundsRemaining = 0;
+  }
+
+  // 3. Merging abilities
+  const updatedHackedVotes = { ...currentState.hackedPlayerVoteOverrides };
+  if (input.hackedVoteCommands) {
+    for (const cmd of input.hackedVoteCommands) {
+      updatedHackedVotes[cmd.victimId] = cmd.forcedTargetId;
+    }
+  }
+
+  const updatedCyberware = { ...currentState.cyberwareInventory };
+  if (input.cyberwareDistributions) {
+    for (const dist of input.cyberwareDistributions) {
+      updatedCyberware[dist.recipientId] = dist.augment;
+    }
+  }
+
+  const updatedNodeSpoof = { ...currentState.nodeSpoofPairs };
+  if (input.nodeSpoofPairs) {
+    for (const pair of input.nodeSpoofPairs) {
+      updatedNodeSpoof[pair.infiltratorId] = pair.spoofTargetId;
+    }
+  }
+
+  const updatedBribed = new Set(currentState.corpoBribedPlayerIds);
+  if (input.corpoBribes) {
+    for (const b of input.corpoBribes) {
+      updatedBribed.add(b.targetPlayerId);
+    }
+  }
+
+  const history = [...currentState.gridIntegrityHistory, newIntegrity];
+
+  // 4. Win condition checks
+  const aliveList = getAlivePlayers(players);
+  const aliveCorpo = aliveList.filter(p => getPlayerFaction(p) === 'MAFIA' || p.displayRole?.originalRoleName?.includes('Corpo') || p.displayRole?.originalRoleName?.includes('Infiltrator'));
+  const aliveTown = aliveList.filter(p => getPlayerFaction(p) === 'TOWN' || p.allInIdentity?.layer1Faction === 'TOWN');
+
+  // Anarchist victory: 0% grid integrity maintained for 2 consecutive cycles
+  const anarchistVictoryTriggered =
+    history.length >= 2 &&
+    history[history.length - 1] === 0 &&
+    history[history.length - 2] === 0;
+
+  // Corpo hegemony: Netrunner/Syndicate killers eliminated, corpo >= town, grid >= 40%
+  const corpoHegemonyTriggered =
+    newIntegrity >= 40 &&
+    aliveCorpo.length > 0 &&
+    aliveCorpo.length >= aliveTown.length;
+
+  // Netrunner liberation: All corpo eliminated, town alive
+  const netrunnerLiberationTriggered = aliveCorpo.length === 0 && aliveTown.length > 0;
+
+  const updatedState: CyberpunkNeoBakuState = {
+    gridIntegrity: newIntegrity,
+    isCyberOverdriveActive,
+    isSystemBlackout,
+    activeGlitchEvent,
+    glitchRoundsRemaining,
+    hackedPlayerVoteOverrides: updatedHackedVotes,
+    cyberwareInventory: updatedCyberware,
+    nodeSpoofPairs: updatedNodeSpoof,
+    corpoBribedPlayerIds: Array.from(updatedBribed),
+    gridIntegrityHistory: history,
+  };
+
+  return {
+    updatedState,
+    integrityDelta,
+    glitchTriggered,
+    overdriveEntered,
+    blackoutEntered,
+    anarchistVictoryTriggered,
+    corpoHegemonyTriggered,
+    netrunnerLiberationTriggered,
+  };
+}
+
+export function applyCyberwareDrop(
+  state: CyberpunkNeoBakuState,
+  recipientId: string,
+  augment: 'SUBDERMAL' | 'REFLEX' | 'EMP'
+): CyberpunkNeoBakuState {
+  return {
+    ...state,
+    cyberwareInventory: {
+      ...state.cyberwareInventory,
+      [recipientId]: augment,
+    },
+  };
+}
+
+export function applyCorpoBribe(
+  state: CyberpunkNeoBakuState,
+  targetId: string
+): CyberpunkNeoBakuState {
+  const bribedSet = new Set(state.corpoBribedPlayerIds);
+  bribedSet.add(targetId);
+  return {
+    ...state,
+    corpoBribedPlayerIds: Array.from(bribedSet),
+  };
+}
+
+export function applyNetrunnerHack(
+  state: CyberpunkNeoBakuState,
+  victimId: string,
+  forcedTargetId: string
+): CyberpunkNeoBakuState {
+  return {
+    ...state,
+    hackedPlayerVoteOverrides: {
+      ...state.hackedPlayerVoteOverrides,
+      [victimId]: forcedTargetId,
+    },
+  };
+}
+
+export function applyNodeSpoof(
+  state: CyberpunkNeoBakuState,
+  infiltratorId: string,
+  spoofTargetId: string
+): CyberpunkNeoBakuState {
+  return {
+    ...state,
+    nodeSpoofPairs: {
+      ...state.nodeSpoofPairs,
+      [infiltratorId]: spoofTargetId,
+    },
+  };
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 8. BERMUDA TRIANGLE ENGINE (M12)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export interface BermudaEngineInput {
+  readonly currentState: BermudaTriangleState;
+  readonly roundNumber: number;
+  readonly publicDeaths?: readonly NightDeathRecord[];
+  readonly salvagedPlayerIds?: readonly string[];
+  readonly curedDrowningPlayerIds?: readonly string[];
+  readonly newSirenCursedPlayerIds?: readonly string[];
+  readonly corsairSabotageCount?: number;
+  readonly ghostTelegramSubmitted?: readonly string[];
+  readonly isMorningArrival?: boolean;
+  readonly rollRandom?: () => number;
+}
+
+export interface BermudaEngineOutput {
+  readonly updatedState: BermudaTriangleState;
+  readonly weatherChanged: boolean;
+  readonly newWeather: BermudaWeather;
+  readonly hullDelta: number;
+  readonly lifeboatProtocolActive: boolean;
+  readonly drowningCasualties: readonly string[];
+  readonly crewSurvivalTriggered: boolean;
+  readonly abyssalClaimTriggered: boolean;
+  readonly shipwreckTriggered: boolean;
+}
+
+export function processBermudaRound(
+  input: BermudaEngineInput,
+  players: Readonly<Record<string, PlayerSession>>
+): BermudaEngineOutput {
+  const { currentState, roundNumber, isMorningArrival = false, rollRandom = Math.random } = input;
+
+  let currentWeather = currentState.currentWeather;
+  let weatherRoundsRemaining = currentState.weatherRoundsRemaining;
+  let weatherChanged = false;
+
+  // 1. Weather transition curve: P(Anomaly) = 1 - e^(-0.35 * roundNumber)
+  if (isMorningArrival) {
+    if (weatherRoundsRemaining <= 1) {
+      const pAnomaly = 1 - Math.exp(-BERMUDA_DEFAULTS.BASE_ANOMALY_FACTOR * roundNumber);
+      const roll = rollRandom();
+
+      let nextWeather: BermudaWeather = 'CALM_SEA';
+      if (roll < pAnomaly) {
+        // Severe weather escalation
+        const weatherRoll = rollRandom();
+        if (roundNumber >= 3 && weatherRoll < 0.35) {
+          nextWeather = 'ROGUE_WAVE';
+        } else if (weatherRoll < 0.65) {
+          nextWeather = 'ELECTROMAGNETIC_STORM';
+        } else {
+          nextWeather = 'FOG_OF_THE_VOID';
+        }
+      } else {
+        nextWeather = 'CALM_SEA';
+      }
+
+      weatherChanged = nextWeather !== currentWeather;
+      currentWeather = nextWeather;
+      weatherRoundsRemaining = 1;
+    } else {
+      weatherRoundsRemaining -= 1;
+    }
+  }
+
+  // 2. Hull damage & Rogue Wave stun
+  let hullDelta = 0;
+  let stunnedPlayerIds = [...currentState.stunnedPlayerIds];
+
+  if (isMorningArrival && currentWeather === 'ROGUE_WAVE' && weatherChanged) {
+    hullDelta -= BERMUDA_DEFAULTS.ROGUE_WAVE_HULL_DAMAGE;
+    const living = getAlivePlayers(players);
+    if (living.length > 0) {
+      const chosenIdx = Math.floor(rollRandom() * living.length);
+      const stunned = living[chosenIdx];
+      if (stunned) {
+        stunnedPlayerIds = [stunned.userId];
+      }
+    }
+  } else if (isMorningArrival && currentWeather !== 'ROGUE_WAVE') {
+    stunnedPlayerIds = []; // Stun clears after 1 round
+  }
+
+  if (input.corsairSabotageCount) {
+    hullDelta -= input.corsairSabotageCount * BERMUDA_DEFAULTS.CORSAIR_SABOTAGE_DAMAGE;
+  }
+
+  const rawHull = currentState.shipHullIntegrity + hullDelta;
+  const newHull = Math.max(0, Math.min(100, rawHull));
+  const lifeboatProtocolActive = newHull === 0;
+
+  // 3. Vanished at Sea (Masked Deaths)
+  const vanishedSet = new Set(currentState.vanishedPlayerIds);
+  const revealedSet = new Set(currentState.revealedWreckageIds);
+
+  if (input.publicDeaths) {
+    for (const death of input.publicDeaths) {
+      if (!revealedSet.has(death.victimPlayerId)) {
+        vanishedSet.add(death.victimPlayerId);
+      }
+    }
+  }
+
+  if (input.salvagedPlayerIds) {
+    for (const id of input.salvagedPlayerIds) {
+      vanishedSet.delete(id);
+      revealedSet.add(id);
+    }
+  }
+
+  // 4. Abyssal Siren Drowning Curse
+  const drowningCasualties: string[] = [];
+  const cursedSet = new Set(currentState.cursedDrowningPlayerIds);
+
+  // Cured players
+  if (input.curedDrowningPlayerIds) {
+    for (const id of input.curedDrowningPlayerIds) {
+      cursedSet.delete(id);
+    }
+  }
+
+  // Morning arrival resolves pending drownings
+  if (isMorningArrival) {
+    for (const id of Array.from(cursedSet)) {
+      if (!input.curedDrowningPlayerIds?.includes(id)) {
+        drowningCasualties.push(id);
+        cursedSet.delete(id);
+      }
+    }
+  }
+
+  // Add newly cursed players
+  if (input.newSirenCursedPlayerIds) {
+    for (const id of input.newSirenCursedPlayerIds) {
+      cursedSet.add(id);
+    }
+  }
+
+  // 5. Ghost Telegram (3 words)
+  let ghostTelegramClues = currentState.ghostTelegramClues;
+  if (input.ghostTelegramSubmitted && input.ghostTelegramSubmitted.length === 3) {
+    ghostTelegramClues = [...input.ghostTelegramSubmitted];
+  }
+
+  // 6. Compass Scramble Rate
+  let compassScrambleRate = 0.0;
+  switch (currentWeather) {
+    case 'CALM_SEA':
+      compassScrambleRate = 0.0;
+      break;
+    case 'FOG_OF_THE_VOID':
+      compassScrambleRate = 0.3;
+      break;
+    case 'ELECTROMAGNETIC_STORM':
+      compassScrambleRate = 0.85;
+      break;
+    case 'ROGUE_WAVE':
+      compassScrambleRate = 0.5;
+      break;
+  }
+
+  // 7. Win conditions
+  const aliveList = getAlivePlayers(players).filter(p => !drowningCasualties.includes(p.userId));
+  const aliveCorsairs = aliveList.filter(p => getPlayerFaction(p) === 'MAFIA' || p.displayRole?.originalRoleName?.includes('Corsair') || p.displayRole?.originalRoleName?.includes('Siren'));
+  const aliveCrew = aliveList.filter(p => getPlayerFaction(p) === 'TOWN' || p.allInIdentity?.layer1Faction === 'TOWN');
+
+  const crewSurvivalTriggered = aliveCorsairs.length === 0 && aliveCrew.length > 0 && newHull > 0;
+  const abyssalClaimTriggered = aliveCorsairs.length > 0 && aliveCorsairs.length >= aliveCrew.length;
+  const shipwreckTriggered = newHull === 0 && aliveList.length === 0;
+
+  const updatedState: BermudaTriangleState = {
+    currentWeather,
+    weatherRoundsRemaining,
+    shipHullIntegrity: newHull,
+    vanishedPlayerIds: Array.from(vanishedSet),
+    revealedWreckageIds: Array.from(revealedSet),
+    cursedDrowningPlayerIds: Array.from(cursedSet),
+    stunnedPlayerIds,
+    ghostTelegramClues,
+    compassScrambleRate,
+  };
+
+  return {
+    updatedState,
+    weatherChanged,
+    newWeather: currentWeather,
+    hullDelta,
+    lifeboatProtocolActive,
+    drowningCasualties,
+    crewSurvivalTriggered,
+    abyssalClaimTriggered,
+    shipwreckTriggered,
+  };
+}
+
+export function applySalvageLogbook(
+  state: BermudaTriangleState,
+  victimId: string
+): BermudaTriangleState {
+  const vanished = new Set(state.vanishedPlayerIds);
+  vanished.delete(victimId);
+  const revealed = new Set(state.revealedWreckageIds);
+  revealed.add(victimId);
+
+  return {
+    ...state,
+    vanishedPlayerIds: Array.from(vanished),
+    revealedWreckageIds: Array.from(revealed),
+  };
+}
+
+export function applyOxygenTreatment(
+  state: BermudaTriangleState,
+  curedPlayerId: string
+): BermudaTriangleState {
+  const cursed = new Set(state.cursedDrowningPlayerIds);
+  cursed.delete(curedPlayerId);
+  return {
+    ...state,
+    cursedDrowningPlayerIds: Array.from(cursed),
+  };
+}
+
+export function applySirenCurse(
+  state: BermudaTriangleState,
+  victimId: string
+): BermudaTriangleState {
+  const cursed = new Set(state.cursedDrowningPlayerIds);
+  cursed.add(victimId);
+  return {
+    ...state,
+    cursedDrowningPlayerIds: Array.from(cursed),
+  };
+}
+
+export function submitGhostTelegram(
+  state: BermudaTriangleState,
+  words: readonly string[]
+): BermudaTriangleState {
+  if (words.length !== 3) return state;
+  return {
+    ...state,
+    ghostTelegramClues: [...words],
+  };
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // MINIGAME DISPATCH ROUTER
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -1038,6 +1519,10 @@ export interface MinigamePhaseEventInput {
   // Chernobyl inputs
   readonly chernobylShelteredPlayerIds?: readonly string[];
   readonly chernobylDecontaminatePlayerIds?: readonly string[];
+  // Cyberpunk inputs (M11)
+  readonly cyberpunkInputs?: Partial<CyberpunkEngineInput>;
+  // Bermuda inputs (M12)
+  readonly bermudaInputs?: Partial<BermudaEngineInput>;
   /** Whether this dispatch represents the morning arrival transition (resolving night effects) */
   readonly isMorningArrival?: boolean;
   readonly phase?: string;
@@ -1053,6 +1538,8 @@ export interface MinigamePhaseEventOutput {
   readonly prisonResult: StanfordPrisonEngineOutput | null;
   readonly catenaccioResult: CatenaccioEngineOutput | null;
   readonly chernobylResult: ChernobylEngineOutput | null;
+  readonly cyberpunkResult: CyberpunkEngineOutput | null;
+  readonly bermudaResult: BermudaEngineOutput | null;
 }
 
 /**
@@ -1070,6 +1557,8 @@ export function dispatchMinigamePhaseEvent(input: MinigamePhaseEventInput): Mini
       prisonResult:     null,
       catenaccioResult: null,
       chernobylResult:  null,
+      cyberpunkResult:  null,
+      bermudaResult:    null,
     };
   }
 
@@ -1175,6 +1664,34 @@ export function dispatchMinigamePhaseEvent(input: MinigamePhaseEventInput): Mini
     updatedChernobyl = chernobylResult.updatedState;
   }
 
+  // ── Cyberpunk 2077: Neo-Baku ──────────────────────────────────────────
+  let cyberpunkResult: CyberpunkEngineOutput | null = null;
+  let updatedCyberpunk = minigameSubStates.cyberpunkNeoBaku;
+
+  if (minigameSubStates.cyberpunkNeoBaku) {
+    cyberpunkResult = processCyberpunkRound({
+      currentState: minigameSubStates.cyberpunkNeoBaku,
+      isMorningArrival: isMorningTransition,
+      ...(input.cyberpunkInputs ?? {}),
+    }, players);
+    updatedCyberpunk = cyberpunkResult.updatedState;
+  }
+
+  // ── Bermuda Triangle: Ghost Fleet ──────────────────────────────────────
+  let bermudaResult: BermudaEngineOutput | null = null;
+  let updatedBermuda = minigameSubStates.bermudaTriangle;
+
+  if (minigameSubStates.bermudaTriangle) {
+    bermudaResult = processBermudaRound({
+      currentState: minigameSubStates.bermudaTriangle,
+      roundNumber,
+      publicDeaths: input.publicDeaths,
+      isMorningArrival: isMorningTransition,
+      ...(input.bermudaInputs ?? {}),
+    }, players);
+    updatedBermuda = bermudaResult.updatedState;
+  }
+
   const updatedSubStates: MinigameSubStates = {
     dantesInferno:  updatedDante,
     earthStoodStill: updatedEarth,
@@ -1182,6 +1699,8 @@ export function dispatchMinigamePhaseEvent(input: MinigamePhaseEventInput): Mini
     stanfordPrison:  updatedPrison,
     catenaccio:      updatedCatenaccio,
     chernobyl:       updatedChernobyl,
+    cyberpunkNeoBaku: updatedCyberpunk,
+    bermudaTriangle: updatedBermuda,
   };
 
   return {
@@ -1192,6 +1711,8 @@ export function dispatchMinigamePhaseEvent(input: MinigamePhaseEventInput): Mini
     prisonResult,
     catenaccioResult,
     chernobylResult,
+    cyberpunkResult,
+    bermudaResult,
   };
 }
 

@@ -12,6 +12,9 @@ import {
   ChevronUp,
   AlertTriangle,
   Radio,
+  Zap,
+  Waves,
+  Compass,
 } from 'lucide-react';
 import { MinigameSubStates } from '../../types/minigames';
 import { PlayerSession } from '../../types/game';
@@ -36,16 +39,18 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
-  const { dante, earth, valkyrie, prison, catenaccio, chernobyl } = {
+  const { dante, earth, valkyrie, prison, catenaccio, chernobyl, cyberpunk, bermuda } = {
     dante: minigames.dantesInferno,
     earth: minigames.earthStoodStill,
     valkyrie: minigames.valkyrie,
     prison: minigames.stanfordPrison,
     catenaccio: minigames.catenaccio,
     chernobyl: minigames.chernobyl,
+    cyberpunk: minigames.cyberpunkNeoBaku,
+    bermuda: minigames.bermudaTriangle,
   };
 
-  const hasAnyMinigame = Boolean(dante || earth || valkyrie || prison || catenaccio || chernobyl);
+  const hasAnyMinigame = Boolean(dante || earth || valkyrie || prison || catenaccio || chernobyl || cyberpunk || bermuda);
   if (!hasAnyMinigame) return null;
 
   // Chernobyl data
@@ -213,6 +218,73 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
               )}
             </div>
           )}
+
+          {/* 7. CYBERPUNK NEO-BAKU CHIP (M11) */}
+          {cyberpunk && (
+            <div
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border transition-all ${
+                cyberpunk.isSystemBlackout
+                  ? 'bg-zinc-950 text-red-500 border-red-800 animate-pulse'
+                  : cyberpunk.isCyberOverdriveActive
+                  ? 'bg-rose-950/70 text-rose-300 border-rose-500/70 shadow-[0_0_12px_rgba(244,63,94,0.4)] animate-pulse'
+                  : cyberpunk.gridIntegrity < 70
+                  ? 'bg-amber-950/60 text-amber-300 border-amber-500/50'
+                  : 'bg-cyan-950/60 text-cyan-300 border-cyan-500/40'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
+              <span>Xəzər Şəbəkəsi: {cyberpunk.gridIntegrity}%</span>
+              {cyberpunk.isCyberOverdriveActive && (
+                <span className="px-1.5 py-0.2 rounded bg-rose-500 text-white text-[10px] font-black uppercase tracking-wider">
+                  ⚡ Overdrive (15s)
+                </span>
+              )}
+              {cyberpunk.isSystemBlackout && (
+                <span className="px-1.5 py-0.2 rounded bg-red-600 text-white text-[10px] font-black uppercase">
+                  Qara Dəlik (0%)
+                </span>
+              )}
+              {cyberpunk.activeGlitchEvent !== 'NONE' && (
+                <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/40">
+                  {cyberpunk.activeGlitchEvent === 'SIGNAL_SCRAMBLE' ? 'Qarışıq Siqnal' : cyberpunk.activeGlitchEvent === 'FIREWALL_BREACH' ? 'Qoruyucu Sızması' : 'Qaranlıq Gecə'}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* 8. BERMUDA TRIANGLE CHIP (M12) */}
+          {bermuda && (
+            <div
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border transition-all ${
+                bermuda.shipHullIntegrity === 0
+                  ? 'bg-red-950/70 text-red-400 border-red-600 animate-pulse'
+                  : bermuda.currentWeather === 'ROGUE_WAVE'
+                  ? 'bg-rose-950/60 text-rose-300 border-rose-500/60'
+                  : bermuda.currentWeather === 'ELECTROMAGNETIC_STORM'
+                  ? 'bg-amber-950/60 text-amber-300 border-amber-500/50'
+                  : 'bg-blue-950/60 text-blue-300 border-blue-500/40'
+              }`}
+            >
+              <Waves className="w-3.5 h-3.5 shrink-0 text-blue-400" />
+              <span>
+                {bermuda.currentWeather === 'CALM_SEA' ? 'Sakit Dəniz' : bermuda.currentWeather === 'FOG_OF_THE_VOID' ? 'Qara Duman' : bermuda.currentWeather === 'ELECTROMAGNETIC_STORM' ? 'E-Maqnit Fırtınası' : 'Nəhəng Dalğa'}
+              </span>
+              <span className="opacity-50">|</span>
+              <span className={bermuda.shipHullIntegrity <= 30 ? 'text-red-400 font-extrabold animate-pulse' : ''}>
+                Gövdə: {bermuda.shipHullIntegrity}%
+              </span>
+              {bermuda.vanishedPlayerIds.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 text-[10px] font-mono">
+                  {bermuda.vanishedPlayerIds.length} İtkin
+                </span>
+              )}
+              {bermuda.cursedDrowningPlayerIds.includes(currentUserId) && (
+                <span className="px-1.5 py-0.2 rounded bg-red-600 text-white text-[10px] font-black animate-pulse">
+                  ⚠️ Ciyərlər Su Dolur
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Expand / Collapse Rules Toggle */}
@@ -306,6 +378,42 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
                 <p className="text-zinc-400 leading-relaxed">
                   {AZ_DANTE_CIRCLES[dante.currentCircle]?.rule ?? 'Cəhənnəm qanunları qüvvədədir.'}
                 </p>
+              </div>
+            )}
+
+            {cyberpunk && (
+              <div className="p-3 rounded-xl bg-zinc-900/60 border border-cyan-500/30 flex flex-col gap-1.5">
+                <span className="font-black text-cyan-300 flex items-center gap-1.5">
+                  <Zap className="w-4 h-4 text-cyan-400" />
+                  Cyberpunk 2077: Neo-Bakı Xəzər Şəbəkəsi
+                </span>
+                <p className="text-zinc-400 leading-relaxed">
+                  Şəbəkə sabitliyi 100%-dən başlayır. Məsum edamlar (-15%), korporativ qətllər (-10%) və xaker hücumları (-20%) şəbəkəni çökdürür. 30%-in altında Overdrive rejimi aktivləşir (gecə taymeri 15 saniyəyə enir, qabiliyyətlər 2 qat güclənir). 0%-də tam qara dəlik yaranır.
+                </p>
+                <div className="flex items-center gap-2 font-mono text-[11px] text-zinc-300 pt-1">
+                  <span>Sabitlik: {cyberpunk.gridIntegrity}%</span>
+                  <span>•</span>
+                  <span>Status: {cyberpunk.isSystemBlackout ? 'Tam Çöküş' : cyberpunk.isCyberOverdriveActive ? '⚡ Overdrive Aktiv' : cyberpunk.gridIntegrity < 70 ? 'Qeyri-sabit' : 'Normal'}</span>
+                </div>
+              </div>
+            )}
+
+            {bermuda && (
+              <div className="p-3 rounded-xl bg-zinc-900/60 border border-blue-500/30 flex flex-col gap-1.5">
+                <span className="font-black text-blue-300 flex items-center gap-1.5">
+                  <Compass className="w-4 h-4 text-blue-400" />
+                  Bermud Üçbucağı: Ruhlar Donanması
+                </span>
+                <p className="text-zinc-400 leading-relaxed">
+                  Anomaliya hər raund güclənir: Duman (gizli səsvermə və dumanlı istintaq), E-Maqnit Qasırğası (kompas fırlanır, hərəkətlər 35% yayınır), Nəhəng Dalğa (gövdəyə -15% zərər, 1 oyunçu şoka düşür). Ölənlər dənizdə itir və rolları 2 raund gizli qalır. Sirenanın qurbanı ertəsi gün boğulur (həkim xilas edə bilər).
+                </p>
+                <div className="flex items-center gap-2 font-mono text-[11px] text-zinc-300 pt-1">
+                  <span>Hava: {bermuda.currentWeather}</span>
+                  <span>•</span>
+                  <span>Gəmi Gövdəsi: {bermuda.shipHullIntegrity}%</span>
+                  <span>•</span>
+                  <span>İtkinlər: {bermuda.vanishedPlayerIds.length}</span>
+                </div>
               </div>
             )}
           </div>

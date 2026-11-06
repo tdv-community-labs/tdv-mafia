@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Newspaper, X, Skull, AlertTriangle, Flame, Clock, Search, Mail, Shield, Heart, Biohazard } from 'lucide-react';
+import { Newspaper, X, Skull, AlertTriangle, Flame, Clock, Search, Mail, Shield, Heart, Biohazard, Zap, Waves, Compass } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MorningNewspaper, InvestigationResult } from '../../types/engine';
 import { MinigameSubStates } from '../../types/minigames';
@@ -50,6 +50,8 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
   const prison = minigameSubStates?.stanfordPrison;
   const catenaccio = minigameSubStates?.catenaccio;
   const chernobyl = minigameSubStates?.chernobyl;
+  const cyberpunk = minigameSubStates?.cyberpunkNeoBaku;
+  const bermuda = minigameSubStates?.bermudaTriangle;
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -337,6 +339,36 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
             <div className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
               Sığınacaq: {chernobyl.shelteredPlayerIds?.length ?? 0}/{chernobyl.bunkerCapacity} nəfər qorunur. Ölümcül hədd: {chernobyl.lethalThreshold} mSv.
             </div>
+          </div>
+        )}
+
+        {cyberpunk && (
+          <div className="p-3.5 rounded-[8px] border border-cyan-400/50 dark:border-cyan-800 bg-cyan-50/80 dark:bg-cyan-950/20 font-sans">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-700 dark:text-cyan-400">
+              <Zap className="w-4 h-4 text-cyan-500 shrink-0" />
+              <span>Cyberpunk: Xəzər Şəbəkəsi {cyberpunk.gridIntegrity}% {cyberpunk.isCyberOverdriveActive ? '⚡ (Overdrive Aktivdir!)' : ''}</span>
+            </div>
+            <div className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+              {cyberpunk.isSystemBlackout
+                ? 'Tam Qara Dəlik: Şəbəkə iflicdir və anarxiya sayğacı başladı!'
+                : cyberpunk.activeGlitchEvent !== 'NONE'
+                ? `Aktiv Xəta Hadisəsi: ${cyberpunk.activeGlitchEvent}`
+                : 'Şəbəkə telemetriyası sabit rejimdə işləyir.'}
+            </div>
+          </div>
+        )}
+
+        {bermuda && (
+          <div className="p-3.5 rounded-[8px] border border-blue-400/50 dark:border-blue-800 bg-blue-50/80 dark:bg-blue-950/20 font-sans">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-blue-700 dark:text-blue-400">
+              <Waves className="w-4 h-4 text-blue-500 shrink-0" />
+              <span>Bermud Üçbucağı: Hava — {bermuda.currentWeather} | Gövdə: {bermuda.shipHullIntegrity}%</span>
+            </div>
+            {bermuda.ghostTelegramClues.length > 0 && (
+              <div className="mt-1.5 text-xs font-mono font-bold text-blue-900 dark:text-blue-200 bg-blue-100/70 dark:bg-blue-900/40 p-2 rounded border border-blue-300 dark:border-blue-700">
+                📡 Ruhlar Donanmasından Sonar Teleqramı: [ {bermuda.ghostTelegramClues.join(' • ')} ]
+              </div>
+            )}
           </div>
         )}
 

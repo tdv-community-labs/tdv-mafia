@@ -131,6 +131,39 @@ export interface ChernobylState {
   readonly liquidatorPlayerId?: string | null;
 }
 
+// === CYBERPUNK 2077: NEO-BAKU TYPES (M11) ===
+
+export type CyberpunkGlitchEvent = 'NONE' | 'SIGNAL_SCRAMBLE' | 'FIREWALL_BREACH' | 'BLACKOUT_CYCLE';
+
+export interface CyberpunkNeoBakuState {
+  readonly gridIntegrity: number; // 0 to 100
+  readonly isCyberOverdriveActive: boolean;
+  readonly isSystemBlackout: boolean;
+  readonly activeGlitchEvent: CyberpunkGlitchEvent;
+  readonly glitchRoundsRemaining: number;
+  readonly hackedPlayerVoteOverrides: Readonly<Record<string, string>>; // victimId -> forcedTargetId
+  readonly cyberwareInventory: Readonly<Record<string, 'SUBDERMAL' | 'REFLEX' | 'EMP'>>;
+  readonly nodeSpoofPairs: Readonly<Record<string, string>>; // infiltratorId -> spoofTargetId
+  readonly corpoBribedPlayerIds: readonly string[];
+  readonly gridIntegrityHistory: readonly number[];
+}
+
+// === BERMUDA TRIANGLE: GHOST FLEET TYPES (M12) ===
+
+export type BermudaWeather = 'CALM_SEA' | 'FOG_OF_THE_VOID' | 'ELECTROMAGNETIC_STORM' | 'ROGUE_WAVE';
+
+export interface BermudaTriangleState {
+  readonly currentWeather: BermudaWeather;
+  readonly weatherRoundsRemaining: number;
+  readonly shipHullIntegrity: number; // 0 to 100
+  readonly vanishedPlayerIds: readonly string[]; // unrevealed deaths (Vanished into the Mist)
+  readonly revealedWreckageIds: readonly string[]; // salvaged deaths (Salvage Logbook)
+  readonly cursedDrowningPlayerIds: readonly string[]; // pending delayed death from Abyssal Siren
+  readonly stunnedPlayerIds: readonly string[]; // cannot vote due to Rogue Wave shock
+  readonly ghostTelegramClues: readonly string[]; // 3-word telegram from dead chat
+  readonly compassScrambleRate: number; // 0.0 to 1.0
+}
+
 export interface MinigameSubStates {
   readonly dantesInferno?: DantesInfernoState;
   readonly earthStoodStill?: EarthStoodStillState;
@@ -138,5 +171,6 @@ export interface MinigameSubStates {
   readonly stanfordPrison?: StanfordPrisonState;
   readonly catenaccio?: CatenaccioState;
   readonly chernobyl?: ChernobylState;
+  readonly cyberpunkNeoBaku?: CyberpunkNeoBakuState;
+  readonly bermudaTriangle?: BermudaTriangleState;
 }
-

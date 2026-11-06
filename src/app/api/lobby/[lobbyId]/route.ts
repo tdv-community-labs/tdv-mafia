@@ -12,6 +12,8 @@ import {
   createInitialStanfordPrisonState,
   createInitialCatenaccioState,
   createInitialChernobylState,
+  createInitialCyberpunkState,
+  createInitialBermudaState,
 } from '../../../../config/minigames.config';
 import { MinigameSubStates } from '../../../../types/minigames';
 import { PlayerTier } from '../../../../types/access';
@@ -128,6 +130,12 @@ function initializeMinigameSubStates(lobby: LobbyState): MinigameSubStates {
     )?.userId || pIds[0] || null;
     const capacity = Math.max(2, Math.floor(pIds.length / 4));
     return { chernobyl: createInitialChernobylState(pIds, capacity, 15, 100, liquidator) };
+  }
+  if (lobby.mode === 'CYBERPUNK_NEO_BAKU') {
+    return { cyberpunkNeoBaku: createInitialCyberpunkState() };
+  }
+  if (lobby.mode === 'BERMUDA_TRIANGLE') {
+    return { bermudaTriangle: createInitialBermudaState() };
   }
 
   return {};

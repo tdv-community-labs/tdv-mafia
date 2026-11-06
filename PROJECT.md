@@ -52,8 +52,8 @@
 | M8 | WebRTC Audio Spatialization (R2) | StereoPannerNode, circular player audio graph, dynamic speaking sonar badges | M7 | DONE |
 | M9 | Role Loadout Balancing & Achievements (R3) | Standard/Asymmetric/Chaos/All-In 40p presets, trackable achievement engine | M7 | DONE |
 | M10 | Simulation Harmonization & Production Certification | Macro 40-player simulation updates, regression sweeps, production bundle | M7-M9 | DONE |
-| M11 | Cyberpunk Neo-Baku Minigame Engine | Grid Integrity, Cyber-Overdrive state, Netrunner ICE_BREAKER, Corpo roles | M1-M10 | SPECIFIED |
-| M12 | Bermuda Triangle Maritime Engine | Weather hazards state machine, Vanished at Sea masked deaths, Ghost Fleet telegram | M1-M10 | SPECIFIED |
+| M11 | Cyberpunk Neo-Baku Minigame Engine | Grid Integrity, Cyber-Overdrive state, Netrunner ICE_BREAKER, Corpo roles | M1-M10 | DONE |
+| M12 | Bermuda Triangle Maritime Engine | Weather hazards state machine, Vanished at Sea masked deaths, Ghost Fleet telegram | M1-M10 | DONE |
 | M13 | Automated E2E Browser Testing Suite | Playwright multi-client test harness (4–8 concurrent browser sessions) | M1-M10 | SPECIFIED |
 | M14 | UI/UX Component Polish & Audio Synthesis | 3D card tilt, circular SVG timers, Web Audio micro-interactions, mobile swipe drawer | M1-M10 | SPECIFIED |
 | M15 | Accessibility Compliance & Final Release | WCAG 2.1 AA screen reader live regions, prefers-reduced-motion, multi-suite sweep | M11-M14 | SPECIFIED |
