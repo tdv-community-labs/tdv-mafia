@@ -271,6 +271,17 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
           </span>
         </div>
 
+        {/* Animated Scales of Justice Duel Indicator */}
+        <div data-testid="courtroom-scales-of-justice" className="flex items-center justify-center gap-3 py-1">
+          <div
+            className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/90 border border-amber-500/30 text-amber-300 text-[11px] font-bold shadow-md transition-transform duration-500"
+            style={{ transform: `rotate(${totalVerdictVotes > 0 ? Math.max(-15, Math.min(15, (guiltyCount - innocentCount) * 3)) : 0}deg)` }}
+          >
+            <Scale className={`w-4 h-4 ${guiltyCount > innocentCount ? 'text-red-400' : innocentCount > guiltyCount ? 'text-emerald-400' : 'text-amber-400'}`} />
+            <span>Ədalət Tərəzisi: {guiltyCount > innocentCount ? 'Edam Tərəfi Ağır Basır' : innocentCount > guiltyCount ? 'Bəraət Qazanır' : 'Mütləq Tarazlıq'}</span>
+          </div>
+        </div>
+
         {/* Dual Ratio Gauge */}
         <div className="w-full h-3 bg-zinc-800 rounded-full overflow-hidden flex shadow-inner">
           <div

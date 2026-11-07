@@ -19,6 +19,7 @@ import {
   Award,
   CircleDot,
 } from 'lucide-react';
+import { getPlayerProgression } from '../../utils/progression';
 import { ACHIEVEMENTS_REGISTRY } from '../../config/achievements.config';
 import { Achievement, AchievementCategory, AchievementTier } from '../../types/achievements';
 import { Button } from '../ui/Button';
@@ -152,12 +153,17 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
   const [selectedTier, setSelectedTier] = useState<AchievementTier | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Stored unlocked IDs in localStorage or default initial sample
+  // Stored unlocked IDs via unified ProgressionManager
   const unlockedIds = useMemo<Set<string>>(() => {
     if (typeof window === 'undefined') {
       return new Set(['town_sheriff_first_bust', 'mafia_first_blood', 'town_citizen_decisive_vote', 'mastery_first_blood']);
     }
     try {
+      const storedUserId = localStorage.getItem('tdv_mafia_active_user_id') || 'current_user';
+      const profile = getPlayerProgression(storedUserId);
+      if (profile.unlockedAchievements.length > 0) {
+        return new Set(profile.unlockedAchievements);
+      }
       const stored = localStorage.getItem('tdv_mafia_unlocked_achievements');
       if (stored) {
         return new Set(JSON.parse(stored));

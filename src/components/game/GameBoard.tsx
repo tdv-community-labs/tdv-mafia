@@ -27,6 +27,10 @@ import { getTheme } from '../../config/themes.config';
 import { VotingCourtPanel } from './VotingCourtPanel';
 import { TrialDefensePanel } from './TrialDefensePanel';
 import { MinigameStatusToolbar } from './MinigameStatusToolbar';
+import { GhostRealmPanel } from './GhostRealmPanel';
+import { GameOverCinematic } from './GameOverCinematic';
+import { MatchRecapModal } from '../modals/MatchRecapModal';
+import { recordMatchProgression, resolveGhostBets } from '../../utils/progression';
 import {
   AZ_DANTE_CIRCLES,
   AZ_DISTRICTS,
@@ -94,6 +98,29 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [activeDistrictTab, setActiveDistrictTab] = useState<AllInDistrict | 'ALL'>('ALL');
   const [soundMuted, setSoundMuted] = useState<boolean>(false);
+  const [isRecapModalOpen, setIsRecapModalOpen] = useState(false);
+  const [isCinematicOpen, setIsCinematicOpen] = useState(false);
+  const prevEndedRecordedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (lobbyState.phase === 'ENDED' && !prevEndedRecordedRef.current) {
+      prevEndedRecordedRef.current = true;
+      setIsCinematicOpen(true);
+      setTimeout(() => {
+        setIsRecapModalOpen(true);
+      }, 3500);
+
+      if (typeof window !== 'undefined') {
+        const myPlayer = lobbyState.players[currentUserId];
+        const winnerResult = lobbyState.winnerResult;
+        const isWin = winnerResult ? winnerResult.winnerPlayerIds.includes(currentUserId) : false;
+        const faction = myPlayer?.allInIdentity?.layer1Faction || (myPlayer?.displayRole?.originalRoleName?.toUpperCase().includes('MAFIA') ? 'MAFIA' : 'TOWN');
+
+        recordMatchProgression(currentUserId, lobbyState.lobbyId, isWin, faction);
+        resolveGhostBets(currentUserId, lobbyState.lobbyId, lobbyState.lastLynchedUserId || undefined, winnerResult?.winningFaction || undefined);
+      }
+    }
+  }, [lobbyState.phase, lobbyState.winnerResult, currentUserId, lobbyState.lobbyId, lobbyState.lastLynchedUserId, lobbyState.players]);
 
   const currentUser = lobbyState.players[currentUserId];
   const isAlive = currentUser?.isAlive ?? false;
@@ -722,6 +749,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           })}
         </div>
 
+        {/* Zero-Knowledge Ghost Realm Panel for dead players or spectators */}
+        <GhostRealmPanel
+          lobbyState={lobbyState}
+          currentUserId={currentUserId}
+          isSpectatorOrDead={!currentUser?.isAlive}
+        />
+
         {displayedPlayers.some(p => !p.isAlive) && (
           <div className="mt-12 mb-4 animate-fadeIn">
             <div className="flex items-center justify-between gap-4 mb-6">
@@ -930,6 +964,23 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             </div>
           );
         })()}
+      {/* ─── GAME OVER CINEMATIC & VIRAL RECAP MODAL ──────────────── */}
+      {lobbyState.winnerResult && (
+        <GameOverCinematic
+          isOpen={isCinematicOpen}
+          winnerResult={lobbyState.winnerResult}
+          players={lobbyState.players}
+          currentUserId={currentUserId}
+          onClose={() => setIsCinematicOpen(false)}
+        />
+      )}
+
+      <MatchRecapModal
+        isOpen={isRecapModalOpen}
+        lobbyState={lobbyState}
+        currentUserId={currentUserId}
+        onClose={() => setIsRecapModalOpen(false)}
+      />
     </div>
   );
 };

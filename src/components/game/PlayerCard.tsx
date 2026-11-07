@@ -1,7 +1,9 @@
 'use client';
 
+import { getPlayerProgression, RANK_TIERS, COSMETIC_BORDERS, COSMETIC_TITLES } from '../../utils/progression';
+import { RankTier } from '../../types/progression';
 import React from 'react';
-import {  Crown, Bot, Check, Clock, Mic, Shield, Sparkles, Target, Gavel , WifiOff, Ghost, X, Skull } from 'lucide-react';
+import {  Crown, Bot, Award, Check, Clock, Mic, Shield, Sparkles, Target, Gavel , WifiOff, Ghost, X, Skull } from 'lucide-react';
 import { PlayerSession } from '../../types/game';
 import { ScrubbedPlayerView } from '../../types/engine';
 import { AllInDistrict, CivicOfficeType } from '../../types/roles';
@@ -105,6 +107,49 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
   const deathBadge = deathCause ? DEATH_CAUSE_LABELS[deathCause] || { label: deathCause, tone: 'red' as BadgeTone } : null;
 
   const effectiveActionType = (actionType ?? targetIntent) as ActionReticleType | undefined;
+
+  // Progression & Prestige Cosmetics
+  const playerPrestige = React.useMemo(() => {
+    if (typeof window === 'undefined') {
+      return {
+        rankTier: 'NOVICE_DETECTIVE' as RankTier,
+        rankName: 'Acemi Xəfiyyə',
+        borderClass: 'border-zinc-500/40',
+        titleName: 'Xəfiyyə',
+        titleBg: 'bg-zinc-800/80 border-zinc-600/50',
+        titleColor: 'text-zinc-300',
+        elo: 1200,
+        level: 1,
+      };
+    }
+    const profile = getPlayerProgression(player.userId, player.username);
+    let tier = profile.rankTier;
+    let elo = profile.elo;
+    let level = profile.level;
+    if (isBot) {
+      const hash = player.userId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+      const tiers: RankTier[] = ['NOVICE_DETECTIVE', 'DEPUTY_INQUISITOR', 'HIGH_MAGISTRATE', 'SYNDICATE_ENFORCER', 'UNDERBOSS', 'SYNDICATE_DON', 'SUPREME_GODFATHER'];
+      tier = tiers[hash % tiers.length];
+      elo = 1100 + (hash % 1100);
+      level = 5 + (hash % 45);
+    }
+    const rankDef = RANK_TIERS[tier] || RANK_TIERS['NOVICE_DETECTIVE'];
+    const borderDef = COSMETIC_BORDERS.find((b) => b.id === profile.equippedCosmetics?.borderId) || COSMETIC_BORDERS[0];
+    const titleDef = COSMETIC_TITLES.find((t) => t.id === profile.equippedCosmetics?.titleId) || COSMETIC_TITLES[0];
+
+    return {
+      rankTier: tier,
+      rankName: rankDef.nameAz,
+      rankBg: rankDef.badgeBg,
+      rankColor: rankDef.textColor,
+      borderClass: borderDef.cssClass || rankDef.borderStyle,
+      titleName: titleDef.name,
+      titleBg: titleDef.badgeBg,
+      titleColor: titleDef.textColor,
+      elo,
+      level,
+    };
+  }, [player.userId, player.username, isBot]);
 
   // 3D Perspective Tilt & Spring Motion (WCAG 2.1 AA / Touch-aware)
   const cardRef = React.useRef<HTMLDivElement>(null);
@@ -418,7 +463,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
         <div className="flex items-center gap-2.5 min-w-0">
           {/* Avatar Circle */}
           <div
-            className={`relative w-10 h-10 rounded-[8px] flex items-center justify-center font-black text-sm shrink-0 border shadow-sm transition-transform duration-200 ${
+            className={`relative w-10 h-10 rounded-[8px] flex items-center justify-center font-black text-sm shrink-0 border shadow-sm transition-transform duration-200 ${playerPrestige.borderClass} ${
               isHost
                 ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white border-amber-400/50 shadow-amber-500/20'
                 : isSelf
@@ -438,6 +483,24 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
             <div className="flex items-center gap-1.5 flex-wrap">
               <span data-testid={`player-username-${player.userId}`} className="font-extrabold text-sm text-zinc-950 dark:text-white truncate">
                 {roleTitle}
+              </span>
+
+              {/* Rank Tier & Prestige Badges */}
+              <span
+                data-testid={`badge-rank-${player.userId}`}
+                className={`inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.2 rounded border ${playerPrestige.rankBg} ${playerPrestige.rankColor} shrink-0`}
+                title={`Dərəcə: ${playerPrestige.rankName} (${playerPrestige.elo} ELO)`}
+              >
+                <Shield className="w-2.5 h-2.5" />
+                {playerPrestige.rankName}
+              </span>
+
+              <span
+                data-testid={`badge-prestige-${player.userId}`}
+                className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-1.5 py-0.2 rounded border ${playerPrestige.titleBg} ${playerPrestige.titleColor} shrink-0`}
+              >
+                <Award className="w-2.5 h-2.5" />
+                {playerPrestige.titleName}
               </span>
 
               {/* Bold "SƏN" Badge */}
