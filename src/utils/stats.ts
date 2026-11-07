@@ -24,14 +24,14 @@ export interface PlayerStats {
 }
 
 export const TITLES = [
-  { maxLevel: 5, name: 'Acemi Xəfiyyə' },
-  { maxLevel: 10, name: 'Sakin' },
-  { maxLevel: 20, name: 'Müstəntiq Köməkçisi' },
-  { maxLevel: 35, name: 'Ali Hakim' },
-  { maxLevel: 50, name: 'Sindikat Cəzaçısı' },
-  { maxLevel: 75, name: 'Vitse-Don' },
-  { maxLevel: 99, name: 'Sindikat Donu' },
-  { maxLevel: 999, name: 'Ali Xaçatası' },
+  { maxLevel: 5, name: 'Novice Sleuth' },
+  { maxLevel: 10, name: 'Citizen' },
+  { maxLevel: 20, name: 'Deputy Inquisitor' },
+  { maxLevel: 35, name: 'High Magistrate' },
+  { maxLevel: 50, name: 'Syndicate Enforcer' },
+  { maxLevel: 75, name: 'Underboss' },
+  { maxLevel: 99, name: 'Syndicate Don' },
+  { maxLevel: 999, name: 'Supreme Godfather' },
 ];
 
 export const getPlayerStats = (userId: string): PlayerStats => {
@@ -55,12 +55,12 @@ export const calculateLevel = (xp: number) => {
 };
 
 export const getTitleForLevel = (level: number) => {
-  return TITLES.find((t) => level <= t.maxLevel)?.name || 'Ali Xaçatası';
+  return TITLES.find((t) => level <= t.maxLevel)?.name || 'Supreme Godfather';
 };
 
 export const getRankTitleForElo = (elo: number) => {
   const profile = getPlayerProgression('temp_check');
-  return RANK_TIERS[profile.rankTier]?.nameAz || 'Acemi Xəfiyyə';
+  return RANK_TIERS[profile.rankTier]?.nameAz || 'Novice Sleuth';
 };
 
 export const recordGameResult = (

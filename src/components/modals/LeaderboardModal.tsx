@@ -51,7 +51,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
               userId: currentUserId,
               username: resolvedUsername,
               tier: 'TIER_1',
-              roleTitle: 'Klub Oyunçusu',
+              roleTitle: 'Club Member',
               gamesPlayed: 0,
               winRate: 0,
             });
@@ -95,7 +95,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
         }
 
         if (entries.length === 0) {
-          entries.push({ userId: 'usr-anar', username: 'Anar (Şərif)', elo: 1845, level: 75 });
+          entries.push({ userId: 'usr-anar', username: 'Anar (Sheriff)', elo: 1845, level: 75 });
           entries.push({ userId: 'usr-kamran', username: 'Kamran_M', elo: 1720, level: 50 });
           entries.push({ userId: 'usr-elvin', username: 'Elvin', elo: 1640, level: 38 });
         }
@@ -109,7 +109,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
             if (rawStats) {
               try {
                 const parsed: PlayerStats = JSON.parse(rawStats);
-                let username = uId === currentUserId ? (resolvedUsername || 'Siz') : 'Oyunçu ' + uId.substring(0, 4);
+                let username = uId === currentUserId ? (resolvedUsername || 'You') : 'Player ' + uId.substring(0, 4);
                 const existing = entries.find((e) => e.userId === uId);
                 if (!existing) {
                   entries.push({
@@ -174,10 +174,10 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
               <Trophy className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
-              Qlobal Reytinq Cədvəli
+              Global Leaderboard
             </h2>
             <p className="text-zinc-500 dark:text-zinc-400 text-sm max-w-md font-medium">
-              Şəhərin ən güclü oyunçuları. Qələbə qazanaraq ELO xalınızı artırın.
+              The city's sharpest minds. Compete in social deduction to increase your ELO rank.
             </p>
           </div>
         </div>
@@ -193,20 +193,20 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
               </div>
               <div>
                 <h3 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                  {currentUser ? currentUser.username : 'Qonaq Oyunçu'}
+                  {currentUser ? currentUser.username : 'Guest Detective'}
                   {currentUser && (
-                    <Badge tone="purple">Siz</Badge>
+                    <Badge tone="purple">YOU</Badge>
                   )}
                 </h3>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                  {currentUser ? (userStats ? `LVL ${userStats.level}` : 'Yüklənir...') : 'Sistemə daxil olmayıb'}
+                  {currentUser ? (userStats ? `LVL ${userStats.level}` : 'Loading...') : 'Not signed in'}
                 </p>
               </div>
             </div>
             
             <div className="flex items-center gap-6">
               <div className="text-right">
-                <div className="text-[10px] uppercase font-bold tracking-widest text-zinc-400 mb-0.5">Sizin ELO</div>
+                <div className="text-[10px] uppercase font-bold tracking-widest text-zinc-400 mb-0.5">Your ELO</div>
                 <div className="text-lg font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 justify-end">
                   <TrendingUp className="w-4 h-4" />
                   {currentUser && userStats ? userStats.elo : '—'}
@@ -218,8 +218,8 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
           {/* Leaderboard Table */}
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[16px] overflow-hidden shadow-sm">
             <div className="px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/50 flex items-center justify-between text-xs font-bold text-zinc-500 uppercase tracking-wider">
-              <span>İştirakçı</span>
-              <span>ELO Reytinq</span>
+              <span>Player</span>
+              <span>ELO Rating</span>
             </div>
             
             <div className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
@@ -241,7 +241,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                       <div className="flex items-center gap-2">
                         <span className={`font-bold ${isMe ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
                           {player.username}
-                          {isMe && <span className="ml-2 text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded font-black">Siz</span>}
+                          {isMe && <span className="ml-2 text-[10px] bg-indigo-500 text-white px-1.5 py-0.5 rounded font-black">YOU</span>}
                         </span>
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 font-mono font-bold">
                           LVL {player.level}

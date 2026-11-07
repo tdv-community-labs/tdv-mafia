@@ -175,30 +175,79 @@ export function getPlayerFaction(player: PlayerSession | undefined): CoreFaction
   if (player.allInIdentity?.layer1Faction) {
     return player.allInIdentity.layer1Faction;
   }
+  const roleId = ((player as any).roleId?.toUpperCase?.() ?? (player.displayRole as any)?.roleId?.toUpperCase?.() ?? '');
   const role = (player.displayRole?.originalRoleName || '').toLowerCase();
   const loc = (player.displayRole?.localizedRoleName || '').toLowerCase();
+  const nick = (player.displayRole?.nickname || '').toLowerCase();
+  const formatted = (player.displayRole?.formatted || '').toLowerCase();
+
   if (
+    roleId.includes('MAFIA') ||
     role.includes('mafia') ||
+    loc.includes('mafia') ||
     loc.includes('mafiya') ||
+    nick.includes('mafia') ||
+    nick.includes('mafiya') ||
+    formatted.includes('mafia') ||
+    formatted.includes('mafiya') ||
     role === 'godfather' ||
     role === 'consigliere' ||
-    role === 'mafioso'
+    role === 'mafioso' ||
+    loc.includes('xaç atası') ||
+    loc.includes('konsilyeri')
   ) {
     return 'MAFIA';
   }
-  if (role.includes('yakuza') || role === 'oyabun' || role === 'wakagashira') {
+  if (
+    roleId.includes('YAKUZA') ||
+    role.includes('yakuza') ||
+    loc.includes('yakuza') ||
+    nick.includes('yakuza') ||
+    role === 'oyabun' ||
+    role === 'wakagashira'
+  ) {
     return 'YAKUZA';
   }
-  if (role.includes('cult')) {
+  if (
+    roleId.includes('CULT') ||
+    role.includes('cult') ||
+    loc.includes('cult') ||
+    loc.includes('kult') ||
+    loc.includes('təriqət') ||
+    formatted.includes('cult')
+  ) {
     return 'VOID_CULT';
   }
-  if (role.includes('serial') || role.includes('killer') || role === 'arsonist') {
+  if (
+    roleId.includes('NEUTRAL_KILLER') ||
+    role.includes('serial') ||
+    role.includes('killer') ||
+    loc.includes('serial') ||
+    loc.includes('killer') ||
+    loc.includes('seriyalı qatil') ||
+    loc.includes('maniak') ||
+    role === 'arsonist'
+  ) {
     return 'NEUTRAL_KILLER';
   }
-  if (role.includes('jester') || role.includes('executioner')) {
+  if (
+    roleId.includes('NEUTRAL_EVIL') ||
+    role.includes('jester') ||
+    role.includes('executioner') ||
+    loc.includes('jester') ||
+    loc.includes('təlxək') ||
+    loc.includes('cəllad')
+  ) {
     return 'NEUTRAL_EVIL';
   }
-  if (role.includes('survivor') || role.includes('amnesiac')) {
+  if (
+    roleId.includes('NEUTRAL_BENIGN') ||
+    role.includes('survivor') ||
+    role.includes('amnesiac') ||
+    loc.includes('survivor') ||
+    loc.includes('sağ qalan') ||
+    loc.includes('amneziyalı')
+  ) {
     return 'NEUTRAL_BENIGN';
   }
   return 'TOWN';

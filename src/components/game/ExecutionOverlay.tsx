@@ -218,10 +218,10 @@ const ExecutionOverlayComponent: React.FC<ExecutionOverlayProps> = ({
               }`}
             >
               {isMafia
-                ? '★ ƏDALƏTİN TƏNTƏNƏSİ ★'
+                ? '★ JUSTICE TRIUMPHANT: MAFIA PURGED ★'
                 : isInnocent
-                ? '🖤 ŞƏHƏRİN FACİƏSİ & PEŞMANÇILIQ 🖤'
-                : '🃏 TƏLXƏK TƏLƏSİ 🃏'}
+                ? '🖤 TRAGEDY AT DAWN: INNOCENT LYNCHED 🖤'
+                : '🃏 JESTER’S GAMBIT: THE TRAP SPRUNG 🃏'}
             </h2>
 
             {/* Executed Player Name */}
@@ -236,17 +236,17 @@ const ExecutionOverlayComponent: React.FC<ExecutionOverlayProps> = ({
                     : 'text-purple-300 bg-purple-950/70 border-purple-500/50'
                 }`}
               >
-                EDAM EDİLDİ
+                EXECUTED
               </span>
             </h1>
 
             {/* Subtitle Lore */}
             <p className="text-xs sm:text-sm font-semibold max-w-xl text-center mb-2 text-zinc-300">
               {isMafia
-                ? 'Şəhər bir qatildən xilas oldu! Mafiya şəbəkəsinə ağır zərbə endirildi.'
+                ? 'The city purged a conspirator! A devastating blow has been dealt to the criminal underworld.'
                 : isInnocent
-                ? 'Şəhər səhv etdi! Məsum vətəndaşın qanı töküldü, hamı peşmançılıq içində başını aşağı salır...'
-                : 'Şəhər qurban verdiyini zənn etdi, amma əslində tələyə düşdü! Təlxək qalib gəldi!'}
+                ? 'The court made a fatal misjudgment. An innocent civilian was executed, casting a dark pall over the assembly.'
+                : 'The jury believed justice was served, but fell straight into a trap! The Jester has won the ultimate wager.'}
             </p>
 
             {/* True Role Reveal */}
@@ -264,7 +264,7 @@ const ExecutionOverlayComponent: React.FC<ExecutionOverlayProps> = ({
               >
                 <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1 flex items-center gap-2">
                   <Skull className="w-4 h-4 text-zinc-400" />
-                  Gerçək Rolu Məlum Oldu
+                  True Identity Revealed
                 </div>
                 <div
                   className={`text-2xl sm:text-3xl font-black font-mono tracking-wider drop-shadow-lg ${

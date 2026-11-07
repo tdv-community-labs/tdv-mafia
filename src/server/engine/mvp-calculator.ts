@@ -12,14 +12,14 @@ import { MatchMVPScore, MatchRecap, MatchTurningPoint } from '../../types/progre
  */
 export function calculateMatchRecap(lobby: LobbyState): MatchRecap {
   const winnerResult = lobby.winnerResult;
-  const winningFaction = winnerResult?.winningFaction || 'Şəhər';
+  const winningFaction = winnerResult?.winningFaction || 'Town';
   const players = Object.values(lobby.players);
 
   // 1. Calculate MVP scores for each player
   const scores: MatchMVPScore[] = players.map((p) => {
     const isWinner = winnerResult ? winnerResult.winnerPlayerIds.includes(p.userId) : false;
     const isSurvivor = p.isAlive;
-    const roleName = p.displayRole?.localizedRoleName || p.displayRole?.originalRoleName || 'Vətəndaş';
+    const roleName = p.displayRole?.localizedRoleName || p.displayRole?.originalRoleName || 'Civilian';
     const faction = p.allInIdentity?.layer1Faction || (p.displayRole?.originalRoleName?.toUpperCase().includes('MAFIA') ? 'MAFIA' : 'TOWN');
 
     let victoryBonus = isWinner ? 40 : 0;
@@ -32,13 +32,13 @@ export function calculateMatchRecap(lobby: LobbyState): MatchRecap {
     // Check if player was on defense podium and survived or was acquitted
     if (lobby.accusedPlayerId === p.userId && lobby.lastLynchedUserId !== p.userId) {
       defenseAcquittalPoints += 25;
-      highlights.push('Məhkəmə kürsüsündə bəraət qazandı');
+      highlights.push('Acquitted on the defense podium');
     }
 
     // Check mayor reveal
     if (lobby.mayorRevealedUserIds?.includes(p.userId)) {
       actionImpactPoints += 30;
-      highlights.push('Bələdiyyə Sədri olaraq 3x səsini elan etdi');
+      highlights.push('Proclaimed 3x Mayoral authority');
     }
 
     // Scan newspapers for clutch actions (Doctor saves, armor fractures, etc.)
@@ -50,11 +50,11 @@ export function calculateMatchRecap(lobby: LobbyState): MatchRecap {
     for (const paper of allNewspapers) {
       if (paper.protectedIds?.includes(p.userId)) {
         actionImpactPoints += 20;
-        highlights.push('Ölümcül hücumdan xilas edildi');
+        highlights.push('Healed from fatal night strike');
       }
       if (paper.armorBrokenPlayerIds?.includes(p.userId)) {
         actionImpactPoints += 25;
-        highlights.push('Polad İradə ilə ölümcül zərbəni dəf etdi');
+        highlights.push('Deflected lethal blow with Iron Will');
       }
       // Check if investigator found guilty
       const invResults = lobby.privateInvestigations?.[p.userId];
@@ -68,7 +68,7 @@ export function calculateMatchRecap(lobby: LobbyState): MatchRecap {
         );
         if (foundGuilty.length > 0) {
           actionImpactPoints += 25 * foundGuilty.length;
-          highlights.push(`${foundGuilty.length} cinayətkarı ifşa etdi`);
+          highlights.push(`Exposed ${foundGuilty.length} hostile operatives`);
         }
       }
     }
@@ -77,13 +77,13 @@ export function calculateMatchRecap(lobby: LobbyState): MatchRecap {
     if (isWinner) {
       if (faction === 'MAFIA' || faction === 'YAKUZA') {
         actionImpactPoints += 25;
-        highlights.push('Sindikat zəfərini təmin etdi');
+        highlights.push('Secured victory for the Mafia Family');
       } else if (faction === 'TOWN') {
         votingAccuracyPoints += 20;
-        highlights.push('Şəhər ittifaqını qorudu');
+        highlights.push('Preserved the Town coalition');
       } else {
         actionImpactPoints += 35;
-        highlights.push('Təkbaşına neytral qələbə qazandı');
+        highlights.push('Achieved solo neutral victory');
       }
     }
 
@@ -126,7 +126,7 @@ export function calculateMatchRecap(lobby: LobbyState): MatchRecap {
       actionImpactPoints: 20,
       defenseAcquittalPoints: 0,
     },
-    clutchHighlights: ['Matçın ən fəal oyunçusu'],
+    clutchHighlights: ['Most active player of the match'],
   };
 
   // 2. Compute Turning Points (Dönüş Nöqtələri)
@@ -136,8 +136,8 @@ export function calculateMatchRecap(lobby: LobbyState): MatchRecap {
   turningPoints.push({
     round: 1,
     phase: 'NIGHT',
-    titleAz: 'Qaranlıq Başlanğıc',
-    descriptionAz: 'Şəhərdə ilk gecə əməliyyatları başladı və gərginlik artdı.',
+    titleAz: 'The Midnight Awakening',
+    descriptionAz: 'First night operations commenced under midnight fog; tensions escalate across the city.',
     impactLevel: 'HIGH',
     involvedPlayerIds: [],
   });
@@ -148,8 +148,8 @@ export function calculateMatchRecap(lobby: LobbyState): MatchRecap {
     turningPoints.push({
       round: Math.max(1, lobby.roundNumber - 1),
       phase: 'TRIAL_DEFENSE',
-      titleAz: 'Məhkəmə Kürsüsü Dueli',
-      descriptionAz: `${accused?.username || 'İttiham olunan'} məhkəmə kürsüsündə 30 saniyəlik dramatik müdafiə çıxışı etdi.`,
+      titleAz: 'Podium Defense Showdown',
+      descriptionAz: `${accused?.username || 'The accused'} presented a dramatic 30-second defense on the court podium. `,
       impactLevel: 'CRITICAL',
       involvedPlayerIds: [lobby.accusedPlayerId],
     });
@@ -162,8 +162,8 @@ export function calculateMatchRecap(lobby: LobbyState): MatchRecap {
     turningPoints.push({
       round: lobby.roundNumber,
       phase: 'DAY_VOTING',
-      titleAz: 'Merin Mütləq Hakimiyyəti',
-      descriptionAz: `${mayor?.username || 'Mer'} şəxsiyyətini açıqlayaraq 3x səs hüququ ilə məhkəmənin taleyini həll etdi!`,
+      titleAz: 'Mayoral Decree (Mer İxtiyarı)',
+      descriptionAz: `${mayor?.username || 'The Mayor'} unveiled their identity, swinging the courtroom verdict with 3x voting power!`, 
       impactLevel: 'GAME_CHANGING',
       involvedPlayerIds: [mayorId],
     });
@@ -173,8 +173,8 @@ export function calculateMatchRecap(lobby: LobbyState): MatchRecap {
   turningPoints.push({
     round: lobby.roundNumber,
     phase: 'DAY_VOTING',
-    titleAz: 'Qələbə Zəfəri',
-    descriptionAz: `${winningFaction} fraksiyası rəqiblərini tam üstələyərək matçın mütləq qalibi oldu!`,
+    titleAz: 'Decisive Victory',
+    descriptionAz: `The ${winningFaction} faction outmaneuvered all adversaries to claim total victory!`, 
     impactLevel: 'GAME_CHANGING',
     involvedPlayerIds: winnerResult?.winnerPlayerIds || [],
   });
@@ -187,7 +187,7 @@ export function calculateMatchRecap(lobby: LobbyState): MatchRecap {
       playerName: p.username,
       roleName: p.displayRole?.localizedRoleName || 'Vətəndaş',
       round: p.deathRound || lobby.roundNumber,
-      cause: p.deathCause || 'Güllələnib',
+      cause: p.deathCause || 'Shot Dead',
     }));
 
   // 4. Generate Shareable Summary Text
@@ -222,13 +222,13 @@ export function generateShareSummary(
       ? '🛡️'
       : '🔮';
 
-  return `🎭 TDV BTL MAFIA — DÖYÜŞ NƏTİCƏSİ
-${factionEmoji} Qalib Fraksiya: ${winningFaction}
-👑 Matçın MVP-si: ${mvp.playerName} (${mvp.roleId} — ${mvp.totalScore} Xal)
-⏱️ Döyüş Müddəti: ${totalRounds} Raund
-🔥 Ən Yaxşı Performans: ${mvp.clutchHighlights[0] || 'Qələbə zərbəsi'}
+  return `🎭 TDV BTL MAFIA — MATCH REPORT (DÖYÜŞ NƏTİCƏSİ)
+${factionEmoji} Winning Faction (Qalib Fraksiya): ${winningFaction}
+👑 Match MVP: ${mvp.playerName} (${mvp.roleId} — ${mvp.totalScore} Pts)
+⏱️ Match Duration: ${totalRounds} Rounds
+🔥 Clutch Highlight: ${mvp.clutchHighlights[0] || 'Decisive Victory'}
 
-🎮 TDV BTL Mafia arenasında sən də öz intriqanı qur:
+🎮 Forge your own deception in TDV BTL Mafia:
 https://mafia.tdv.az/lobby/${lobbyId}`;
 }
 
@@ -245,7 +245,7 @@ export function formatWhatsAppShareUrl(recap: MatchRecap): string {
 
 export function formatTwitterShareUrl(recap: MatchRecap): string {
   const text = encodeURIComponent(
-    `🎭 TDV BTL MAFIA matçında ${recap.winningFaction} qalib gəldi! MVP: ${recap.mvp.playerName} (${recap.mvp.totalScore} xal)! 🎮\n`
+    `🎭 The ${recap.winningFaction} triumphed in TDV BTL MAFIA! MVP: ${recap.mvp.playerName} (${recap.mvp.totalScore} pts)! 🎮\n`
   );
   const url = encodeURIComponent(`https://mafia.tdv.az/lobby/${recap.lobbyId}`);
   return `https://twitter.com/intent/tweet?text=${text}&url=${url}`;

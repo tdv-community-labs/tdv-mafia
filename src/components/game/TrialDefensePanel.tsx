@@ -4,7 +4,7 @@ import React from 'react';
 import { Gavel, Shield, Crown, AlertTriangle, Clock, Check, X, Scale, UserCheck, Mic } from 'lucide-react';
 import { LobbyState, PlayerSession } from '../../types/game';
 import { ScrubbedPlayerView } from '../../types/engine';
-import { AZ_DISTRICTS } from '../../config/i18n/az';
+import { EN_DISTRICTS } from '../../config/i18n/en';
 import { Badge } from '../ui/Badge';
 import { playCard, triggerHaptic, playMicroClick, playMayoralFanfare } from '../../utils/sfx';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -129,12 +129,12 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
               <Scale className="w-3 h-3 text-amber-400" />
-              MƏHKƏMƏ HÖKMÜ PROSESİ
+              HIGH COURT TRIAL
             </span>
-            <span className="text-xs text-zinc-400 font-bold">Raund {lobbyState.roundNumber}</span>
+            <span className="text-xs text-zinc-400 font-bold">Round {lobbyState.roundNumber}</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-amber-100 tracking-tight flex items-center gap-2">
-            <span>Şəhər Məhkəməsi: Müdafiə Kürsüsü</span>
+            <span>High Court: Podium Defense</span>
           </h2>
         </div>
 
@@ -187,10 +187,10 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
           <div className="flex flex-col">
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-80 flex items-center gap-1">
               <Clock className={`w-3 h-3 ${isUrgent ? 'text-red-400 animate-spin' : 'text-amber-400'}`} />
-              {isFinalClimax ? '⚠️ HÖKM ANI!' : isUrgent ? 'TƏCİLİ QƏRAR!' : 'Müdafiə Vaxtı'}
+              {isFinalClimax ? '⚠️ FINAL VERDICT!' : isUrgent ? 'URGENT DECISION!' : 'Defense Window'}
             </span>
             <span className="text-xs font-semibold text-zinc-400">
-              {isFinalClimax ? 'Andçılar qərarı təsdiqləyir...' : `${timeRemaining} saniyə qaldı`}
+              {isFinalClimax ? 'Jurors are casting final ballots...' : `${timeRemaining}s remaining`}
             </span>
           </div>
         </div>
@@ -208,23 +208,23 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
               {accusedPlayer ? accusedPlayer.username.charAt(0).toUpperCase() : '?'}
             </div>
             <span className="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-zinc-950 text-[9px] font-black uppercase tracking-wider border border-zinc-950 z-20">
-              KÜRSÜ
+              PODIUM
             </span>
           </div>
 
           <div className="flex flex-col">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-lg font-black text-white">
-                {accusedPlayer?.username ?? 'Təyin Edilməyib'}
+                {accusedPlayer?.username ?? 'Unassigned'}
               </span>
               {district && (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                  {AZ_DISTRICTS[district]}
+                  {EN_DISTRICTS[district]}
                 </span>
               )}
               {isAccused && (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-zinc-950 uppercase tracking-widest shadow-sm">
-                  SƏN
+                  YOU
                 </span>
               )}
               {isAccusedSpeaking && (
@@ -235,14 +235,14 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
                     <span className="w-0.5 bg-amber-400 rounded-full animate-[bounce_0.4s_ease-in-out_infinite]" />
                     <span className="w-0.5 bg-amber-400 rounded-full animate-[bounce_0.5s_ease-in-out_infinite]" />
                   </div>
-                  <span>MÜDAFİƏ ÇIXIŞI EDİR</span>
+                  <span>TESTIFYING ON PODIUM</span>
                 </span>
               )}
             </div>
             <p className="text-xs text-amber-200/80 mt-0.5">
               {isAccused
-                ? 'Siz hazırda kürsüdəsiniz! Şəhər sakinləri lehinizə və ya əleyhinizə hökm çıxarır.'
-                : 'İttiham olunan vətəndaş son sözünü deyir. Andçılar heyəti hökm qəbul etməlidir.'}
+                ? 'You stand accused on the podium! The town is deciding your fate.'
+                : 'The accused is presenting their final defense. The jury must cast their verdict.'}
             </p>
           </div>
         </div>
@@ -250,7 +250,7 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
         {/* Status Chip */}
         <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
           <Badge tone="amber" className="text-xs px-3 py-1 font-black">
-            ⚖️ İttiham Olunan
+            ⚖️ Accused on Trial
           </Badge>
         </div>
       </div>
@@ -260,14 +260,14 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
         <div className="flex items-center justify-between text-xs font-bold text-zinc-300 flex-wrap gap-2">
           <span className="flex items-center gap-1.5 text-red-400 font-extrabold">
             <X className="w-4 h-4 text-red-500" />
-            GÜNAHKARDIR: {guiltyCount} səs
+            GUILTY: {guiltyCount} votes
           </span>
           <span className="text-zinc-500 text-[11px]">
-            Cəmi Hökm: {totalVerdictVotes} / {eligibleVoterCount}
+            Total Ballots: {totalVerdictVotes} / {eligibleVoterCount}
           </span>
           <span className="flex items-center gap-1.5 text-emerald-400 font-extrabold">
             <Check className="w-4 h-4 text-emerald-500" />
-            TƏQSİRSİZDİR: {innocentCount} səs
+            NOT GUILTY: {innocentCount} votes
           </span>
         </div>
 
@@ -278,7 +278,7 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
             style={{ transform: `rotate(${totalVerdictVotes > 0 ? Math.max(-15, Math.min(15, (guiltyCount - innocentCount) * 3)) : 0}deg)` }}
           >
             <Scale className={`w-4 h-4 ${guiltyCount > innocentCount ? 'text-red-400' : innocentCount > guiltyCount ? 'text-emerald-400' : 'text-amber-400'}`} />
-            <span>Ədalət Tərəzisi: {guiltyCount > innocentCount ? 'Edam Tərəfi Ağır Basır' : innocentCount > guiltyCount ? 'Bəraət Qazanır' : 'Mütləq Tarazlıq'}</span>
+            <span>Scales of Justice: {guiltyCount > innocentCount ? 'Conviction Favored' : innocentCount > guiltyCount ? 'Acquittal Favored' : 'Deadlock in Balance'}</span>
           </div>
         </div>
 
@@ -306,21 +306,21 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
           {isAccused ? (
             <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 font-bold">
               <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Siz kürsüdəsiniz! Özünüzə səs verə bilməzsiniz. Son 30 saniyədə şəhəri inandırın.</span>
+              <span>You are on the podium! Plead your defense to the town in 30 seconds.</span>
             </div>
           ) : isInSolitary ? (
             <div className="flex items-center gap-2 p-3 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-400 font-bold">
               <AlertTriangle className="w-4 h-4 text-zinc-500 shrink-0" />
-              <span>Təkadamlıq kameradasınız: Stanford Qaydasınca səsvermə hüququnuz dondurulub.</span>
+              <span>Solitary Confinement: Voting privileges suspended under Stanford Protocol.</span>
             </div>
           ) : !isAlive ? (
             <div className="flex items-center gap-2 p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400">
               <UserCheck className="w-4 h-4 text-zinc-500 shrink-0" />
-              <span>Müşahidəçi rejimindəsiniz: Yalnız canlı andçılar məhkəmə hökmü verə bilər.</span>
+              <span>Spectator Mode: Only living jurors may cast verdict ballots.</span>
             </div>
           ) : (
             <span className="text-zinc-400 font-medium">
-              Andçı kimi vicdanınıza uyğun seçim edin. Hökm bərabər olduqda təqsirsizlik prezumpsiyası keçərlidir.
+              Cast your verdict with conscience. A tied ballot upholds the presumption of innocence.
             </span>
           )}
         </div>
@@ -343,7 +343,7 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
               }`}
             >
               <Gavel className="w-4 h-4 text-red-400" />
-              <span>GÜNAHKARDIR</span>
+              <span>GUILTY</span>
               {myVote === 'GUILTY' && <Check className="w-4 h-4 text-white" />}
             </button>
 
@@ -362,7 +362,7 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
               }`}
             >
               <Shield className="w-4 h-4 text-emerald-400" />
-              <span>TƏQSİRSİZDİR</span>
+              <span>NOT GUILTY</span>
               {myVote === 'INNOCENT' && <Check className="w-4 h-4 text-white" />}
             </button>
           </div>
@@ -376,10 +376,10 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
             <Crown className="w-5 h-5 text-amber-400 animate-bounce" />
             <div>
               <span className="text-xs font-black text-amber-200 uppercase tracking-wider block">
-                Şəhər Meri İxtiyarı
+                Mayoral Authority
               </span>
               <span className="text-[11px] text-purple-200/80">
-                Kimliyinizi açıqlayaraq məhkəmədə səs çəkinizi 3x artıra bilərsiniz.
+                Reveal your identity to amplify your courtroom vote weight to 3x.
               </span>
             </div>
           </div>
@@ -390,7 +390,7 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
             className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-amber-600 hover:from-purple-500 hover:to-amber-500 text-white font-black text-xs uppercase tracking-widest shadow-lg hover:shadow-purple-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer self-start sm:self-auto"
           >
             <Crown className="w-4 h-4 text-amber-300" />
-            <span>3X ŞƏHƏR MERİ KİMLİYİNİ AÇIQLA</span>
+            <span>REVEAL MAYOR IDENTITY (3X VOTE)</span>
           </button>
         </div>
       )}
@@ -398,7 +398,7 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
       {isMayorRevealed && (
         <div className="relative z-10 py-1.5 px-3 rounded-xl bg-purple-900/30 border border-purple-500/40 text-purple-200 text-xs font-black flex items-center gap-2 w-fit">
           <Crown className="w-4 h-4 text-amber-400" />
-          <span>👑 ŞƏHƏR MERİ: 3X SƏS GÜCÜ AKTİVDİR</span>
+          <span>👑 MAYOR REVEALED: 3X VOTE WEIGHT ACTIVE</span>
         </div>
       )}
 
@@ -415,11 +415,11 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
             <div className="p-8 sm:p-10 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 border-4 border-amber-200 shadow-[0_0_80px_rgba(251,191,36,0.9)] flex flex-col items-center text-center max-w-sm ring-8 ring-amber-400/30">
               <Crown className="w-16 h-16 text-zinc-950 mb-2 drop-shadow-md animate-bounce" />
               <h2 className="text-2xl sm:text-3xl font-black text-zinc-950 font-serif tracking-widest uppercase">
-                ŞƏHƏR MERİ
+                THE MAYOR
               </h2>
               <div className="h-0.5 w-32 bg-zinc-950/60 my-2" />
               <span className="text-xs sm:text-sm font-black text-amber-950 tracking-wider uppercase">
-                👑 3X HÖKM İXTİYARI TƏSDİQLƏNDİ!
+                👑 3X VERDICT AUTHORITY PROCLAIMED!
               </span>
             </div>
           </motion.div>

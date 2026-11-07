@@ -71,14 +71,14 @@ export const MatchRecapModal: React.FC<MatchRecapModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold uppercase tracking-widest text-amber-400">
-                  Matçın Nəticəsi • Raund {recap.totalRounds}
+                  Match Results • Round {recap.totalRounds}
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  {recap.winningFaction} Qələbəsi
+                  {recap.winningFaction} Victory
                 </span>
               </div>
               <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-                TDV BTL Arena Döyüş İcmalı
+                TDV BTL Arena Match Report
               </h2>
             </div>
           </div>
@@ -102,7 +102,7 @@ export const MatchRecapModal: React.FC<MatchRecapModalProps> = ({
             }`}
           >
             <Crown className="w-3.5 h-3.5" />
-            MVP & Qəhrəman
+            MVP & Clutch Hero
           </button>
           <button
             onClick={() => setActiveTab('TIMELINE')}
@@ -113,7 +113,7 @@ export const MatchRecapModal: React.FC<MatchRecapModalProps> = ({
             }`}
           >
             <TrendingUp className="w-3.5 h-3.5" />
-            Dönüş Nöqtələri ({recap.turningPoints.length})
+            Turning Points ({recap.turningPoints.length})
           </button>
           <button
             onClick={() => setActiveTab('LEADERBOARD')}
@@ -124,7 +124,7 @@ export const MatchRecapModal: React.FC<MatchRecapModalProps> = ({
             }`}
           >
             <Trophy className="w-3.5 h-3.5" />
-            Xal Cədvəli ({recap.scores.length})
+            Scoreboard ({recap.scores.length})
           </button>
         </div>
 
@@ -146,11 +146,11 @@ export const MatchRecapModal: React.FC<MatchRecapModalProps> = ({
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-400 text-zinc-950 shadow-sm">
-                          MATÇIN MVP-Sİ
+                          MATCH MVP
                         </span>
                         {isUserMvp && (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-purple-500 text-white">
-                            BU SƏNSƏN!
+                            THAT'S YOU!
                           </span>
                         )}
                       </div>
@@ -158,16 +158,16 @@ export const MatchRecapModal: React.FC<MatchRecapModalProps> = ({
                         {recap.mvp.playerName}
                       </h3>
                       <p className="text-xs font-semibold text-amber-300/90 flex items-center gap-2">
-                        <span>Rol: {recap.mvp.roleId}</span>
+                        <span>Role: {recap.mvp.roleId}</span>
                         <span>•</span>
-                        <span>Fraksiya: {recap.mvp.faction}</span>
+                        <span>Faction: {recap.mvp.faction}</span>
                       </p>
                     </div>
                   </div>
 
                   <div className="bg-zinc-950/80 p-3.5 rounded-xl border border-amber-500/30 text-right min-w-[130px]">
                     <span className="text-[10px] uppercase font-bold text-zinc-400 block">
-                      MVP Performans Xalı
+                      MVP Performance Score
                     </span>
                     <span className="text-3xl font-black text-amber-400">
                       {recap.mvp.totalScore}
@@ -178,19 +178,19 @@ export const MatchRecapModal: React.FC<MatchRecapModalProps> = ({
                 {/* Score Breakdown Bars */}
                 <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-4 border-t border-amber-500/20 text-xs">
                   <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                    <span className="text-zinc-400 block text-[10px]">Qələbə Bonusu</span>
+                    <span className="text-zinc-400 block text-[10px]">Victory Bonus</span>
                     <span className="font-black text-emerald-400 text-sm">+{recap.mvp.breakdown.victoryBonus}</span>
                   </div>
                   <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                    <span className="text-zinc-400 block text-[10px]">Sağ Qalma</span>
+                    <span className="text-zinc-400 block text-[10px]">Survival</span>
                     <span className="font-black text-cyan-400 text-sm">+{recap.mvp.breakdown.survivalBonus}</span>
                   </div>
                   <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                    <span className="text-zinc-400 block text-[10px]">Hərəkət Təsiri</span>
+                    <span className="text-zinc-400 block text-[10px]">Action Impact</span>
                     <span className="font-black text-amber-400 text-sm">+{recap.mvp.breakdown.actionImpactPoints}</span>
                   </div>
                   <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                    <span className="text-zinc-400 block text-[10px]">Məhkəmə Bəraəti</span>
+                    <span className="text-zinc-400 block text-[10px]">Podium Acquittal</span>
                     <span className="font-black text-purple-400 text-sm">+{recap.mvp.breakdown.defenseAcquittalPoints}</span>
                   </div>
                 </div>
@@ -270,7 +270,7 @@ export const MatchRecapModal: React.FC<MatchRecapModalProps> = ({
                         {idx === 0 && <Crown className="w-3.5 h-3.5 text-amber-400" />}
                         {score.playerId === currentUserId && (
                           <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-purple-600 text-white">
-                            SƏN
+                            YOU
                           </span>
                         )}
                       </div>
@@ -285,7 +285,7 @@ export const MatchRecapModal: React.FC<MatchRecapModalProps> = ({
                       <span className="font-black text-base text-amber-400">
                         {score.totalScore}
                       </span>
-                      <span className="text-[10px] text-zinc-500 block uppercase">xal</span>
+                      <span className="text-[10px] text-zinc-500 block uppercase">pts</span>
                     </div>
                   </div>
                 </div>
@@ -298,7 +298,7 @@ export const MatchRecapModal: React.FC<MatchRecapModalProps> = ({
         <div className="p-4 px-6 border-t border-zinc-800 bg-zinc-950/90 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-xs text-zinc-400">
             <Share2 className="w-4 h-4 text-amber-400" />
-            <span className="font-semibold">Nəticəni dostlarınla paylaş:</span>
+            <span className="font-semibold">Share results with friends:</span>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -342,12 +342,12 @@ export const MatchRecapModal: React.FC<MatchRecapModalProps> = ({
               {copied ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  Kopyalandı!
+                  Copied!
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5" />
-                  Mətni Kopyala
+                  Copy Summary
                 </>
               )}
             </Button>

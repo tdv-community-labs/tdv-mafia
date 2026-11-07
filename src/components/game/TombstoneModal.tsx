@@ -38,7 +38,7 @@ export const TombstoneModal: React.FC<TombstoneModalProps> = ({ isOpen, onClose,
           </div>
           <h2 className="text-lg font-black text-white tracking-wide flex items-center gap-2 relative z-10">
             <Skull className="w-5 h-5 text-zinc-400" />
-            MƏZAR DAŞI
+            EPITAPH & TOMBSTONE
           </h2>
           <button 
             onClick={onClose}
@@ -51,12 +51,12 @@ export const TombstoneModal: React.FC<TombstoneModalProps> = ({ isOpen, onClose,
         {/* Body */}
         <div className="p-6 flex flex-col gap-6">
           <div className="text-center">
-            <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">Mərhum Oyunçu</div>
+            <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">Fallen Citizen</div>
             <div className="text-2xl font-black text-white">{deadPlayer.username}</div>
           </div>
 
           <div className="flex flex-col items-center p-4 rounded-xl bg-zinc-950/50 border border-zinc-800">
-            <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Əsl Rolu İfşa Edildi</div>
+            <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">True Alignment Revealed</div>
             <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold ${isMafia ? 'bg-red-500/20 text-red-400 border border-red-500/30' : isNeutral ? 'bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}`}>
               {isMafia ? <Target className="w-4 h-4" /> : isNeutral ? <Skull className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
               {deadPlayer.displayRole.localizedRoleName || deadPlayer.displayRole.originalRoleName}
@@ -67,22 +67,22 @@ export const TombstoneModal: React.FC<TombstoneModalProps> = ({ isOpen, onClose,
             <div className="flex items-center justify-around p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 text-xs">
               {deadPlayer.deathCause && (
                 <div className="flex flex-col items-center">
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Ölüm Səbəbi</span>
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Cause of Death</span>
                   <span className="font-bold text-red-400 mt-0.5">
                     {deadPlayer.deathCause === 'MAFIA_KILL'
-                      ? 'Güllələnib'
+                      ? 'Shot Dead'
                       : deadPlayer.deathCause === 'LYNCH'
-                      ? 'Asılıb'
+                      ? 'Lynched on Trial'
                       : deadPlayer.deathCause === 'RADIATION_SICKNESS'
-                      ? 'Radiasiya'
+                      ? 'Radiation Sickness'
                       : deadPlayer.deathCause}
                   </span>
                 </div>
               )}
               {deadPlayer.deathRound !== undefined && (
                 <div className="flex flex-col items-center">
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Ölüm Raundu</span>
-                  <span className="font-bold text-zinc-300 mt-0.5">Raund {deadPlayer.deathRound}</span>
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase">Death Round</span>
+                  <span className="font-bold text-zinc-300 mt-0.5">Round {deadPlayer.deathRound}</span>
                 </div>
               )}
             </div>
@@ -91,7 +91,7 @@ export const TombstoneModal: React.FC<TombstoneModalProps> = ({ isOpen, onClose,
           <div className="flex flex-col gap-2">
             <div className="text-xs font-bold text-amber-500/70 uppercase tracking-wider flex items-center gap-1.5">
               <Scroll className="w-4 h-4" />
-              Son Vəsiyyət
+              Last Will & Testament
             </div>
             {lastWill ? (
               <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-900/30 text-amber-200/90 text-sm italic leading-relaxed" style={{ fontFamily: 'Georgia, serif' }}>
@@ -99,7 +99,7 @@ export const TombstoneModal: React.FC<TombstoneModalProps> = ({ isOpen, onClose,
               </div>
             ) : (
               <div className="p-4 rounded-xl bg-zinc-950/50 border border-zinc-800 text-zinc-600 text-sm italic text-center">
-                Mərhum heç bir vəsiyyət qoymayıb.
+                The deceased left no final testament.
               </div>
             )}
           </div>

@@ -279,7 +279,7 @@ export const GameModesCatalogModal: React.FC<GameModesCatalogModalProps> = ({
                 Oyun Formatları & Rollar Kataloqu
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                15 klub rejimi, xüsusi qabiliyyətlər, 16 ictimai vəzifə və 12 gizli istedad.
+                15 game modes, unique mechanics, 18 civic offices, and 16 innate traits.
               </p>
             </div>
           </div>
@@ -360,7 +360,7 @@ export const GameModesCatalogModal: React.FC<GameModesCatalogModalProps> = ({
                       {/* Roles */}
                       <div>
                         <div className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
-                          Rol Tərkibi:
+                          Role Breakdown:
                         </div>
                         <div className="flex flex-wrap gap-1.5">
                           {rolesList.map((role, idx) => (
@@ -380,7 +380,7 @@ export const GameModesCatalogModal: React.FC<GameModesCatalogModalProps> = ({
                       {features.length > 0 && (
                         <div className="p-2.5 rounded-[8px] border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-black/40">
                           <div className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">
-                            Xüsusi Mexanika:
+                            Special Mechanics:
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {features.map((feat, fIdx) => (
@@ -405,7 +405,7 @@ export const GameModesCatalogModal: React.FC<GameModesCatalogModalProps> = ({
                         onClick={() => handleLaunchMode(pack.id as GameMode)}
                         icon={<Dices className="w-4 h-4" />}
                       >
-                        Bu Rejimdə Masa Yarat
+                        Launch Room in This Mode
                       </Button>
                     </div>
                   </div>
@@ -426,7 +426,7 @@ export const GameModesCatalogModal: React.FC<GameModesCatalogModalProps> = ({
                     <Badge tone="purple">{allInPack.minPlayers}–{allInPack.maxPlayers} nəfər</Badge>
                   </div>
                   <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                    Bütün sinif və klub üzvlərinin eyni arenada toqquşduğu ən möhtəşəm turnir formatı.
+                    Massive multiplayer tournament format where 3 districts clash simultaneously.
                   </p>
                 </div>
 
@@ -443,7 +443,7 @@ export const GameModesCatalogModal: React.FC<GameModesCatalogModalProps> = ({
               {/* Roster */}
               <div>
                 <div className="text-xs font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider mb-2">
-                  Şəhər Bölgüsü (3 Laylı Kimlik):
+                  Metropolitan Districts (3-Layer Identity):
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {allInPack.roleBreakdown.split(',').map((role, idx) => {
@@ -467,7 +467,7 @@ export const GameModesCatalogModal: React.FC<GameModesCatalogModalProps> = ({
               <div className="p-4 rounded-[8px] border border-blue-500/25 bg-blue-500/5 dark:bg-blue-500/10">
                 <div className="flex items-center gap-2 mb-2 text-xs font-bold text-blue-700 dark:text-blue-300">
                   <Building className="w-4 h-4 text-blue-500" />
-                  <span>16 İctimai Vəzifə (Kvartal Səlahiyyətləri & Bonus Səslər):</span>
+                  <span>18 Civic Offices (District Authority & Voting Bonuses):</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {civicOfficesList.map((office, idx) => (
@@ -485,7 +485,7 @@ export const GameModesCatalogModal: React.FC<GameModesCatalogModalProps> = ({
               <div className="p-4 rounded-[8px] border border-purple-500/25 bg-purple-500/5 dark:bg-purple-500/10">
                 <div className="flex items-center gap-2 mb-2 text-xs font-bold text-purple-700 dark:text-purple-300">
                   <Zap className="w-4 h-4 text-purple-500" />
-                  <span>12 Gizli İstedad (Gecə Passiv & Aktiv Qabiliyyətləri):</span>
+                  <span>16 Innate Traits (Passive & Active Night Talents):</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {innateTraitsList.map((trait, idx) => (

@@ -30,7 +30,7 @@ export const ArchiveModal: React.FC<ArchiveModalProps> = ({ isOpen, onClose, pas
         <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/50">
           <div className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-amber-500" />
-            <h2 className="text-xl font-black text-white">Qəzet Arxivi (Oyun Tarixçəsi)</h2>
+            <h2 className="text-xl font-black text-white">Gazette Archive (Match History)</h2>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors">
             <X className="w-5 h-5" />
@@ -39,7 +39,7 @@ export const ArchiveModal: React.FC<ArchiveModalProps> = ({ isOpen, onClose, pas
         
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-8">
           {pastNewspapers.length === 0 ? (
-            <div className="text-center text-zinc-500 py-10 italic">Hələ ki heç bir hadisə baş verməyib.</div>
+            <div className="text-center text-zinc-500 py-10 italic">No events recorded yet.</div>
           ) : (
             pastNewspapers.map((np, idx) => (
               <div key={idx} className="relative pl-6 border-l-2 border-zinc-800">
@@ -74,7 +74,7 @@ export const ArchiveModal: React.FC<ArchiveModalProps> = ({ isOpen, onClose, pas
                       <AlertTriangle className="w-5 h-5 text-emerald-400" />
                     </div>
                     <div className="font-bold text-emerald-100 text-sm">
-                      Bu gecə şəhərdə heç kim ölmədi. Sükut hökm sürür.
+                      No casualties occurred last night. Silence grips the city.
                     </div>
                   </div>
                 )}

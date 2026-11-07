@@ -21,11 +21,11 @@ const TIER_COLORS: Record<AchievementTier, string> = {
 };
 
 const CATEGORY_LABELS: Record<AchievementCategory, string> = {
-  ALL: 'Bütün',
-  TOWN: 'Şəhər',
-  MAFIA: 'Mafiya',
-  NEUTRAL: 'Neytral',
-  MODES: 'Rejimlər',
+  ALL: 'All',
+  TOWN: 'Town',
+  MAFIA: 'Mafia',
+  NEUTRAL: 'Neutral',
+  MODES: 'Modes',
   MASTERY: 'Ustalığ',
 };
 
@@ -72,7 +72,7 @@ export const AchievementShowcaseModal: React.FC<AchievementShowcaseProps> = ({ i
             <Trophy className="w-8 h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tight">Şöhrət Zalı</h1>
+            <h1 className="text-3xl font-black text-white tracking-tight">Hall of Fame</h1>
             <div className="flex items-center gap-3 mt-1">
               <span className="text-zinc-400 font-medium">{unlockedIds.size} / {ACHIEVEMENTS_REGISTRY.length} Açılıb</span>
               <span className="text-zinc-700">•</span>
@@ -136,7 +136,7 @@ export const AchievementShowcaseModal: React.FC<AchievementShowcaseProps> = ({ i
                   </p>
                 ) : (
                   <p className="text-sm text-zinc-500 italic font-medium">
-                    Məxfi nailiyyət. Kəşf etmək üçün oynamağa davam et.
+                    Classified achievement. Keep playing to uncover its requirements.
                   </p>
                 )}
                 

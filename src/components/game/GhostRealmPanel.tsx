@@ -70,9 +70,7 @@ export const GhostRealmPanel: React.FC<GhostRealmPanelProps> = ({
 
     if (result.success) {
       setBetSuccessMessage(
-        `🔮 ${wagerAmount} Ruh Cövhəri ${targetName} üzərinə qoyuldu! (Uduş: ${Math.round(
-          wagerAmount * 2.5
-        )} Cövhər)`
+        `🔮 Wagered ${wagerAmount} Spirit Essence on ${targetName}! (Payout: ${Math.round(wagerAmount * 2.5)} Essence)`
       );
       setSelectedTargetId('');
       setTimeout(() => setBetSuccessMessage(null), 4000);
@@ -103,14 +101,14 @@ export const GhostRealmPanel: React.FC<GhostRealmPanelProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base font-black text-white tracking-wide flex items-center gap-1.5">
-                Kabuslar Aləmi (Ghost Realm)
+                The Ghost Realm
               </h3>
               <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-purple-500/25 text-purple-300 border border-purple-500/40">
                 Zero-Knowledge
               </span>
             </div>
             <p className="text-[11px] text-purple-200/80">
-              Canlı oyunçular sənin proqnozlarını və şübhələrini görə bilməz.
+              Living players cannot see your spectral predictions or suspicions.
             </p>
           </div>
         </div>
@@ -118,7 +116,7 @@ export const GhostRealmPanel: React.FC<GhostRealmPanelProps> = ({
         {/* Spirit Essence HUD */}
         <div className="flex items-center gap-2 bg-purple-950/90 border border-purple-500/40 px-3 py-1.5 rounded-xl shadow-inner">
           <Sparkles className="w-4 h-4 text-purple-300 animate-spin" />
-          <span className="text-xs font-bold text-purple-200">Ruh Cövhəri:</span>
+          <span className="text-xs font-bold text-purple-200">Spirit Essence:</span>
           <span className="text-sm font-black text-amber-300">
             {profile.spiritEssence}
           </span>
@@ -133,15 +131,15 @@ export const GhostRealmPanel: React.FC<GhostRealmPanelProps> = ({
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Skull className="w-3.5 h-3.5 text-purple-400" />
-                Növbəti Edam Proqnozu (2.5x Əmsal)
+                Next Lynch Prediction (2.5x Payout)
               </span>
               <span className="text-[10px] font-black text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30">
-                2.5x Uduş
+                2.5x Payout
               </span>
             </div>
 
             <p className="text-[11px] text-zinc-300 mb-2.5">
-              Məhkəmədə hansı oyunçunun edam olunacağını təxmin et:
+              Predict which player will be condemned at the trial:
             </p>
 
             <select
@@ -149,7 +147,7 @@ export const GhostRealmPanel: React.FC<GhostRealmPanelProps> = ({
               onChange={(e) => setSelectedTargetId(e.target.value)}
               className="w-full bg-zinc-900/90 border border-purple-500/40 rounded-lg p-2 text-xs text-white outline-none focus:ring-1 focus:ring-purple-400 mb-3"
             >
-              <option value="">Hədəf oyunçunu seç...</option>
+              <option value="">Select target player...</option>
               {livingPlayers.map((lp) => (
                 <option key={lp.userId} value={lp.userId}>
                   {lp.username} ({lp.displayRole?.localizedRoleName || 'Vətəndaş'})
@@ -159,7 +157,7 @@ export const GhostRealmPanel: React.FC<GhostRealmPanelProps> = ({
 
             {/* Wager Selector */}
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-[10px] font-bold text-zinc-400 uppercase">Mərc:</span>
+              <span className="text-[10px] font-bold text-zinc-400 uppercase">Wager:</span>
               {[10, 25, 50].map((amt) => (
                 <button
                   key={amt}
@@ -182,7 +180,7 @@ export const GhostRealmPanel: React.FC<GhostRealmPanelProps> = ({
             size="sm"
             className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md border border-purple-400/40"
           >
-            Mərc Et ({wagerAmount} Cövhər)
+            Place Wager ({wagerAmount} Essence)
           </Button>
 
           {betSuccessMessage && (
@@ -199,15 +197,15 @@ export const GhostRealmPanel: React.FC<GhostRealmPanelProps> = ({
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Eye className="w-3.5 h-3.5 text-indigo-400" />
-                Kabus Şübhə Barometri
+                Spectral Suspicion Barometer
               </span>
               <span className="text-[10px] font-black text-indigo-300 bg-indigo-500/15 px-2 py-0.5 rounded border border-indigo-500/30">
-                Ölülər Konsensusu
+                Underworld Consensus
               </span>
             </div>
 
             <p className="text-[11px] text-zinc-300 mb-2">
-              Səncə aralarında kim cinayətkardır? Reytinqə səs ver:
+              Who do you suspect is guilty? Cast your spectral vote:
             </p>
 
             <div className="space-y-1.5 max-h-[110px] overflow-y-auto pr-1">
@@ -225,7 +223,7 @@ export const GhostRealmPanel: React.FC<GhostRealmPanelProps> = ({
                   >
                     <span className="font-bold truncate">{lp.username}</span>
                     <span className="text-[10px] text-zinc-500 uppercase">
-                      {isSelected ? 'Şübhəlisən!' : 'İttiham et'}
+                      {isSelected ? 'Suspect!' : 'Indict'}
                     </span>
                   </button>
                 );
@@ -234,7 +232,7 @@ export const GhostRealmPanel: React.FC<GhostRealmPanelProps> = ({
           </div>
 
           <div className="mt-2 text-[10px] text-purple-300/70 text-center font-medium">
-            Ölülərin pıçıltısı yalnız bu pəncərədə qalır.
+            Whispers of the dead remain strictly within the spectral plane.
           </div>
         </div>
       </div>

@@ -31,7 +31,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
   onRoomCreated,
 }) => {
   const router = useRouter();
-  const [roomName, setRoomName] = useState<string>('Bakı Gecələri #1');
+  const [roomName, setRoomName] = useState<string>('Midnight Tribunal #1');
   const [selectedMode, setSelectedMode] = useState<GameMode>(defaultMode);
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
   const [roomPassword, setRoomPassword] = useState<string>('');
@@ -61,7 +61,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
         .trim()
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '') || 'tdv-masa';
+        .replace(/^-|-$/g, '') || 'tdv-room';
 
     const lobbyId = `${selectedMode.toLowerCase()}-${slug}-${Math.floor(1000 + Math.random() * 9000)}`;
     const targetUrl = `/lobby/${lobbyId}`;
@@ -96,7 +96,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           lobbyId,
-          name: roomName.trim() || 'Yeni Mafiya Masası',
+          name: roomName.trim() || 'New Mafia Session',
           mode: selectedMode,
           hostUsername: hostName,
           isPrivate,
@@ -131,10 +131,10 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
             </div>
             <div>
               <h2 className="text-lg font-bold text-zinc-950 dark:text-white leading-tight">
-                Yeni Mafiya Masası Yarat
+                Create Multiplayer Room
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                Rejimi və parametrləri tənzimləyərək dərhal yeni canlı oyun otağı açın.
+                Configure gameplay modes and parameters to launch an active multiplayer session.
               </p>
             </div>
           </div>
@@ -149,7 +149,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
           {/* Room Name */}
           <div>
             <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
-              Masa Adı *
+              Room Name *
             </label>
             <input data-testid="input-room-name"
               type="text"
@@ -158,7 +158,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleLaunch();
               }}
-              placeholder="Məs: Bakı Gecələri #1"
+              placeholder="e.g. Midnight Tribunal #1"
               className="w-full px-3.5 py-2.5 rounded-[8px] border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all"
             />
           </div>
@@ -166,37 +166,37 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
           {/* Game Mode Selection */}
           <div>
             <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
-              Oyun Rejimi
+              Game Mode
             </label>
             <select data-testid="select-game-mode"
               value={selectedMode}
               onChange={(e) => setSelectedMode(e.target.value as GameMode)}
               className="w-full px-3.5 py-2.5 rounded-[8px] border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all cursor-pointer"
             >
-              <optgroup label="Klassik Paketlər">
-                <option value="BLITZ">Blitz (5–7 Oyunçu)</option>
-                <option value="STANDARD">Standart (8–11 Oyunçu)</option>
-                <option value="EXTENDED">Genişləndirilmiş (12–15 Oyunçu)</option>
-                <option value="GRAND">Böyük (16–20 Oyunçu)</option>
-                <option value="EPIC">Epik (21–24 Oyunçu)</option>
-                <option value="MASSIVE">Kütləvi (25–30 Oyunçu)</option>
-                <option value="LIMITLESS">Sərhədsiz (30-39 Oyunçu)</option>
-                <option value="CUSTOM_LOBBY">Xüsusi Otaq (5-50 Oyunçu)</option>
+              <optgroup label="Classic Packs">
+                <option value="BLITZ">Blitz (5–7 Players)</option>
+                <option value="STANDARD">Standard (8–11 Players)</option>
+                <option value="EXTENDED">Extended (12–15 Players)</option>
+                <option value="GRAND">Grand (16–20 Players)</option>
+                <option value="EPIC">Epic (21–24 Players)</option>
+                <option value="MASSIVE">Massive (25–30 Players)</option>
+                <option value="LIMITLESS">Limitless (30–39 Players)</option>
+                <option value="CUSTOM_LOBBY">Custom Room (5–50 Players)</option>
               </optgroup>
-              <optgroup label="Asimmetrik Xüsusi Rejimlər">
-                <option value="CATENACCIO">Catenaccio (10–12 Oyunçu)</option>
-                <option value="STANFORD_PRISON">Stanford Prison (12–16 Oyunçu)</option>
-                <option value="OPERATION_VALKYRIE">Operation Valkyrie (10–14 Oyunçu)</option>
-                <option value="THE_DAY_THE_EARTH_STOOD_STILL">The Day the Earth Stood Still (12–16 Oyunçu)</option>
-                <option value="DANTES_INFERNO">Dante&apos;s Inferno (11–13 Oyunçu)</option>
-                <option value="CHERNOBYL_EXCLUSION_ZONE">Çernobıl: Təcrid Zonası (10–14 Oyunçu)</option>
-                <option value="CYBERPUNK_NEO_BAKU">Cyberpunk 2077: Neo-Bakı (12–16 Oyunçu)</option>
-                <option value="BERMUDA_TRIANGLE">Bermud Üçbucağı: Ruhlar Donanması (10–14 Oyunçu)</option>
-                <option value="MIDNIGHT_SEANCE">Gecəyarısı Seansı: Qanlı Meri (11–15 Oyunçu)</option>
-                <option value="SHERLOCK_BAKER_STREET">Baker Street: Holms vs Moriarti (8–12 Oyunçu)</option>
+              <optgroup label="Asymmetric Minigame Modes">
+                <option value="CATENACCIO">Catenaccio (10–12 Players)</option>
+                <option value="STANFORD_PRISON">Stanford Prison (12–16 Players)</option>
+                <option value="OPERATION_VALKYRIE">Operation Valkyrie (10–14 Players)</option>
+                <option value="THE_DAY_THE_EARTH_STOOD_STILL">The Day the Earth Stood Still (12–16 Players)</option>
+                <option value="DANTES_INFERNO">Dante&apos;s Inferno (11–13 Players)</option>
+                <option value="CHERNOBYL_EXCLUSION_ZONE">Chernobyl: Exclusion Zone (10–14 Players)</option>
+                <option value="CYBERPUNK_NEO_BAKU">Cyberpunk 2077: Neo-City (12–16 Players)</option>
+                <option value="BERMUDA_TRIANGLE">Bermuda Triangle: Ghost Fleet (10–14 Players)</option>
+                <option value="MIDNIGHT_SEANCE">Midnight Séance: Bloody Mary (11–15 Players)</option>
+                <option value="SHERLOCK_BAKER_STREET">Baker Street: Holmes vs Moriarty (8–12 Players)</option>
               </optgroup>
-              <optgroup label="Böyük Şəhər Arenası">
-                <option value="ALL_IN">All-In (40–50 Oyunçu)</option>
+              <optgroup label="Metropolitan Arena">
+                <option value="ALL_IN">All-In Metropolis (40–50 Players)</option>
               </optgroup>
             </select>
           </div>
@@ -209,12 +209,12 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
                   {currentPack.name}
                 </span>
                 <Badge tone={currentPack.isAllIn ? 'purple' : currentPack.isMinigame ? 'amber' : 'blue'}>
-                  {currentPack.minPlayers}–{currentPack.maxPlayers} Oyunçu
+                  {currentPack.minPlayers}–{currentPack.maxPlayers} Players
                 </Badge>
               </div>
               <div className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1.5">
                 <Layers className="w-3.5 h-3.5 shrink-0" />
-                <span><strong>Rollar:</strong> {currentPack.roleBreakdown}</span>
+                <span><strong>Roles:</strong> {currentPack.roleBreakdown}</span>
               </div>
             </div>
           )}
@@ -230,7 +230,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
             />
             <label htmlFor="privateToggle" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 cursor-pointer flex items-center gap-1.5">
               {isPrivate ? <Lock className="w-3.5 h-3.5 text-amber-500" /> : <Unlock className="w-3.5 h-3.5 text-zinc-400" />}
-              <span>Qapalı / Şifrəli Masa (Yalnız dəvət ilə)</span>
+              <span>Private Room (Password Protected)</span>
             </label>
           </div>
 
@@ -238,7 +238,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
             <div>
               <input
                 type="password"
-                placeholder="Masa şifrəsi təyin edin..."
+                placeholder="Set room password..."
                 value={roomPassword}
                 onChange={(e) => setRoomPassword(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-[8px] border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all"
@@ -250,7 +250,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-3 pt-2">
           <Button variant="secondary" size="md" onClick={onClose}>
-            İmtina Et
+            Cancel
           </Button>
           <Button data-testid="btn-create-room-submit"
             variant="primary"
@@ -258,7 +258,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
             onClick={handleLaunch}
             iconRight={<ArrowRight className="w-4 h-4" />}
           >
-            Masaya Daxil Ol
+            Enter Lobby
           </Button>
         </div>
       </div>

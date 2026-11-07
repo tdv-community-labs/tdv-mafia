@@ -32,11 +32,11 @@ import { GameOverCinematic } from './GameOverCinematic';
 import { MatchRecapModal } from '../modals/MatchRecapModal';
 import { recordMatchProgression, resolveGhostBets } from '../../utils/progression';
 import {
-  AZ_DANTE_CIRCLES,
-  AZ_DISTRICTS,
-  AZ_PHASES,
-  AZ_UI,
-} from '../../config/i18n/az';
+  EN_DANTE_CIRCLES,
+  EN_DISTRICTS,
+  EN_PHASES,
+  EN_UI,
+} from '../../config/i18n/en';
 import {
   playNight,
   playDay,
@@ -281,6 +281,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const isDoctor =
     office === 'CITY_SURGEON' ||
     roleName.includes('doctor') ||
+    localizedRole.includes('doctor') ||
+    localizedRole.includes('surgeon') ||
     localizedRole.includes('həkim');
 
   const isSheriff =
@@ -288,38 +290,42 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     office === 'POLICE_COMMISSIONER' ||
     roleName.includes('investigator') ||
     roleName.includes('sheriff') ||
+    localizedRole.includes('investigator') ||
+    localizedRole.includes('sheriff') ||
     localizedRole.includes('şərif');
 
   const isDisrupter =
     office === 'CHIEF_FIRE_MARSHAL' ||
     office === 'PRISON_WARDEN' ||
     roleName.includes('blocker') ||
+    localizedRole.includes('blocker') ||
+    localizedRole.includes('disrupter') ||
     localizedRole.includes('gözbağlayıcı');
 
   const isMisdirector = office === 'BLACK_MARKET_BROKER';
 
-  let primaryActionLabel: string = AZ_UI.investigate;
+  let primaryActionLabel: string = EN_UI.investigate;
   let primaryActionType: NightActionType = 'INVESTIGATE';
   let canActAtNight = false;
 
   if (isMafia) {
-    primaryActionLabel = AZ_UI.strike;
+    primaryActionLabel = EN_UI.strike;
     primaryActionType = 'KILL';
     canActAtNight = true;
   } else if (isDoctor) {
-    primaryActionLabel = AZ_UI.protect;
+    primaryActionLabel = EN_UI.protect;
     primaryActionType = 'PROTECT';
     canActAtNight = true;
   } else if (isSheriff) {
-    primaryActionLabel = AZ_UI.investigate;
+    primaryActionLabel = EN_UI.investigate;
     primaryActionType = 'INVESTIGATE';
     canActAtNight = true;
   } else if (isDisrupter) {
-    primaryActionLabel = AZ_UI.disrupt;
+    primaryActionLabel = EN_UI.disrupt;
     primaryActionType = 'BLOCK';
     canActAtNight = true;
   } else if (isMisdirector) {
-    primaryActionLabel = AZ_UI.misdirect;
+    primaryActionLabel = EN_UI.misdirect;
     primaryActionType = 'MISDIRECT';
     canActAtNight = true;
   }
@@ -346,17 +352,17 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const [assertiveAnnouncement, setAssertiveAnnouncement] = useState<string>('');
 
   useEffect(() => {
-    const phaseName = AZ_PHASES[lobbyState.phase] ?? lobbyState.phase;
-    setPoliteAnnouncement(`Faza dəyişdi: ${phaseName}, Raund ${lobbyState.roundNumber}`);
+    const phaseName = EN_PHASES[lobbyState.phase] ?? lobbyState.phase;
+    setPoliteAnnouncement(`Phase changed: ${phaseName}, Round ${lobbyState.roundNumber}`);
   }, [lobbyState.phase, lobbyState.roundNumber]);
 
   useEffect(() => {
     if (lobbyState.phase === 'TRIAL_DEFENSE' && lobbyState.accusedPlayerId) {
-      const accused = lobbyState.players[lobbyState.accusedPlayerId]?.username ?? 'Bilinməyən';
+      const accused = lobbyState.players[lobbyState.accusedPlayerId]?.username ?? 'Unknown';
       if (lobbyState.accusedPlayerId === currentUserId) {
-        setAssertiveAnnouncement('DİQQƏT: Siz məhkəmə kürsüsünə çıxarıldınız! 30 saniyə müdafiə vaxtınız var.');
+        setAssertiveAnnouncement('ATTENTION: You have been summoned to the podium! You have 30 seconds to plead your defense.');
       } else {
-        setAssertiveAnnouncement(`Məhkəmə başladı: ${accused} müdafiə kürsüsündədir.`);
+        setAssertiveAnnouncement(`Trial initiated: ${accused} is on the defense podium.`);
       }
     }
   }, [lobbyState.phase, lobbyState.accusedPlayerId, currentUserId]);
@@ -428,7 +434,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         <div className="w-full py-3 px-4 rounded-[20px] bg-gradient-to-r from-red-950/90 via-purple-950/90 to-red-950/90 border border-red-500/40 shadow-[0_0_35px_rgba(239,68,68,0.3)] flex items-center justify-center gap-3 animate-pulse select-none">
           <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
           <span className="text-xs sm:text-sm font-black tracking-widest text-red-200 uppercase drop-shadow-[0_0_10px_rgba(239,68,68,0.8)] text-center">
-            🌑 ŞƏHƏR YATIR, QATİLLƏR OYANIR 🌑
+            🌑 THE CITY SLEEPS, CONSPIRATORS AWAKEN 🌑
           </span>
           <span className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-ping" />
         </div>
@@ -439,15 +445,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         <div>
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-              {AZ_UI.currentPhase}
+              {EN_UI.currentPhase}
             </span>
             <Badge tone="purple">{lobbyState.mode.replace(/_/g, ' ')}</Badge>
             <Badge tone="neutral">
-              {AZ_UI.round} {lobbyState.roundNumber}
+              {EN_UI.round} {lobbyState.roundNumber}
             </Badge>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-zinc-950 dark:text-white tracking-tight">
-            {AZ_PHASES[lobbyState.phase] ?? lobbyState.phase}
+            {EN_PHASES[lobbyState.phase] ?? lobbyState.phase}
           </h2>
         </div>
 
@@ -456,7 +462,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           {speakingIds && speakingIds.size > 0 && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs shadow-lg shadow-emerald-950/50">
               <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-              <span className="font-bold">Danışırlar:</span>
+              <span className="font-bold">Speaking:</span>
               {Array.from(speakingIds).map((id) => (
                 <span key={id} className="px-2 py-0.5 rounded-md bg-emerald-500/20 font-black">
                   {lobbyState.players[id]?.username ?? id}
@@ -467,13 +473,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
           {isAllIn && (
             <Badge tone="purple">
-              {AZ_UI.maxKillsPerNight}: {lobbyState.globalNightKillCap}
+              {EN_UI.maxKillsPerNight}: {lobbyState.globalNightKillCap}
             </Badge>
           )}
 
           {phase === 'NIGHT_BUFFER' && (
             <Badge tone="amber">
-              {AZ_UI.nightJitter}: {lobbyState.nightJitterDelaySeconds}s
+              {EN_UI.nightJitter}: {lobbyState.nightJitterDelaySeconds}s
             </Badge>
           )}
 
@@ -484,7 +490,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               onClick={onOpenNewspaper}
               icon={<Newspaper className="w-4 h-4 text-blue-500" />}
             >
-              {AZ_UI.morningNewspaper}
+              {EN_UI.morningNewspaper}
             </Button>
           )}
 
@@ -496,7 +502,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               setSoundMuted(next);
               if (!next) playCard();
             }}
-            title={soundMuted ? 'Səsi Aç' : 'Səsi Bağla'}
+            title={soundMuted ? 'Unmute Sound' : 'Mute Sound'}
             className={`p-2 rounded-xl border transition-all duration-200 cursor-pointer ${
               soundMuted
                 ? 'border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-zinc-400'
@@ -527,7 +533,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             />
             <div className="text-right">
               <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block leading-none">
-                {phase === 'TRIAL_DEFENSE' ? 'Müdafiə Vaxtı' : AZ_UI.timeRemaining}
+                {phase === 'TRIAL_DEFENSE' ? 'Defense Window' : EN_UI.timeRemaining}
               </span>
               <span
                 className={`text-base font-black leading-tight ${
@@ -581,16 +587,16 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           'bg-emerald-950/20 border-emerald-900/30'
         } flex flex-col gap-2 relative overflow-hidden`}>
           <div className="flex items-center gap-2 relative z-10">
-            <span className="font-black text-xs uppercase tracking-[0.2em] opacity-60">MƏQSƏD</span>
+            <span className="font-black text-xs uppercase tracking-[0.2em] opacity-60">OBJECTIVE</span>
           </div>
           <p className="text-sm font-bold relative z-10">
             {currentUser.displayRole?.originalRoleName === 'Jester'
-              ? "Özünü hər kəsə qatil kimi göstər və Gündüz Səsverməsində (Məhkəmədə) özünü asdır!"
+              ? "Deceive the jury into believing you are guilty and get executed on the trial podium!"
               : currentUser.allInIdentity?.layer1Faction === 'NEUTRAL_KILLER'
-              ? "Gecələr hər kəsi qətlə yetir və şəhərdə sağ qalan ən sonuncu şəxs ol."
+              ? "Eliminate everyone under cover of darkness until you are the sole survivor in the city."
               : currentUser.allInIdentity?.layer1Faction === 'MAFIA'
-              ? "Şəhər əhalisini aradan qaldır və Mafiya üçün səs çoxluğunu ələ keçir."
-              : "Şəhərə sızmış bütün Mafiya və Təhlükəli qüvvələri tapıb edam et."}
+              ? "Eliminate the innocent citizens and secure voting majority for the Syndicate."
+              : "Identify and execute all infiltrated Mafia conspirators and hostile threats."}
           </p>
           <div className="absolute right-0 top-0 bottom-0 opacity-10 pointer-events-none w-32 flex items-center justify-end pr-4">
              {currentUser.allInIdentity?.layer1Faction === 'MAFIA' ? <Skull className="w-16 h-16 text-red-500" /> :
@@ -621,7 +627,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           <Button variant={activeDistrictTab === 'ALL' ? 'primary' : 'outline'} size="sm" className={isAllIn ? (activeDistrictTab === 'ALL' ? 'ring-2 ring-purple-500 bg-purple-500/20 text-purple-200 font-mono tracking-wider' : 'bg-black/50 text-purple-400 border-purple-500/30 font-mono tracking-wider hover:bg-purple-500/10') : ''}
             onClick={() => setActiveDistrictTab('ALL')}
           >
-            Bütün Kvartallar ({allPlayers.length})
+            All Districts ({allPlayers.length})
           </Button>
           {(['ELITE', 'COMMERCIAL', 'INDUSTRIAL'] as AllInDistrict[]).map((dist) => {
             const count = allPlayers.filter((p) => p.currentDistrict === dist).length;
@@ -629,7 +635,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               <Button key={dist} variant={activeDistrictTab === dist ? 'primary' : 'outline'} size="sm" className={isAllIn ? (activeDistrictTab === dist ? 'ring-2 ring-purple-500 bg-purple-500/20 text-purple-200 font-mono tracking-wider' : 'bg-black/50 text-purple-400 border-purple-500/30 font-mono tracking-wider hover:bg-purple-500/10') : ''}
                 onClick={() => setActiveDistrictTab(dist)}
               >
-                {AZ_DISTRICTS[dist]} ({count})
+                {EN_DISTRICTS[dist]} ({count})
               </Button>
             );
           })}
@@ -650,11 +656,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-zinc-900 animate-pulse" />
             </div>
             <div>
-              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-500">İNDİ DANIŞIR</div>
+              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-500">NOW SPEAKING</div>
               <div className="text-sm font-black text-amber-200 leading-tight">
                 {(lobbyState.players[lobbyState.speakerQueue[0]] as PlayerSession)?.username ?? '—'}
                 {lobbyState.speakerQueue[0] === currentUserId && (
-                  <span className="ml-1.5 text-[9px] bg-amber-500 text-black px-1.5 py-0.5 rounded-full font-black">SƏN</span>
+                  <span className="ml-1.5 text-[9px] bg-amber-500 text-black px-1.5 py-0.5 rounded-full font-black">YOU</span>
                 )}
               </div>
             </div>
@@ -666,7 +672,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               <div className="h-8 w-px bg-amber-700/30 mx-1 shrink-0" />
               {/* Next up */}
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="text-[9px] font-black text-amber-600 uppercase tracking-wider shrink-0">Növbə:</span>
+                <span className="text-[9px] font-black text-amber-600 uppercase tracking-wider shrink-0">Queue:</span>
                 <div className="flex items-center gap-1.5 overflow-hidden">
                   {lobbyState.speakerQueue.slice(1, 5).map((uid, i) => {
                     const p = lobbyState.players[uid] as PlayerSession | undefined;
@@ -697,12 +703,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <h3 className="font-bold text-base text-zinc-950 dark:text-white">
-              {AZ_UI.activeParticipants}
+              {EN_UI.activeParticipants}
             </h3>
             <Badge tone="neutral">{displayedPlayers.length}</Badge>
           </div>
           <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            Hədəf seçmək üçün oyunçu kartına klikləyin
+            Click any player card to select target
           </span>
         </div>
 
@@ -765,7 +771,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   <Skull className="w-4 h-4 text-zinc-500" />
                 </div>
                 <span className="text-[10px] font-black tracking-[0.3em] text-zinc-500 uppercase">
-                  Qəbiristanlıq ({displayedPlayers.filter(p => !p.isAlive).length})
+                  Cemetery ({displayedPlayers.filter(p => !p.isAlive).length})
                 </span>
                 {onOpenGraveyard && (
                   <button
@@ -774,7 +780,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     className="ml-2 px-3 py-1 rounded-xl border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm"
                   >
                     <Ghost className="w-3.5 h-3.5" />
-                    Məzarlığı Aç
+                    Open Graveyard
                   </button>
                 )}
               </div>
@@ -815,7 +821,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       {onSendEmote && (
         <div className="flex items-center justify-center gap-2 p-2.5 bg-zinc-950/80 backdrop-blur-xl border border-zinc-800/90 rounded-2xl w-fit mx-auto shadow-[0_4px_25px_rgba(0,0,0,0.5)] select-none">
           <span className="text-[10px] font-black uppercase text-zinc-400 tracking-wider px-2 hidden sm:inline">
-            Reaksiya:
+            Reaction:
           </span>
           {['🔥', '💀', '🤫', '👀', '🛡️', '⚖️', '🕊️', '😱'].map((emo) => (
             <button
@@ -825,7 +831,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 playCard();
                 onSendEmote(emo);
               }}
-              title={`Reaksiya göndər: ${emo}`}
+              title={`Send reaction: ${emo}`}
               className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl hover:bg-white/10 active:scale-90 flex items-center justify-center text-lg sm:text-xl transition-transform hover:scale-125"
             >
               {emo}
@@ -839,7 +845,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         <div className="sticky bottom-0 sm:bottom-4 z-50 p-4 sm:p-5 rounded-t-[24px] sm:rounded-[24px] border border-red-500/30 bg-zinc-950/95 backdrop-blur-[32px] shadow-[0_-10px_40px_rgba(220,38,38,0.1)] sm:shadow-[0_12px_40px_rgba(220,38,38,0.1)] flex items-center justify-center gap-4 transition-all duration-300 w-full mb-0 sm:mb-4">
             <span className="text-red-400 font-mono uppercase tracking-widest text-sm flex items-center gap-2">
                <svg className="w-4 h-4 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-               MÜŞAHİDƏÇİ REJİMİ AKTİVDİR (Səsvermə və əmrlər deaktivdir)
+               SPECTATOR MODE ACTIVE (Voting & night actions disabled)
             </span>
         </div>
       ) : (() => {
@@ -860,35 +866,35 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 <div>
                   <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
                     {isNightPhase
-                      ? `${AZ_UI.nightOrder} & Əməliyyat Paneli`
+                      ? `${EN_UI.nightOrder} & Operations Console`
                       : isVotingPhase
-                      ? 'Gündüz Məhkəməsi & İttiham Səsverməsi'
-                      : 'Müzakirə Fazası'}
+                      ? 'Courtroom Indictment & Ballot'
+                      : 'Deliberation Phase'}
                   </span>
                   <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 flex-wrap">
                     {isNightPhase && !canActAtNight ? (
-                      'Siz Məsum Vətəndaşsınız. Şəhər yatır... Səhəri gözləyin.'
+                      'You are an Innocent Citizen. The city is asleep... Await morning dawn.'
                     ) : selectedPlayerId ? (
                       <>
                         <span>
-                          Seçilmiş Hədəf:{' '}
+                          Selected Target:{' '}
                           <strong className="text-purple-600 dark:text-purple-400">
                             {selectedPlayer?.username ?? selectedPlayerId}
                           </strong>
                         </span>
                         {isSelectedTargetDead && (
                           <span className="text-xs text-red-500 font-bold bg-red-500/10 px-2 py-0.5 rounded-md">
-                            ⚠️ Ələnib (Seçilə bilməz)
+                            ⚠️ Eliminated (Cannot target)
                           </span>
                         )}
                         {isSelectedTargetSelf && primaryActionType !== 'PROTECT' && isNightPhase && (
                           <span className="text-xs text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md">
-                            ⚠️ Özünüzü seçə bilməzsiniz
+                            ⚠️ Cannot target yourself
                           </span>
                         )}
                         {isSelectedTargetSelf && isVotingPhase && (
                           <span className="text-xs text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded-md">
-                            ⚠️ Özünüzə səs verə bilməzsiniz
+                            ⚠️ Cannot vote for yourself
                           </span>
                         )}
                         <button
@@ -896,15 +902,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                           onClick={() => setSelectedPlayerId(null)}
                           className="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 underline cursor-pointer ml-1"
                         >
-                          Seçimi ləğv et
+                          Cancel selection
                         </button>
                       </>
                     ) : isNightPhase ? (
-                      'Əmr icra etmək üçün yuxarıdakı kartlardan hədəf seçin'
+                      'Select a player card above to target for night action'
                     ) : isVotingPhase ? (
-                      'Səs vermək üçün yuxarıdakı kartlardan namizəd seçin'
+                      'Select a candidate card above to cast indictment vote'
                     ) : (
-                      'Müzakirə davam edir, söz hüququndan istifadə edin'
+                      'Deliberation underway; participate in discussion'
                     )}
                   </div>
                 </div>
@@ -938,7 +944,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     disabled
                     className="shrink-0 opacity-70"
                   >
-                    💤 Şəhər Yatır
+                    💤 City Asleep
                   </Button>
                 )
               ) : isVotingPhase ? (
@@ -958,7 +964,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   }}
                   className="shrink-0"
                 >
-                  Səs Ver
+                  Cast Ballot
                 </Button>
               ) : null}
             </div>

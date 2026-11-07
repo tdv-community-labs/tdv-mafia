@@ -89,7 +89,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-lg transition-colors border border-amber-500/30"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
-                    Adı Dəyiş
+                    Change Name
                   </button>
                 </div>
               )}
@@ -99,7 +99,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             {userId ? (
               <PlayerProfileCard userId={userId} username={currentUsername} />
             ) : (
-              <div className="text-center text-zinc-500 py-10">Profil məlumatları tapılmadı.</div>
+              <div className="text-center text-zinc-500 py-10">Profile data not found.</div>
             )}
           </div>
 

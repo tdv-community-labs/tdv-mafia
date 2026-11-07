@@ -8,7 +8,7 @@ import { PlayerSession } from '../../types/game';
 import { ScrubbedPlayerView } from '../../types/engine';
 import { AllInDistrict, CivicOfficeType } from '../../types/roles';
 import { Badge, BadgeTone } from '../ui/Badge';
-import { AZ_CIVIC_OFFICES, AZ_DISTRICTS, AZ_UI } from '../../config/i18n/az';
+import { EN_CIVIC_OFFICES, EN_DISTRICTS, EN_UI } from '../../config/i18n/en';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { playCard, triggerHaptic, playMicroClick } from '../../utils/sfx';
 import { RoleActionReticle, ActionReticleType } from './RoleActionReticle';
@@ -54,19 +54,19 @@ const DISTRICT_TONES: Record<AllInDistrict, BadgeTone> = {
 };
 
 const DEATH_CAUSE_LABELS: Record<string, { label: string; tone: BadgeTone }> = {
-  MAFIA_KILL: { label: 'Güllələnib', tone: 'red' },
-  YAKUZA_KILL: { label: 'Qılınclanıb', tone: 'red' },
-  VOID_CULT_SACRIFICE: { label: 'Qurban Edilib', tone: 'purple' },
-  NEUTRAL_KILLER_KILL: { label: 'Qətlə Yetirilib', tone: 'red' },
-  RETALIATION_FUSE_COUNTER: { label: 'Əks-Zərbə', tone: 'amber' },
-  BODYGUARD_SACRIFICE: { label: 'Fədakarlıq', tone: 'blue' },
-  BODYGUARD_COUNTER: { label: 'Mühafizəçi Zərbəsi', tone: 'blue' },
-  RADIATION_SICKNESS: { label: 'Radiasiya', tone: 'amber' },
-  BRIEFCASE_DETONATION: { label: 'Portfel Partlayışı', tone: 'red' },
-  GORT_VAPORISATION: { label: 'Buxarlanıb', tone: 'purple' },
-  JESTER_REVENGE: { label: 'Təlxək Qisası', tone: 'purple' },
-  CROSSFIRE: { label: 'Çarpaz Atəş', tone: 'red' },
-  LYNCH: { label: 'Asılıb', tone: 'red' },
+  MAFIA_KILL: { label: 'Shot Dead', tone: 'red' },
+  YAKUZA_KILL: { label: 'Assassinated', tone: 'red' },
+  VOID_CULT_SACRIFICE: { label: 'Sacrificed', tone: 'purple' },
+  NEUTRAL_KILLER_KILL: { label: 'Murdered', tone: 'red' },
+  RETALIATION_FUSE_COUNTER: { label: 'Retaliation Blast', tone: 'amber' },
+  BODYGUARD_SACRIFICE: { label: 'Bodyguard Shield', tone: 'blue' },
+  BODYGUARD_COUNTER: { label: 'Bodyguard Retaliation', tone: 'blue' },
+  RADIATION_SICKNESS: { label: 'Radiation Sickness', tone: 'amber' },
+  BRIEFCASE_DETONATION: { label: 'Briefcase Detonation', tone: 'red' },
+  GORT_VAPORISATION: { label: 'Vaporized', tone: 'purple' },
+  JESTER_REVENGE: { label: 'Jester Haunting', tone: 'purple' },
+  CROSSFIRE: { label: 'Crossfire', tone: 'red' },
+  LYNCH: { label: 'Lynched', tone: 'red' },
 };
 
 const PlayerCardComponent: React.FC<PlayerCardProps> = ({
@@ -113,9 +113,9 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
     if (typeof window === 'undefined') {
       return {
         rankTier: 'NOVICE_DETECTIVE' as RankTier,
-        rankName: 'Acemi Xəfiyyə',
+        rankName: 'Novice Sleuth',
         borderClass: 'border-zinc-500/40',
-        titleName: 'Xəfiyyə',
+        titleName: 'Sleuth',
         titleBg: 'bg-zinc-800/80 border-zinc-600/50',
         titleColor: 'text-zinc-300',
         elo: 1200,
@@ -139,7 +139,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
 
     return {
       rankTier: tier,
-      rankName: rankDef.nameAz,
+      rankName: rankDef.nameEn || rankDef.nameAz,
       rankBg: rankDef.badgeBg,
       rankColor: rankDef.textColor,
       borderClass: borderDef.cssClass || rankDef.borderStyle,
@@ -186,16 +186,16 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
   let roleTitle = player.username;
   let roleSubtitle = isLobbyPhase
     ? isHost
-      ? 'Masa Rəhbəri (Host)'
+      ? 'Table Host'
       : isBot
-      ? 'Gemini 3.8 Ağıllı Bot'
+      ? 'Gemini 3.8 AI Agent'
       : isReady
-      ? 'Oyuna Hazırdır'
-      : 'Gözləyir'
+      ? 'Ready for Match'
+      : 'Waiting'
     : isSelf
     ? isFullSession(player)
-      ? `Siz: ${player.displayRole.formatted}`
-      : `Siz: ${player.ownRoleDisplay ?? 'Gizli Rol'}`
+      ? `You: ${player.displayRole.formatted}`
+      : `You: ${player.ownRoleDisplay ?? 'Hidden Role'}`
     : isGameOver
     ? isFullSession(player) && player.displayRole?.originalRoleName !== 'Secret' && player.displayRole?.originalRoleName !== 'Pending'
       ? player.displayRole.localizedRoleName || player.displayRole.originalRoleName
@@ -203,9 +203,9 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
     : !isAlive
     ? isFullSession(player) && player.displayRole?.originalRoleName !== 'Secret' && player.displayRole?.originalRoleName !== 'Pending'
       ? player.displayRole.localizedRoleName || player.displayRole.originalRoleName
-      : (player as any).displayRole?.localizedRoleName === 'DƏNİZDƏ İTİB' ? 'DƏNİZDƏ İTİB' : '✝️ Ələnmiş İştirakçı'
+      : (player as any).displayRole?.localizedRoleName === 'LOST AT SEA' ? 'LOST AT SEA' : '✝️ Fallen Participant'
     : isViewerMafia && isFullSession(player) && player.allInIdentity?.layer1Faction === 'MAFIA'
-    ? '🕶️ Mafiya Ortağı'
+    ? '🕶️ Syndicate Associate'
     : '';
 
   const district = !isLobbyPhase ? player.currentDistrict : null;
@@ -301,7 +301,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
       {isAccused && (
         <div data-testid={`badge-accused-${player.userId}`} className="absolute top-2 left-2 z-30 px-2 py-0.5 rounded-full bg-amber-500 text-zinc-950 text-[10px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(245,158,11,0.8)] flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-zinc-950 animate-ping" />
-          <span>KÜRSÜDƏ</span>
+          <span>ON PODIUM</span>
         </div>
       )}
 
@@ -311,7 +311,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
           <div className="absolute inset-0 bg-[conic-gradient(from_0deg,_rgba(251,191,36,0.22)_0deg,_transparent_60deg,_rgba(251,191,36,0.22)_180deg,_transparent_240deg)] animate-[spin_12s_linear_infinite]" />
           <div className="absolute top-2 right-2 z-30 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 text-[9px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(251,191,36,0.8)] flex items-center gap-1 border border-amber-300">
             <Crown className="w-3 h-3 text-zinc-950" />
-            <span>3X MER</span>
+            <span>3X MAYOR</span>
           </div>
         </div>
       )}
@@ -346,7 +346,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
           {/* Saved Status Chip */}
           <div className="absolute bottom-2 left-2 z-30 px-2 py-0.5 rounded-full bg-emerald-500/90 text-zinc-950 text-[10px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(16,185,129,0.8)] flex items-center gap-1 backdrop-blur-md">
             <span className="w-1.5 h-1.5 rounded-full bg-zinc-950 animate-ping" />
-            <span>🛡️ XİLAS EDİLDİ</span>
+            <span>🛡️ HEALED</span>
           </div>
         </div>
       )}
@@ -367,7 +367,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
             </div>
           </div>
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-md bg-amber-950/90 border border-amber-500/80 text-amber-300 text-[9px] font-black uppercase tracking-wider shadow-lg whitespace-nowrap">
-            ⚔️ SİLAHLI TOQQUŞMA
+            ⚔️ ARMED CLASH
           </div>
         </div>
       )}
@@ -390,7 +390,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
           </svg>
           <div className="absolute top-2 right-2 z-30 px-2 py-0.5 rounded-md bg-amber-950/90 border border-amber-500/60 text-amber-300 text-[9px] font-black uppercase tracking-wider shadow-md flex items-center gap-1 backdrop-blur-md">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-            <span>🛡️⚡ ZİREH QIRILDI</span>
+            <span>🛡️⚡ ARMOR SHATTERED</span>
           </div>
         </div>
       )}
@@ -418,15 +418,15 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
         <button 
           onClick={(e) => { e.stopPropagation(); onKick(); }}
           className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-colors z-20"
-          title="Oyuncunu Masadan Çıxar"
+          title="Remove player from lobby"
         >
           <X className="w-3 h-3" />
         </button>
       )}
       {/* Eliminated Stamp */}
       {!isLobbyPhase && !isAlive && (
-        <div data-testid={roleSubtitle === 'DƏNİZDƏ İTİB' || (player as any).displayRole?.localizedRoleName === 'DƏNİZDƏ İTİB' ? 'card-vanished-at-sea' : undefined} className={`absolute top-3 right-[-10px] rotate-12 ${roleSubtitle === 'DƏNİZDƏ İTİB' || (player as any).displayRole?.localizedRoleName === 'DƏNİZDƏ İTİB' ? 'bg-blue-700 border-blue-400' : 'bg-red-600 border-red-400'} text-white px-5 py-0.5 text-[10px] font-black tracking-widest uppercase border shadow-lg z-10 pointer-events-none`}>
-          <div className="flex items-center gap-1">{roleSubtitle === 'DƏNİZDƏ İTİB' || (player as any).displayRole?.localizedRoleName === 'DƏNİZDƏ İTİB' ? '🌊 DƏNİZDƏ İTİB' : <><Gavel className="w-3 h-3"/> {AZ_UI.eliminated}</>}</div>
+        <div data-testid={roleSubtitle === 'LOST AT SEA' || (player as any).displayRole?.localizedRoleName === 'LOST AT SEA' ? 'card-vanished-at-sea' : undefined} className={`absolute top-3 right-[-10px] rotate-12 ${roleSubtitle === 'LOST AT SEA' || (player as any).displayRole?.localizedRoleName === 'LOST AT SEA' ? 'bg-blue-700 border-blue-400' : 'bg-red-600 border-red-400'} text-white px-5 py-0.5 text-[10px] font-black tracking-widest uppercase border shadow-lg z-10 pointer-events-none`}>
+          <div className="flex items-center gap-1">{roleSubtitle === 'LOST AT SEA' || (player as any).displayRole?.localizedRoleName === 'LOST AT SEA' ? '🌊 LOST AT SEA' : <><Gavel className="w-3 h-3"/> {EN_UI.eliminated}</>}</div>
         </div>
       )}
 
@@ -453,7 +453,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-1 bg-red-600 shadow-[0_0_10px_red] -rotate-[25deg] opacity-70"></div>
           
           <div className="transform -rotate-[15deg] bg-red-700/90 text-red-50 font-black text-[10px] tracking-[0.4em] uppercase px-14 py-2 shadow-[0_0_30px_rgba(220,38,38,0.8)] whitespace-nowrap border-y border-red-400/80 z-10">
-            MƏHV EDİLİB
+            ELIMINATED
           </div>
         </div>
       )}
@@ -489,7 +489,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
               <span
                 data-testid={`badge-rank-${player.userId}`}
                 className={`inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.2 rounded border ${playerPrestige.rankBg} ${playerPrestige.rankColor} shrink-0`}
-                title={`Dərəcə: ${playerPrestige.rankName} (${playerPrestige.elo} ELO)`}
+                title={`Tier: ${playerPrestige.rankName} (${playerPrestige.elo} ELO)`}
               >
                 <Shield className="w-2.5 h-2.5" />
                 {playerPrestige.rankName}
@@ -503,11 +503,11 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
                 {playerPrestige.titleName}
               </span>
 
-              {/* Bold "SƏN" Badge */}
+              {/* Bold "YOU" Badge */}
               {isSelf && (
                 <span data-testid={`badge-self-${player.userId}`} className="inline-flex items-center gap-1 text-[10px] bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black px-2 py-0.2 rounded-full tracking-wider uppercase shadow-sm shadow-purple-500/30 shrink-0">
                   <Sparkles className="w-2.5 h-2.5" />
-                  SƏN
+                  YOU
                 </span>
               )}
 
@@ -519,9 +519,9 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
               )}
 
               {isAfk && !isBot && (
-                <span data-testid={`player-offline-${player.userId}`} className="inline-flex items-center gap-1 text-[10px] bg-zinc-500/15 text-zinc-500 dark:text-zinc-400 font-semibold px-1.5 py-0.2 rounded-md border border-zinc-500/20 shrink-0" title="Əlaqə kəsilib və ya passivdir">
+                <span data-testid={`player-offline-${player.userId}`} className="inline-flex items-center gap-1 text-[10px] bg-zinc-500/15 text-zinc-500 dark:text-zinc-400 font-semibold px-1.5 py-0.2 rounded-md border border-zinc-500/20 shrink-0" title="Connection lost or inactive">
                   <WifiOff className="w-2.5 h-2.5" />
-                  Oflayn
+                  Offline
                 </span>
               )}
 
@@ -533,7 +533,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
                     <span className="w-0.5 bg-emerald-500 rounded-full animate-[bounce_0.4s_ease-in-out_infinite]" />
                     <span className="w-0.5 bg-emerald-500 rounded-full animate-[bounce_0.5s_ease-in-out_infinite]" />
                   </div>
-                  <span>Danışır</span>
+                  <span>Speaking</span>
                 </span>
               )}
             </div>
@@ -553,11 +553,11 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
               </Badge>
             ) : isReady ? (
               <Badge tone="emerald" icon={<Check className="w-3 h-3" />}>
-                HAZIR
+                READY
               </Badge>
             ) : (
               <Badge tone="neutral" icon={<Clock className="w-3 h-3" />}>
-                GÖZLƏYİR
+                WAITING
               </Badge>
             )
           ) : (
@@ -565,20 +565,20 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
               {voteCount > 0 && (
                 <div className="relative group/tooltip">
                   <Badge tone="red" className="text-xs font-black px-2 py-0.5 shadow-sm cursor-help hover:scale-105 transition-transform">
-                    {voteCount} səs
+                    {voteCount} {voteCount === 1 ? 'vote' : 'votes'}
                   </Badge>
                   
                   {/* Custom Voter Tooltip */}
                   {voterUsernames && voterUsernames.length > 0 && (
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-3 py-1.5 bg-zinc-900 text-white text-[10px] font-bold tracking-widest uppercase rounded-lg shadow-2xl border border-zinc-700 pointer-events-none opacity-0 group-hover/tooltip:opacity-100 transition-opacity z-50">
                       <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-900 border-b border-r border-zinc-700 rotate-45" />
-                      SƏS VERƏNLƏR: {voterUsernames.join(', ')}
+                      VOTERS: {voterUsernames.join(', ')}
                     </div>
                   )}
                 </div>
               )}
               <Badge tone={isAlive ? 'emerald' : 'red'}>
-                {isAlive ? AZ_UI.alive : AZ_UI.eliminated}
+                {isAlive ? EN_UI.alive : EN_UI.eliminated}
               </Badge>
             </>
           )}
@@ -590,10 +590,10 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
         <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
           {district && (
             <Badge tone={DISTRICT_TONES[district] ?? 'blue'}>
-              {AZ_DISTRICTS[district]}
+              {EN_DISTRICTS[district]}
             </Badge>
           )}
-          {isHost && <Badge tone="amber">{AZ_UI.host}</Badge>}
+          {isHost && <Badge tone="amber">{EN_UI.host}</Badge>}
           {!isAlive && deathBadge && (
             <Badge tone={deathBadge.tone} icon={<Skull className="w-3 h-3" />}>
               {deathBadge.label}
@@ -601,7 +601,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
           )}
           {!isAlive && deathRound !== undefined && (
             <Badge tone="neutral">
-              Raund {deathRound}
+              Round {deathRound}
             </Badge>
           )}
         </div>
@@ -610,9 +610,9 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
       {/* Office (Visible only during active game if applicable) */}
       {!isLobbyPhase && officeRaw && (
         <div className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-1.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-          <span>Vəzifə:</span>
+          <span>Office:</span>
           <strong className="text-blue-600 dark:text-blue-400 font-bold">
-            {AZ_CIVIC_OFFICES[officeRaw] ?? officeRaw}
+            {EN_CIVIC_OFFICES[officeRaw] ?? officeRaw}
           </strong>
         </div>
       )}

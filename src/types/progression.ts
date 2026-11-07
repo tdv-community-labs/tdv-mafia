@@ -5,16 +5,18 @@
  */
 
 export type RankTier =
-  | 'NOVICE_DETECTIVE'     // 0 - 1099 ELO: "Acemi Xəfiyyə"
-  | 'DEPUTY_INQUISITOR'    // 1100 - 1299 ELO: "Müstəntiq Köməkçisi"
-  | 'HIGH_MAGISTRATE'      // 1300 - 1499 ELO: "Ali Hakim"
-  | 'SYNDICATE_ENFORCER'   // 1500 - 1699 ELO: "Sindikat Cəzaçısı"
-  | 'UNDERBOSS'            // 1700 - 1899 ELO: "Vitse-Don"
-  | 'SYNDICATE_DON'        // 1900 - 2199 ELO: "Sindikat Donu"
-  | 'SUPREME_GODFATHER';   // 2200+ ELO: "Ali Xaçatası"
+  | 'NOVICE_DETECTIVE'     // 0 - 1099 ELO: "Novice Sleuth"
+  | 'DEPUTY_INQUISITOR'    // 1100 - 1299 ELO: "Deputy Inquisitor"
+  | 'HIGH_MAGISTRATE'      // 1300 - 1499 ELO: "High Magistrate"
+  | 'SYNDICATE_ENFORCER'   // 1500 - 1699 ELO: "Syndicate Enforcer"
+  | 'UNDERBOSS'            // 1700 - 1899 ELO: "Underboss"
+  | 'SYNDICATE_DON'        // 1900 - 2199 ELO: "Syndicate Don"
+  | 'SUPREME_GODFATHER';   // 2200+ ELO: "Supreme Godfather"
 
 export interface RankTierDefinition {
   readonly tier: RankTier;
+  readonly name?: string;
+  readonly nameEn?: string;
   readonly nameAz: string;
   readonly minElo: number;
   readonly maxElo: number;

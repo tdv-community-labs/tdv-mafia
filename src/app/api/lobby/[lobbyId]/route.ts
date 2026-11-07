@@ -102,7 +102,12 @@ function initializeMinigameSubStates(lobby: LobbyState): MinigameSubStates {
     return { dantesInferno: createInitialDantesInfernoState() };
   }
   if (lobby.mode === 'THE_DAY_THE_EARTH_STOOD_STILL') {
-    const klaatu = pList.find(p => p.displayRole?.originalRoleName === 'Investigator' || p.displayRole?.localizedRoleName?.includes('Şərif'))?.userId || pIds[0] || null;
+    const klaatu = pList.find(p =>
+      p.displayRole?.originalRoleName === 'Investigator' ||
+      p.displayRole?.originalRoleName?.toLowerCase().includes('sheriff') ||
+      p.displayRole?.localizedRoleName?.toLowerCase().includes('sheriff') ||
+      p.displayRole?.localizedRoleName?.includes('Şərif')
+    )?.userId || pIds[0] || null;
     return { earthStoodStill: createInitialEarthStoodStillState(klaatu) };
   }
   if (lobby.mode === 'OPERATION_VALKYRIE') {
@@ -126,7 +131,17 @@ function initializeMinigameSubStates(lobby: LobbyState): MinigameSubStates {
   if (lobby.mode === 'CHERNOBYL_EXCLUSION_ZONE') {
     const liquidator = pList.find(
       p => p.allInIdentity?.layer1Faction === 'TOWN' &&
-      (p.displayRole?.originalRoleName === 'Doctor' || p.displayRole?.localizedRoleName?.includes('Həkim') || p.displayRole?.localizedRoleName?.toLowerCase().includes('likvidator') || p.displayRole?.localizedRoleName?.toLowerCase().includes('dozimetrist'))
+      (
+        p.displayRole?.originalRoleName === 'Doctor' ||
+        p.displayRole?.originalRoleName?.toLowerCase().includes('doctor') ||
+        p.displayRole?.localizedRoleName?.toLowerCase().includes('doctor') ||
+        p.displayRole?.localizedRoleName?.includes('Həkim') ||
+        p.displayRole?.localizedRoleName?.toLowerCase().includes('həkim') ||
+        p.displayRole?.localizedRoleName?.toLowerCase().includes('liquidator') ||
+        p.displayRole?.localizedRoleName?.toLowerCase().includes('likvidator') ||
+        p.displayRole?.localizedRoleName?.toLowerCase().includes('dosimetrist') ||
+        p.displayRole?.localizedRoleName?.toLowerCase().includes('dozimetrist')
+      )
     )?.userId || pIds[0] || null;
     const capacity = Math.max(2, Math.floor(pIds.length / 4));
     return { chernobyl: createInitialChernobylState(pIds, capacity, 15, 100, liquidator) };
@@ -1318,8 +1333,12 @@ export async function POST(request: Request, context: RouteContext) {
       const isLiquidator =
         chernobyl.liquidatorPlayerId === userId ||
         actor.displayRole?.originalRoleName === 'Doctor' ||
+        actor.displayRole?.originalRoleName?.toLowerCase().includes('doctor') ||
+        actor.displayRole?.localizedRoleName?.toLowerCase().includes('doctor') ||
+        actor.displayRole?.localizedRoleName?.toLowerCase().includes('liquidator') ||
         actor.displayRole?.localizedRoleName?.toLowerCase().includes('likvidator') ||
         actor.displayRole?.localizedRoleName?.toLowerCase().includes('həkim') ||
+        actor.displayRole?.localizedRoleName?.toLowerCase().includes('dosimetrist') ||
         actor.displayRole?.localizedRoleName?.toLowerCase().includes('dozimetrist');
 
       if (!isLiquidator) {

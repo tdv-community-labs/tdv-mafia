@@ -1,5 +1,5 @@
 import confetti from 'canvas-confetti';
-import { triggerHaptic } from '../../utils/sfx';
+import { triggerHaptic, playVictoryFanfare, playDefeatTone } from '../../utils/sfx';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Crown, Skull } from 'lucide-react';
@@ -38,6 +38,10 @@ export const GameOverCinematic: React.FC<GameOverCinematicProps> = ({
 
     if (iAmWinner) {
       triggerHaptic('victory');
+      playVictoryFanfare();
+    } else {
+      triggerHaptic('error');
+      playDefeatTone();
     }
 
     if (typeof window !== 'undefined') {
@@ -105,7 +109,7 @@ export const GameOverCinematic: React.FC<GameOverCinematicProps> = ({
           </motion.div>
 
           <h1 className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-500 uppercase tracking-tighter mb-4 drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)]">
-            {iAmWinner ? "QƏLƏBƏ!" : "MƏĞLUBİYYƏT"}
+            {iAmWinner ? "VICTORY!" : "DEFEAT"}
           </h1>
 
           <h2 className={`text-2xl md:text-4xl font-bold uppercase tracking-widest ${
@@ -123,7 +127,7 @@ export const GameOverCinematic: React.FC<GameOverCinematicProps> = ({
           )}
 
           <div className="w-full bg-zinc-900/80 border border-zinc-700 p-6 rounded-2xl">
-            <h3 className="text-zinc-400 text-sm font-bold uppercase tracking-widest mb-6">Qaliblər Lövhəsi</h3>
+            <h3 className="text-zinc-400 text-sm font-bold uppercase tracking-widest mb-6">Victorious Roster</h3>
             <div className="flex flex-wrap justify-center gap-4">
               {winnerIds.map((id: string, idx: number) => {
                 const p = players[id];
@@ -158,7 +162,7 @@ export const GameOverCinematic: React.FC<GameOverCinematicProps> = ({
               onClick={onClose}
               className="mt-8 px-8 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-sm tracking-widest uppercase transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-2xl backdrop-blur-md"
             >
-              Tam Nəticələri Gör ➔
+              View Match Recap ➔
             </motion.button>
           )}
 
@@ -168,7 +172,7 @@ export const GameOverCinematic: React.FC<GameOverCinematicProps> = ({
             transition={{ delay: 2.5 }}
             className="mt-6 text-zinc-500 text-xs tracking-widest uppercase font-mono"
           >
-            Lobbyə qayıtmaq üçün yuxarıdan menyunu istifadə edin...
+            Use top menu to return to lobby or review debrief...
           </motion.p>
         </motion.div>
       </motion.div>

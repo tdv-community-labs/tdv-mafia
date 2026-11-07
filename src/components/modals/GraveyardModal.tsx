@@ -55,10 +55,10 @@ export const GraveyardModal: React.FC<GraveyardModalProps> = ({ isOpen, onClose,
           <div className="relative z-10">
             <h2 className="text-3xl font-black tracking-tight text-white flex items-center justify-center gap-3">
               <Skull className="w-8 h-8 text-red-500" />
-              Qəbiristanlıq
+              Cemetery
             </h2>
             <p className="text-sm text-zinc-400 font-medium mt-2">
-              Ölülər danışmır, ancaq sirləri qalır.
+              The fallen hold no words, but their secrets remain.
             </p>
           </div>
         </div>
@@ -67,7 +67,7 @@ export const GraveyardModal: React.FC<GraveyardModalProps> = ({ isOpen, onClose,
           {deadPlayers.length === 0 ? (
             <div className="py-12 flex flex-col items-center justify-center text-center opacity-50">
               <Ghost className="w-12 h-12 text-zinc-500 mb-3" />
-              <p className="text-sm text-zinc-400 font-bold uppercase tracking-wider">Hələlik heç kim ölməyib</p>
+              <p className="text-sm text-zinc-400 font-bold uppercase tracking-wider">No casualties recorded yet</p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -75,14 +75,14 @@ export const GraveyardModal: React.FC<GraveyardModalProps> = ({ isOpen, onClose,
                 const roleName =
                   p.displayRole?.originalRoleName !== 'Secret' && p.displayRole?.originalRoleName !== 'Pending'
                     ? p.displayRole?.localizedRoleName || p.displayRole?.originalRoleName
-                    : 'Bilinməyən Rol';
+                    : 'Unknown Role';
 
                 return (
                   <React.Fragment key={p.userId}>
                     <div
                       onClick={() => onInspectPlayer?.(p)}
                       className={`flex items-center justify-between bg-zinc-950/50 border border-zinc-800/50 ${p.lastWill ? 'rounded-t-xl border-b-0' : 'rounded-xl'} p-4 hover:border-red-500/40 hover:bg-zinc-900/60 transition-all group cursor-pointer`}
-                      title="Məzar daşını və ətraflı məlumatı aç"
+                      title="Inspect epitaph and details"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center text-zinc-500 font-black group-hover:border-red-500/50 group-hover:text-red-400 transition-colors">
@@ -95,7 +95,7 @@ export const GraveyardModal: React.FC<GraveyardModalProps> = ({ isOpen, onClose,
                       </div>
                     {p.lastWill && (
                       <Badge tone="purple" className="shrink-0">
-                        Vəsiyyəti Var
+                        Testament Available
                       </Badge>
                     )}
                   </div>
@@ -103,7 +103,7 @@ export const GraveyardModal: React.FC<GraveyardModalProps> = ({ isOpen, onClose,
                     <div className="bg-amber-950/20 border-x border-b border-amber-900/30 rounded-b-xl px-4 py-3 -mt-2 mb-2">
                       <div className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1 flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                        Son Vəsiyyət
+                        Last Will & Testament
                       </div>
                       <p className="text-xs text-amber-200/80 italic font-serif leading-relaxed">
                         &ldquo;{p.lastWill}&rdquo;

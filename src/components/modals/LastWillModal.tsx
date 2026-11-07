@@ -43,7 +43,7 @@ export const LastWillModal: React.FC<LastWillModalProps> = ({ isOpen, onClose, i
         <div className="bg-orange-100 dark:bg-zinc-950/50 p-4 border-b border-orange-200 dark:border-zinc-800 flex items-center justify-between">
           <div className="flex items-center gap-2 text-orange-900 dark:text-amber-500">
             <Feather className="w-5 h-5" />
-            <h3 className="font-bold text-lg">Son Vəsiyyətnamə</h3>
+            <h3 className="font-bold text-lg">Last Will & Testament</h3>
           </div>
           <button
             onClick={onClose}
@@ -56,15 +56,15 @@ export const LastWillModal: React.FC<LastWillModalProps> = ({ isOpen, onClose, i
         <div className="p-4 flex flex-col gap-4">
           <p className="text-xs text-orange-800/80 dark:text-zinc-400 font-medium leading-relaxed">
             {isDead 
-              ? "Siz artıq həyatda deyilsiniz. Vəsiyyətnaməniz şəhər əhalisinə oxundu." 
-              : "Ölümünüz halında şəhərə buraxmaq istədiyiniz son sözlərinizi yazın. Gecə öldürülsəniz və ya məhkəmədə edam edilsəniz bu kağız kütləyə oxunacaq."}
+              ? "You have fallen. Your final testament has been unsealed and revealed to the town." 
+              : "Inscribe your final deductions and findings. Should you fall at night or be condemned at the gallows, this testament will be read aloud to the city."}
           </p>
 
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             disabled={isDead}
-            placeholder="Məni kimsə öldürsə, bilin ki o adam..."
+            placeholder="If I am found dead tomorrow, my prime suspect is..."
             className="w-full h-32 bg-white/50 dark:bg-black/20 border border-orange-200 dark:border-zinc-800 rounded-xl p-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none font-serif italic"
             maxLength={300}
           />
@@ -78,7 +78,7 @@ export const LastWillModal: React.FC<LastWillModalProps> = ({ isOpen, onClose, i
               className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-colors active:scale-95"
             >
               <Save className="w-4 h-4" />
-              Yadda Saxla
+              Save Testament
             </button>
           )}
         </div>

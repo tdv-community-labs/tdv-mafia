@@ -978,12 +978,12 @@ export function playCyberChirp(): void {
 /**
  * Safe haptic vibration wrapper for mobile touch devices.
  */
-export function triggerHaptic(type: 'click' | 'accused' | 'victory'): void {
+export function triggerHaptic(type: 'click' | 'accused' | 'victory' | 'error' | 'defeat'): void {
   if (typeof window === 'undefined' || typeof navigator === 'undefined' || !navigator.vibrate) return;
   try {
     if (type === 'click') {
       navigator.vibrate(15);
-    } else if (type === 'accused') {
+    } else if (type === 'accused' || type === 'error' || type === 'defeat') {
       navigator.vibrate([40, 60, 40]);
     } else if (type === 'victory') {
       navigator.vibrate([30, 50, 30, 50, 60]);
@@ -1535,6 +1535,80 @@ export function playCyberGlitch(): void {
     osc.start(now);
     modOsc.stop(now + 0.19);
     osc.stop(now + 0.19);
+  } catch {
+    // Silently ignore
+  }
+}
+
+/**
+ * Procedural Web Audio Victory Fanfare
+ * Multi-oscillator triumphant major chord arpeggio (C4, E4, G4, C5).
+ */
+export function playVictoryFanfare(): void {
+  if (isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const noteStart = now + idx * 0.12;
+      const noteEnd = noteStart + 0.55;
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, noteStart);
+
+      gain.gain.setValueAtTime(0.001, noteStart);
+      gain.gain.linearRampToValueAtTime(MASTER_VOLUME * 0.35, noteStart + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteEnd);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(noteStart);
+      osc.stop(noteEnd);
+    });
+  } catch {
+    // Silently ignore
+  }
+}
+
+/**
+ * Procedural Web Audio Defeat Tone
+ * Descending minor tri-tone progression (Eb3, D3, C#3).
+ */
+export function playDefeatTone(): void {
+  if (isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    const notes = [155.56, 146.83, 138.59]; // Eb3, D3, Db3
+
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const noteStart = now + idx * 0.22;
+      const noteEnd = noteStart + 0.7;
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, noteStart);
+
+      gain.gain.setValueAtTime(0.001, noteStart);
+      gain.gain.linearRampToValueAtTime(MASTER_VOLUME * 0.28, noteStart + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteEnd);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(noteStart);
+      osc.stop(noteEnd);
+    });
   } catch {
     // Silently ignore
   }

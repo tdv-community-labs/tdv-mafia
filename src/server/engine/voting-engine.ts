@@ -49,11 +49,17 @@ export function isMayor(player: PlayerSession): boolean {
   if (player.allInIdentity?.layer2Office === 'MAYOR') {
     return true;
   }
+  const roleId = (player as any).roleId?.toUpperCase?.() ?? (player.displayRole as any)?.roleId?.toUpperCase?.() ?? '';
+  if (roleId === 'MAYOR') {
+    return true;
+  }
   if (!player.displayRole) return false;
   const original = player.displayRole.originalRoleName?.toLowerCase() ?? '';
   const localized = player.displayRole.localizedRoleName?.toLowerCase() ?? '';
   return (
+    original === 'mayor' ||
     original.includes('mayor') ||
+    localized.includes('mayor') ||
     localized.includes('bələdiyyə')
   );
 }

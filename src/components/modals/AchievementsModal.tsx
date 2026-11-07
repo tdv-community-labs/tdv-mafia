@@ -49,7 +49,7 @@ interface TierVisualTheme {
 
 const TIER_THEMES: Record<AchievementTier, TierVisualTheme> = {
   BRONZE: {
-    label: 'Bürünc',
+    label: 'Bronze',
     emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="8"/><path d="M12 8v8"/><path d="M10 10h4"/><path d="M10 14h4"/></svg></span>',
     pillActive: 'bg-gradient-to-r from-amber-700 to-amber-800 text-white shadow-md shadow-amber-900/30 border border-amber-600/60',
     pillInactive: 'text-amber-800 dark:text-amber-300 hover:bg-amber-500/10 border border-amber-600/25',
@@ -65,7 +65,7 @@ const TIER_THEMES: Record<AchievementTier, TierVisualTheme> = {
     glowShadow: 'shadow-[0_0_14px_rgba(217,119,6,0.08)]',
   },
   SILVER: {
-    label: 'Gümüş',
+    label: 'Silver',
     emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="8"/><path d="M12 8v8"/><path d="M10 10h4"/><path d="M10 14h4"/></svg></span>',
     pillActive: 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-md shadow-slate-800/30 border border-slate-400/60',
     pillInactive: 'text-slate-700 dark:text-slate-300 hover:bg-slate-500/10 border border-slate-400/30',
@@ -81,7 +81,7 @@ const TIER_THEMES: Record<AchievementTier, TierVisualTheme> = {
     glowShadow: 'shadow-[0_0_14px_rgba(148,163,184,0.10)]',
   },
   GOLD: {
-    label: 'Qızıl',
+    label: 'Gold',
     emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="8"/><path d="M12 8v8"/><path d="M10 10h4"/><path d="M10 14h4"/></svg></span>',
     pillActive: 'bg-gradient-to-r from-yellow-500 to-amber-600 text-zinc-950 font-black shadow-md shadow-yellow-500/30 border border-yellow-400/70',
     pillInactive: 'text-yellow-800 dark:text-yellow-400 hover:bg-yellow-500/10 border border-yellow-500/30',
@@ -97,7 +97,7 @@ const TIER_THEMES: Record<AchievementTier, TierVisualTheme> = {
     glowShadow: 'shadow-[0_0_18px_rgba(234,179,8,0.12)]',
   },
   PLATINUM: {
-    label: 'Platin',
+    label: 'Platinum',
     emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13"/><path d="M13 3l3 6-4 13"/></svg></span>',
     pillActive: 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-md shadow-cyan-500/30 border border-cyan-400/60',
     pillInactive: 'text-cyan-800 dark:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/30',
@@ -113,7 +113,7 @@ const TIER_THEMES: Record<AchievementTier, TierVisualTheme> = {
     glowShadow: 'shadow-[0_0_22px_rgba(6,182,212,0.15)]',
   },
   LEGENDARY: {
-    label: 'Əfsanəvi',
+    label: 'Legendary',
     emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.518l4.276 3.664a1 1 0 0 0 1.516-.294z"/></svg></span>',
     pillActive: 'bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white shadow-md shadow-purple-600/35 border border-purple-400/60',
     pillInactive: 'text-purple-800 dark:text-purple-300 hover:bg-purple-500/10 border border-purple-500/30',
@@ -131,21 +131,21 @@ const TIER_THEMES: Record<AchievementTier, TierVisualTheme> = {
 };
 
 const CATEGORIES: readonly { id: AchievementCategory; label: string; count: number; icon: React.FC<{ className?: string }> }[] = [
-  { id: 'ALL', label: 'Hamısı', count: 72, icon: Award },
-  { id: 'TOWN', label: 'Şəhər', count: 15, icon: Shield },
-  { id: 'MAFIA', label: 'Mafiya', count: 15, icon: Crosshair },
-  { id: 'NEUTRAL', label: 'Neytral', count: 12, icon: Sparkles },
-  { id: 'MODES', label: 'Rejimlər', count: 16, icon: Sliders },
-  { id: 'MASTERY', label: 'Usta & Deduksiya', count: 14, icon: Flame },
+  { id: 'ALL', label: 'All', count: 72, icon: Award },
+  { id: 'TOWN', label: 'Town', count: 15, icon: Shield },
+  { id: 'MAFIA', label: 'Mafia', count: 15, icon: Crosshair },
+  { id: 'NEUTRAL', label: 'Neutral', count: 12, icon: Sparkles },
+  { id: 'MODES', label: 'Modes', count: 16, icon: Sliders },
+  { id: 'MASTERY', label: 'Mastery & Deduction', count: 14, icon: Flame },
 ];
 
 const TIERS: readonly { id: AchievementTier | 'ALL'; label: string; count: number; emoji: string }[] = [
-  { id: 'ALL', label: 'Bütün Tiers', count: 72, emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="10"/></svg></span>' },
-  { id: 'BRONZE', label: 'Bürünc', count: 8, emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="8"/><path d="M12 8v8"/><path d="M10 10h4"/><path d="M10 14h4"/></svg></span>' },
-  { id: 'SILVER', label: 'Gümüş', count: 22, emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="8"/><path d="M12 8v8"/><path d="M10 10h4"/><path d="M10 14h4"/></svg></span>' },
-  { id: 'GOLD', label: 'Qızıl', count: 21, emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="8"/><path d="M12 8v8"/><path d="M10 10h4"/><path d="M10 14h4"/></svg></span>' },
-  { id: 'PLATINUM', label: 'Platin', count: 12, emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13"/><path d="M13 3l3 6-4 13"/></svg></span>' },
-  { id: 'LEGENDARY', label: 'Əfsanəvi', count: 9, emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.518l4.276 3.664a1 1 0 0 0 1.516-.294z"/></svg></span>' },
+  { id: 'ALL', label: 'All Tiers', count: 72, emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="10"/></svg></span>' },
+  { id: 'BRONZE', label: 'Bronze', count: 8, emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="8"/><path d="M12 8v8"/><path d="M10 10h4"/><path d="M10 14h4"/></svg></span>' },
+  { id: 'SILVER', label: 'Silver', count: 22, emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="8"/><path d="M12 8v8"/><path d="M10 10h4"/><path d="M10 14h4"/></svg></span>' },
+  { id: 'GOLD', label: 'Gold', count: 21, emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="8"/><path d="M12 8v8"/><path d="M10 10h4"/><path d="M10 14h4"/></svg></span>' },
+  { id: 'PLATINUM', label: 'Platinum', count: 12, emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13"/><path d="M13 3l3 6-4 13"/></svg></span>' },
+  { id: 'LEGENDARY', label: 'Legendary', count: 9, emoji: '<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.518l4.276 3.664a1 1 0 0 0 1.516-.294z"/></svg></span>' },
 ];
 
 export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, onClose }) => {
@@ -249,14 +249,14 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-base sm:text-lg font-black text-zinc-950 dark:text-white leading-tight truncate">
-                    TDV MAFIA — Nailiyyətlər & Titullar
+                    TDV MAFIA — Achievements & Titles
                   </h2>
                   <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/35">
-                    72 Mexaniki Tapşırıq
+                    92 Mechanical Milestones
                   </span>
                 </div>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
-                  5-Səviyyəli (Bürünc, Gümüş, Qızıl, Platin, Əfsanəvi) dəqiq oyun mühərriki məqsədləri
+                  5-Tier progression system (Bronze, Silver, Gold, Platinum, Legendary) tracking precise game engine milestones.
                 </p>
               </div>
             </div>
@@ -266,7 +266,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
               <div className="hidden sm:flex flex-col items-end">
                 <div className="text-xs font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
                   <Award className="w-3.5 h-3.5 text-amber-500" />
-                  <span>{unlockedCount} / {totalCount} Tamamlandı</span>
+                  <span>{unlockedCount} / {totalCount} Completed</span>
                   <span className="text-amber-600 dark:text-amber-400 font-mono font-bold">({progressPercent}%)</span>
                 </div>
                 <div className="w-32 h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full mt-1.5 overflow-hidden">
@@ -313,7 +313,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Nailiyyət axtar..."
+                placeholder="Search achievements..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-8 py-1.5 rounded-[8px] border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-xs placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition-all font-medium"
@@ -322,7 +322,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  aria-label="Axtarışı təmizlə"
+                  aria-label="Clear search"
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -336,7 +336,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
             <div className="flex items-center gap-1.5 shrink-0">
               <span className="text-[11px] font-black uppercase text-zinc-400 dark:text-zinc-500 tracking-wider mr-1 flex items-center gap-1">
                 <CircleDot className="w-3 h-3 text-amber-500" />
-                Səviyyə:
+                Tier:
               </span>
 
               {TIERS.map((tier) => {
@@ -373,7 +373,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
                 onClick={clearFilters}
                 className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline shrink-0 ml-auto cursor-pointer"
               >
-                Filtrləri sıfırla
+                Reset Filters
               </button>
             )}
           </div>
@@ -387,13 +387,13 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
                 <Search className="w-6 h-6" />
               </div>
               <h4 className="text-sm font-black text-zinc-900 dark:text-zinc-100 mb-1">
-                Heç bir nailiyyət tapılmadı
+                No achievements found
               </h4>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mb-4">
-                Seçilmiş filter meyarlarına uyğun gələn nailiyyət yoxdur. Axtarış sözünü dəyişin və ya filtrləri sıfırlayın.
+                No achievements match your filter criteria. Adjust your search keywords or clear active filters.
               </p>
               <Button variant="outline" size="sm" onClick={clearFilters}>
-                Bütün Nailiyyətləri Göstər
+                Show All Achievements
               </Button>
             </div>
           ) : (
@@ -485,12 +485,12 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({ isOpen, on
         {/* ─── FIXED FOOTER ──────────────────────────────────────────── */}
         <div className="px-6 py-3.5 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-            <span className="font-semibold">Toplam 72 Nailiyyət</span>
+            <span className="font-semibold">All Achievements</span>
             <span>•</span>
-            <span className="hidden sm:inline">5 Səviyyə üzrə balanslaşdırılmış tərəqqi sistemi</span>
+            <span className="hidden sm:inline">5-Tier balanced progression system</span>
           </div>
           <Button variant="primary" size="sm" onClick={onClose}>
-            Başa Düşdüm
+            Got It
           </Button>
         </div>
       </div>

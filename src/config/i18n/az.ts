@@ -267,3 +267,7 @@ export const AZ_BOT_PERSONALITIES = {
 export function getLocalizedRoleDisplay(roleKey: keyof typeof AZ_STANDARD_ROLES): FormattedRoleDisplay {
   return AZ_STANDARD_ROLES[roleKey];
 }
+
+// === UNIFIED I18N EXPORTS ===
+export * from './en';
+

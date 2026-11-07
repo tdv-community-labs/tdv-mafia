@@ -41,18 +41,16 @@ function hasTrait(player: PlayerSession, trait: InnateTraitType): boolean {
 
 function isBodyguard(player: PlayerSession): boolean {
   if (!player.displayRole) return false;
+  const roleId = (player as any).roleId?.toUpperCase?.() ?? (player.displayRole as any).roleId?.toUpperCase?.() ?? '';
   const original = player.displayRole.originalRoleName?.toLowerCase() ?? '';
   const localized = player.displayRole.localizedRoleName?.toLowerCase() ?? '';
-  const nickname = player.displayRole.nickname?.toLowerCase() ?? '';
-  const formatted = player.displayRole.formatted?.toLowerCase() ?? '';
   return (
+    roleId === 'BODYGUARD' ||
+    original === 'bodyguard' ||
     original.includes('bodyguard') ||
+    localized.includes('bodyguard') ||
     localized.includes('mühafizəçi') ||
-    localized.includes('cangüdən') ||
-    nickname.includes('cangüdən') ||
-    formatted.includes('bodyguard') ||
-    formatted.includes('cangüdən') ||
-    formatted.includes('mühafizəçi')
+    localized.includes('cangüdən')
   );
 }
 
