@@ -34,6 +34,10 @@ export interface PlayerCardProps {
   readonly teammateIntents?: readonly { actorName: string; type: string }[];
   readonly isCompact?: boolean;
   readonly activeEmote?: string;
+  readonly isSavedByDoctor?: boolean;
+  readonly isArmorFractured?: boolean;
+  readonly hasDuelClash?: boolean;
+  readonly isMayorRevealed?: boolean;
   readonly style?: React.CSSProperties;
 }
 
@@ -84,6 +88,10 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
   onKick,
   isCompact = false,
   activeEmote,
+  isSavedByDoctor = false,
+  isArmorFractured = false,
+  hasDuelClash = false,
+  isMayorRevealed = false,
   style,
 }) => {
   const [isTombstoneOpen, setIsTombstoneOpen] = React.useState(false);
@@ -178,6 +186,10 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
     containerClasses = 'bg-zinc-100/60 dark:bg-zinc-950/60 border-zinc-200 dark:border-zinc-800/60 opacity-60 grayscale-[40%]';
   } else if (isAccused) {
     containerClasses = 'bg-gradient-to-b from-amber-950/40 via-zinc-900 to-amber-950/20 border-amber-400 dark:border-amber-400 ring-4 ring-amber-400/50 shadow-[0_0_35px_rgba(251,191,36,0.5)]';
+  } else if (isMayorRevealed && isAlive && !isLobbyPhase) {
+    containerClasses = 'bg-gradient-to-b from-amber-950/30 via-zinc-900 to-purple-950/30 border-amber-400 ring-2 ring-amber-400/60 shadow-[0_0_25px_rgba(251,191,36,0.5)]';
+  } else if (isSavedByDoctor && isAlive && !isLobbyPhase) {
+    containerClasses = 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-400 ring-2 ring-emerald-400/60 shadow-[0_0_25px_rgba(16,185,129,0.5)]';
   } else if (isSelected) {
     if (effectiveActionType === 'KILL') {
       containerClasses = 'bg-red-500/10 dark:bg-red-950/40 border-red-500 ring-2 ring-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.35)]';
@@ -245,6 +257,96 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
         <div data-testid={`badge-accused-${player.userId}`} className="absolute top-2 left-2 z-30 px-2 py-0.5 rounded-full bg-amber-500 text-zinc-950 text-[10px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(245,158,11,0.8)] flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-zinc-950 animate-ping" />
           <span>KÜRSÜDƏ</span>
+        </div>
+      )}
+
+      {/* Permanent Radiant Crown Halo for Mayor */}
+      {isMayorRevealed && isAlive && !isLobbyPhase && (
+        <div data-testid={`mayor-revealed-${player.userId}`} className="absolute inset-0 pointer-events-none z-10 overflow-hidden rounded-[20px]">
+          <div className="absolute inset-0 bg-[conic-gradient(from_0deg,_rgba(251,191,36,0.22)_0deg,_transparent_60deg,_rgba(251,191,36,0.22)_180deg,_transparent_240deg)] animate-[spin_12s_linear_infinite]" />
+          <div className="absolute top-2 right-2 z-30 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-zinc-950 text-[9px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(251,191,36,0.8)] flex items-center gap-1 border border-amber-300">
+            <Crown className="w-3 h-3 text-zinc-950" />
+            <span>3X MER</span>
+          </div>
+        </div>
+      )}
+
+      {/* Emerald Protective Shield Shimmer Overlay */}
+      {isSavedByDoctor && isAlive && !isLobbyPhase && (
+        <div
+          data-testid={`doctor-save-shield-${player.userId}`}
+          className="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-[20px] transition-all duration-500"
+        >
+          {/* Radial Emerald Ambient Glow */}
+          <div className="absolute inset-0 bg-emerald-500/15 animate-pulse" />
+
+          {/* Hexagonal Shield Lattice SVG */}
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full opacity-35 text-emerald-400">
+            <defs>
+              <pattern id={`hex-grid-${player.userId}`} width="16" height="27.71" patternUnits="userSpaceOnUse">
+                <path
+                  d="M8 0 L16 4.62 L16 13.86 L8 18.48 L0 13.86 L0 4.62 Z M8 27.71 L16 23.09 L16 13.86 L8 18.48 L0 13.86 L0 23.09 Z"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="0.75"
+                />
+              </pattern>
+            </defs>
+            <rect width="100" height="100" fill={`url(#hex-grid-${player.userId})`} />
+          </svg>
+
+          {/* Diagonal Sweeping Shimmer Beam */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+
+          {/* Saved Status Chip */}
+          <div className="absolute bottom-2 left-2 z-30 px-2 py-0.5 rounded-full bg-emerald-500/90 text-zinc-950 text-[10px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(16,185,129,0.8)] flex items-center gap-1 backdrop-blur-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-zinc-950 animate-ping" />
+            <span>🛡️ XİLAS EDİLDİ</span>
+          </div>
+        </div>
+      )}
+
+      {/* Bodyguard Dueling Clash Spark Overlay */}
+      {hasDuelClash && !isLobbyPhase && (
+        <div
+          data-testid={`duel-clash-overlay-${player.userId}`}
+          className="absolute inset-0 z-30 pointer-events-none overflow-hidden rounded-[20px] flex items-center justify-center bg-black/40 backdrop-blur-[1px]"
+        >
+          <div className="relative w-24 h-24 flex items-center justify-center">
+            <svg viewBox="0 0 100 100" className="w-full h-full text-amber-300 drop-shadow-[0_0_15px_rgba(251,191,36,0.8)] animate-pulse">
+              <path d="M15 15 L50 50 L85 85 M15 15 L25 10 L50 45 Z" fill="currentColor" stroke="#fff" strokeWidth="1.5" />
+              <path d="M85 15 L50 50 L15 85 M85 15 L75 10 L50 45 Z" fill="currentColor" stroke="#fff" strokeWidth="1.5" />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-6 h-6 rounded-full bg-white shadow-[0_0_30px_#fff,0_0_60px_#f59e0b] animate-ping" />
+            </div>
+          </div>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-md bg-amber-950/90 border border-amber-500/80 text-amber-300 text-[9px] font-black uppercase tracking-wider shadow-lg whitespace-nowrap">
+            ⚔️ SİLAHLI TOQQUŞMA
+          </div>
+        </div>
+      )}
+
+      {/* Iron Will Shattered Ballistic Armor Fracture Overlay */}
+      {isArmorFractured && !isLobbyPhase && (
+        <div
+          data-testid={`armor-fracture-${player.userId}`}
+          className="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-[20px]"
+        >
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full text-amber-400/80 dark:text-amber-200/90 drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]">
+            <circle cx="32" cy="28" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.2" className="animate-pulse" />
+            <circle cx="32" cy="28" r="1.5" fill="currentColor" />
+            <path d="M32 28 L12 8 M12 8 L4 18 M12 8 L2 2" stroke="currentColor" strokeWidth="1.0" fill="none" />
+            <path d="M32 28 L72 14 M72 14 L94 4 M72 14 L85 24" stroke="currentColor" strokeWidth="1.1" fill="none" />
+            <path d="M32 28 L48 58 M48 58 L24 88 M48 58 L78 74" stroke="currentColor" strokeWidth="1.2" fill="none" />
+            <path d="M32 28 L14 46 M14 46 L4 64 M14 46 L20 72" stroke="currentColor" strokeWidth="0.9" fill="none" />
+            <path d="M48 58 L54 94 M78 74 L96 90 M78 74 L98 62" stroke="currentColor" strokeWidth="0.8" fill="none" />
+            <path d="M26 22 L22 34 M38 24 L44 32 M30 36 L36 44 M42 48 L38 56" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 1" fill="none" />
+          </svg>
+          <div className="absolute top-2 right-2 z-30 px-2 py-0.5 rounded-md bg-amber-950/90 border border-amber-500/60 text-amber-300 text-[9px] font-black uppercase tracking-wider shadow-md flex items-center gap-1 backdrop-blur-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            <span>🛡️⚡ ZİREH QIRILDI</span>
+          </div>
         </div>
       )}
 
@@ -486,6 +588,10 @@ export const PlayerCard = React.memo(PlayerCardComponent, (prev, next) => {
     prev.onKick === next.onKick &&
     prev.targetIntent === next.targetIntent &&
     prev.activeEmote === next.activeEmote &&
+    prev.isSavedByDoctor === next.isSavedByDoctor &&
+    prev.isArmorFractured === next.isArmorFractured &&
+    prev.hasDuelClash === next.hasDuelClash &&
+    prev.isMayorRevealed === next.isMayorRevealed &&
     JSON.stringify(prev.voterUsernames) === JSON.stringify(next.voterUsernames) &&
     JSON.stringify(prev.player) === JSON.stringify(next.player)
   );

@@ -14,9 +14,12 @@ let audioCtx: AudioContext | null = null;
 const audioCache: Record<string, HTMLAudioElement> = {};
 
 /** Get or initialize AudioContext safely */
-function getAudioContext(): AudioContext | null {
+export function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
   try {
+    if ((window as any).__audioCtxInstance) {
+      return (window as any).__audioCtxInstance;
+    }
     const AudioCtxClass =
       window.AudioContext ||
       (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
@@ -31,6 +34,11 @@ function getAudioContext(): AudioContext | null {
   } catch {
     return null;
   }
+}
+
+/** Reset cached AudioContext instance (for test suites) */
+export function resetAudioContextForTesting(): void {
+  audioCtx = null;
 }
 
 /** Check if global sound is currently muted */
@@ -980,6 +988,553 @@ export function triggerHaptic(type: 'click' | 'accused' | 'victory'): void {
     } else if (type === 'victory') {
       navigator.vibrate([30, 50, 30, 50, 60]);
     }
+  } catch {
+    // Silently ignore
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 15. PROCEDURAL TENSION HEARTBEAT PULSE (playHeartbeatTension)
+// Sub-bass dual cardiac pulse ("lub-dub", 50Hz) with dynamic tempo scaling.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Procedural Tension Heartbeat Pulse (Web Audio API)
+ * Generates an anatomical dual-pulse ("lub-dub") sub-bass thump (50Hz) simulating rising cardiac tension.
+ * Pulse interval and tempo scale dynamically with bpm (clamped between 40 and 180).
+ * Non-blocking: oscillators and gain nodes auto-terminate and disconnect cleanly within 0.35s.
+ */
+export function playHeartbeatTension(bpm: number = 75): void {
+  if (typeof window === 'undefined' || isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const clampedBpm = Math.max(40, Math.min(180, bpm));
+    const now = ctx.currentTime;
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(MASTER_VOLUME * 0.7, now);
+    masterGain.connect(ctx.destination);
+
+    // Pulse 1: "Lub" - Deeper, foundational sub-bass thump (52Hz -> 36Hz)
+    const s1Osc = ctx.createOscillator();
+    const s1Gain = ctx.createGain();
+    const s1Filter = ctx.createBiquadFilter();
+
+    s1Osc.type = 'sine';
+    s1Osc.frequency.setValueAtTime(52, now);
+    s1Osc.frequency.exponentialRampToValueAtTime(36, now + 0.11);
+
+    s1Filter.type = 'lowpass';
+    s1Filter.frequency.setValueAtTime(110, now);
+
+    s1Gain.gain.setValueAtTime(0.001, now);
+    s1Gain.gain.linearRampToValueAtTime(0.55, now + 0.015);
+    s1Gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+    s1Osc.connect(s1Filter);
+    s1Filter.connect(s1Gain);
+    s1Gain.connect(masterGain);
+
+    s1Osc.start(now);
+    s1Osc.stop(now + 0.13);
+
+    // Pulse 2: "Dub" - Slightly higher transient thump (64Hz -> 42Hz) spaced proportionally
+    const s2Delay = Math.min(0.18, (60 / clampedBpm) * 0.35);
+    const s2Time = now + s2Delay;
+
+    const s2Osc = ctx.createOscillator();
+    const s2Gain = ctx.createGain();
+    const s2Filter = ctx.createBiquadFilter();
+
+    s2Osc.type = 'sine';
+    s2Osc.frequency.setValueAtTime(64, s2Time);
+    s2Osc.frequency.exponentialRampToValueAtTime(42, s2Time + 0.09);
+
+    s2Filter.type = 'lowpass';
+    s2Filter.frequency.setValueAtTime(125, s2Time);
+
+    s2Gain.gain.setValueAtTime(0.001, s2Time);
+    s2Gain.gain.linearRampToValueAtTime(0.45, s2Time + 0.012);
+    s2Gain.gain.exponentialRampToValueAtTime(0.001, s2Time + 0.10);
+
+    s2Osc.connect(s2Filter);
+    s2Filter.connect(s2Gain);
+    s2Gain.connect(masterGain);
+
+    s2Osc.start(s2Time);
+    s2Osc.stop(s2Time + 0.11);
+  } catch {
+    // Non-fatal fallback
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 16. STOCHASTIC GEIGER COUNTER CLICK (playGeigerClick)
+// Bandpass-filtered electrical micro-discharge click for Chernobyl radiation hazards.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Stochastic Geiger Counter Discharge Click (Web Audio API)
+ * Simulates ionizing radiation gas discharge in a Geiger-Müller tube with sharp bandpass filtering (1500Hz-3000Hz).
+ * Jittered center frequency and amplitude variation provide realistic stochastic radiation hazard feedback.
+ */
+export function playGeigerClick(): void {
+  if (typeof window === 'undefined' || isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    // Stochastic pitch jitter around 2200-2600Hz
+    const centerFreq = 2200 + (Math.random() - 0.5) * 600;
+
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(centerFreq, now);
+
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(centerFreq, now);
+    if ('Q' in filter && filter.Q && typeof filter.Q.setValueAtTime === 'function') {
+      filter.Q.setValueAtTime(6.0, now);
+    }
+
+    const clickVolume = (0.14 + Math.random() * 0.06) * MASTER_VOLUME;
+    gain.gain.setValueAtTime(clickVolume, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.006);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.008);
+  } catch {
+    // Silently ignore
+  }
+}
+
+let geigerTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Stochastic Geiger Loop Coordinator
+ * Automatically adjusts click cadence based on radiation intensity.
+ */
+export function setGeigerIntensity(mSv: number): void {
+  if (geigerTimer) {
+    clearTimeout(geigerTimer);
+    geigerTimer = null;
+  }
+  if (mSv < 30 || isSoundMuted() || typeof window === 'undefined') return;
+
+  // Interval scales inversely with dosage:
+  // 30-50 mSv: 300-800ms random intervals
+  // 50-80 mSv: 80-250ms random intervals
+  // >80 mSv: 20-70ms frantic chatter
+  const minInterval = mSv >= 80 ? 20 : mSv >= 50 ? 80 : 300;
+  const maxInterval = mSv >= 80 ? 70 : mSv >= 50 ? 250 : 800;
+
+  const scheduleNext = () => {
+    playGeigerClick();
+    const delay = Math.random() * (maxInterval - minInterval) + minInterval;
+    geigerTimer = setTimeout(scheduleNext, delay);
+  };
+  scheduleNext();
+}
+
+/**
+ * Halts any active Geiger click scheduling loop.
+ */
+export function stopGeiger(): void {
+  if (geigerTimer) {
+    clearTimeout(geigerTimer);
+    geigerTimer = null;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 17. MAYORAL ROYAL BRASS FANFARE (playMayoralFanfare)
+// Royal herald trumpet progression (D4, F#4, A4, D5) for 3x Mayor Proclamation.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Mayoral Royal Proclamation Brass Fanfare (Web Audio API)
+ * Royal brass chord progression (D4, F#4, A4, D5) celebrating the Mayor's 3x voting weight reveal.
+ * Emulates trumpet horn acoustics with lowpass brass filter sweep and authoritative decay.
+ */
+export function playMayoralFanfare(pan: number = 0.0): void {
+  if (typeof window === 'undefined' || isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(MASTER_VOLUME * 0.85, now);
+
+    if (pan !== 0.0 && typeof ctx.createStereoPanner === 'function') {
+      const panner = ctx.createStereoPanner();
+      panner.pan.setValueAtTime(Math.max(-1.0, Math.min(1.0, pan)), now);
+      masterGain.connect(panner);
+      panner.connect(ctx.destination);
+    } else {
+      masterGain.connect(ctx.destination);
+    }
+
+    // Herald Trumpet Fanfare Progression: D4 -> F#4 -> A4 -> Majestic D-Major Climax
+    const notes: Array<{ delay: number; freq: number; gain: number; duration: number }> = [
+      { delay: 0.00, freq: 293.66, gain: 0.40, duration: 0.14 }, // D4
+      { delay: 0.12, freq: 369.99, gain: 0.45, duration: 0.14 }, // F#4
+      { delay: 0.24, freq: 440.00, gain: 0.50, duration: 0.18 }, // A4
+      // Final Royal Resolution Chord (D4, A4, D5)
+      { delay: 0.40, freq: 293.66, gain: 0.35, duration: 1.40 }, // D4 body
+      { delay: 0.40, freq: 440.00, gain: 0.40, duration: 1.40 }, // A4 fifth
+      { delay: 0.40, freq: 587.33, gain: 0.50, duration: 1.60 }, // D5 crown
+    ];
+
+    notes.forEach((nt) => {
+      const noteTime = now + nt.delay;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      // Sawtooth wave for brassy trumpet timbre
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(nt.freq, noteTime);
+
+      // Brass acoustic envelope: bright initial flare sweeping to warm resonance
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1600, noteTime);
+      filter.frequency.exponentialRampToValueAtTime(550, noteTime + nt.duration * 0.7);
+
+      gain.gain.setValueAtTime(0.001, noteTime);
+      gain.gain.linearRampToValueAtTime(nt.gain, noteTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteTime + nt.duration);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+
+      osc.start(noteTime);
+      osc.stop(noteTime + nt.duration + 0.02);
+    });
+  } catch {
+    // Non-fatal fallback
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 18. TRAGIC MOURNING CHURCH BELL (playMourningBell)
+// Heavy bronze cathedral bell with sorrowful minor third (F3) for innocent lynches.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Tragic Mourning Church Bell (Web Audio API)
+ * Low tubular bronze church bell strike with sorrowful minor third (F3) and 3.8s harmonic reverberation decay.
+ * Triggered upon the wrongful execution of an innocent townsperson ("Şəhər Səhv Etdi").
+ */
+export function playMourningBell(pan: number = 0.0): void {
+  if (typeof window === 'undefined' || isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(MASTER_VOLUME * 0.80, now);
+
+    if (pan !== 0.0 && typeof ctx.createStereoPanner === 'function') {
+      const panner = ctx.createStereoPanner();
+      panner.pan.setValueAtTime(Math.max(-1.0, Math.min(1.0, pan)), now);
+      masterGain.connect(panner);
+      panner.connect(ctx.destination);
+    } else {
+      masterGain.connect(ctx.destination);
+    }
+
+    // Heavy iron clapper strike transient (480Hz -> 120Hz over 35ms)
+    const clapper = ctx.createOscillator();
+    const clapperGain = ctx.createGain();
+    clapper.type = 'triangle';
+    clapper.frequency.setValueAtTime(480, now);
+    clapper.frequency.exponentialRampToValueAtTime(120, now + 0.035);
+    clapperGain.gain.setValueAtTime(0.35, now);
+    clapperGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+    clapper.connect(clapperGain);
+    clapperGain.connect(masterGain);
+    clapper.start(now);
+    clapper.stop(now + 0.045);
+
+    // Bronze Church Bell Partials (D-Minor sorrow chime: Hum, Prime, Minor 3rd, 5th, Octave)
+    const partials = [
+      { freq: 73.42,  gain: 0.45, decay: 3.8 }, // D2 Hum Tone (deep bronze vibration)
+      { freq: 146.83, gain: 0.35, decay: 3.2 }, // D3 Prime (strike tone fundamental)
+      { freq: 174.61, gain: 0.30, decay: 2.8 }, // F3 Tierce / Minor 3rd (tragic sorrow color)
+      { freq: 220.00, gain: 0.20, decay: 2.4 }, // A3 Quint / Fifth
+      { freq: 293.66, gain: 0.15, decay: 1.8 }, // D4 Nominal / Octave
+    ];
+
+    partials.forEach((p, idx) => {
+      const strikeTime = now + idx * 0.008;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(p.freq, strikeTime);
+
+      // Lowpass warmth filter preserving rich bronze resonance while rolling off harsh harmonics
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(380, strikeTime);
+
+      gain.gain.setValueAtTime(p.gain, strikeTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, strikeTime + p.decay);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+
+      osc.start(strikeTime);
+      osc.stop(strikeTime + p.decay + 0.05);
+    });
+  } catch {
+    // Non-fatal fallback
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 19. ARMOR SHATTER & COMBAT CLASH (playArmorShatter)
+// High metallic impact ping + highpass noise burst for Iron Will & Bodyguard clashes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Metallic Armor Shatter Sound Effect (Web Audio API)
+ * High metallic impact ping (1800Hz -> 320Hz) combined with high-pass filtered noise burst.
+ * Triggered when a player's IRON_WILL charge shatters or during bodyguard combat clashes.
+ */
+export function playArmorShatter(): void {
+  if (typeof window === 'undefined' || isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(MASTER_VOLUME * 0.75, now);
+    masterGain.connect(ctx.destination);
+
+    // 1. High metallic impact ping
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(1800, now);
+    osc.frequency.exponentialRampToValueAtTime(320, now + 0.25);
+    gain.gain.setValueAtTime(0.65, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start(now);
+    osc.stop(now + 0.32);
+
+    // 2. High-pass noise burst (glass/crystal fracture)
+    const bufSize = Math.floor(ctx.sampleRate * 0.35);
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.setValueAtTime(3200, now);
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.45, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(masterGain);
+
+    noise.start(now);
+    noise.stop(now + 0.38);
+  } catch {
+    // Non-fatal fallback
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 20. PROCEDURAL EMERALD GUARDIAN SHIELD (playGuardianShield)
+// Luminous celestial harmonic chord (C5, G5, C6) for Doctor saves.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Procedural Emerald Guardian Shield Chime (Web Audio API)
+ * Luminous celestial harmonic chord (C5 523Hz + G5 784Hz + C6 1046Hz) with smooth lowpass envelope.
+ * Triggered when a Doctor successfully protects a target from assassination.
+ */
+export function playGuardianShield(): void {
+  if (typeof window === 'undefined' || isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(MASTER_VOLUME * 0.75, now);
+    master.connect(ctx.destination);
+
+    [523.25, 783.99, 1046.50].forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.03);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(2200, now);
+      filter.frequency.exponentialRampToValueAtTime(600, now + 1.2);
+
+      gain.gain.setValueAtTime(0.001, now + idx * 0.03);
+      gain.gain.linearRampToValueAtTime(0.3 / (idx + 1), now + idx * 0.03 + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(master);
+
+      osc.start(now + idx * 0.03);
+      osc.stop(now + 1.85);
+    });
+  } catch {
+    // Silently ignore
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 21. PROCEDURAL BLADE CLASH (playBladeClash)
+// Sharp metallic blade ping + highpass friction noise for Bodyguard clashes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Procedural Armed Duel / Blade Clash Transient (Web Audio API)
+ * High-frequency metallic blade ping (2400Hz -> 550Hz) + highpass friction grind burst + resonant body thud.
+ * Triggered during Bodyguard sacrifice or counter-attack duels.
+ */
+export function playBladeClash(): void {
+  if (typeof window === 'undefined' || isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+
+    // 1. Sharp Metallic Ping (High Q Bandpass Oscillator)
+    const pingOsc = ctx.createOscillator();
+    const pingGain = ctx.createGain();
+    const pingFilter = ctx.createBiquadFilter();
+
+    pingOsc.type = 'triangle';
+    pingOsc.frequency.setValueAtTime(2400, now);
+    pingOsc.frequency.exponentialRampToValueAtTime(550, now + 0.18);
+
+    pingFilter.type = 'bandpass';
+    pingFilter.frequency.setValueAtTime(2400, now);
+    if ('Q' in pingFilter && pingFilter.Q && typeof pingFilter.Q.setValueAtTime === 'function') {
+      pingFilter.Q.setValueAtTime(10.0, now);
+    }
+
+    pingGain.gain.setValueAtTime(MASTER_VOLUME * 0.85, now);
+    pingGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+    pingOsc.connect(pingFilter);
+    pingFilter.connect(pingGain);
+    pingGain.connect(ctx.destination);
+    pingOsc.start(now);
+    pingOsc.stop(now + 0.38);
+
+    // 2. High-Pass Steel Friction Noise Transient
+    const bufSize = Math.floor(ctx.sampleRate * 0.12);
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'highpass';
+    noiseFilter.frequency.setValueAtTime(3500, now);
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(MASTER_VOLUME * 0.6, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + 0.14);
+  } catch {
+    // Silently ignore
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 22. PROCEDURAL CYBER NET-GLITCH (playCyberGlitch)
+// Frequency-modulated sawtooth wave with 45Hz LFO flutter for Cyber-Overdrive.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Procedural Cyber Net-Glitch Interference Chirp (Web Audio API)
+ * Frequency-modulated sawtooth wave (850Hz -> 180Hz) modulated with a 45Hz LFO flutter.
+ * Triggered during Cyberpunk Neo-Baku Cyber-Overdrive or Net-Glitch events.
+ */
+export function playCyberGlitch(): void {
+  if (typeof window === 'undefined' || isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const modOsc = ctx.createOscillator();
+    const modGain = ctx.createGain();
+    const mainGain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(850, now);
+    osc.frequency.exponentialRampToValueAtTime(180, now + 0.16);
+
+    // High-speed frequency jitter modulation
+    modOsc.type = 'square';
+    modOsc.frequency.setValueAtTime(45, now);
+    modGain.gain.setValueAtTime(140, now);
+
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1200, now);
+    if ('Q' in filter && filter.Q && typeof filter.Q.setValueAtTime === 'function') {
+      filter.Q.setValueAtTime(4.0, now);
+    }
+
+    mainGain.gain.setValueAtTime(MASTER_VOLUME * 0.45, now);
+    mainGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+    modOsc.connect(modGain);
+    modGain.connect(osc.frequency);
+    osc.connect(filter);
+    filter.connect(mainGain);
+    mainGain.connect(ctx.destination);
+
+    modOsc.start(now);
+    osc.start(now);
+    modOsc.stop(now + 0.19);
+    osc.stop(now + 0.19);
   } catch {
     // Silently ignore
   }

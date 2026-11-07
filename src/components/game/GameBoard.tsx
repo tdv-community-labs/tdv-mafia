@@ -43,6 +43,9 @@ import {
   initAudioUnlock,
   playCard,
   playElimination,
+  playGuardianShield,
+  playBladeClash,
+  playArmorShatter,
   isSoundMuted,
   toggleSound,
   subscribeSound,
@@ -177,6 +180,30 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     lobbyState.accusedPlayerId,
     lobbyState.lastLynchedUserId,
   ]);
+
+  // Zero-latency audio trigger for dawn newspaper revelations (Doctor saves, bodyguards, armor shatter)
+  const prevNewspaperRef = useRef<any>(null);
+  useEffect(() => {
+    const curNewspaper = lobbyState.latestNewspaper;
+    if (curNewspaper && curNewspaper !== prevNewspaperRef.current) {
+      prevNewspaperRef.current = curNewspaper;
+      if (lobbyState.phase !== 'NIGHT_BUFFER' && lobbyState.phase !== 'LOBBY') {
+        const hasDuel = curNewspaper.publicDeaths?.some(
+          (d: any) => d.cause === 'BODYGUARD_COUNTER' || d.cause === 'BODYGUARD_SACRIFICE'
+        );
+        const hasFracture = (curNewspaper.armorBrokenPlayerIds?.length ?? 0) > 0;
+        const hasDoctorSave = (curNewspaper.protectedIds?.length ?? 0) > 0;
+
+        if (hasDuel) {
+          playBladeClash();
+        } else if (hasFracture) {
+          playArmorShatter();
+        } else if (hasDoctorSave) {
+          playGuardianShield();
+        }
+      }
+    }
+  }, [lobbyState.latestNewspaper, lobbyState.phase]);
 
   // Synchronize countdown timer audio ticks
   useEffect(() => {

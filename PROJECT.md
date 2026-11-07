@@ -57,6 +57,10 @@
 | M13 | Automated E2E Browser Testing Suite | Playwright multi-client test harness (4–8 concurrent browser sessions) | M1-M10 | DONE |
 | M14 | UI/UX Component Polish & Audio Synthesis | 3D card tilt, circular SVG timers, Web Audio micro-interactions, mobile swipe drawer | M1-M10 | DONE |
 | M15 | Accessibility Compliance & Final Release | WCAG 2.1 AA screen reader live regions, prefers-reduced-motion, multi-suite sweep | M11-M14 | DONE |
+| M16 | Visual & Audio Immersion Engine | SFX synthesizers, voting tension, moral execution, combat clashes, spotlight | M1-M15 | DONE |
+| M17 | Progression, Retention & Prestige Cosmetics | ProgressionManager, 1-100+ XP curve, 7-tier ranked ladder, PlayerCard badges | M16 | IN_PROGRESS |
+| M18 | Viral Social Deduction & Match Recaps | Algorithmic MVP recap, 1-click viral share, ZK ghost realm, prediction betting | M16, M17 | PLANNED |
+| M19 | Core Engine Integration & Production Certification | Automated test suites, 40-player macro simulation, zero errors, production build | M16-M18 | PLANNED |
 
 ## Interface Contracts
 ### `night-action-resolver.ts` ↔ `engine.ts`

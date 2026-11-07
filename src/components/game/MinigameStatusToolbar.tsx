@@ -20,7 +20,7 @@ import { MinigameSubStates } from '../../types/minigames';
 import { PlayerSession } from '../../types/game';
 import { ScrubbedPlayerView } from '../../types/engine';
 import { AZ_DANTE_CIRCLES, AZ_UI } from '../../config/i18n/az';
-import { playCard } from '../../utils/sfx';
+import { playCard, setGeigerIntensity, stopGeiger, playCyberGlitch } from '../../utils/sfx';
 
 export interface MinigameStatusToolbarProps {
   readonly minigames: MinigameSubStates;
@@ -50,9 +50,6 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
     bermuda: minigames.bermudaTriangle,
   };
 
-  const hasAnyMinigame = Boolean(dante || earth || valkyrie || prison || catenaccio || chernobyl || cyberpunk || bermuda);
-  if (!hasAnyMinigame) return null;
-
   // Chernobyl data
   const myDosage = chernobyl?.radiationDosage?.[currentUserId] ?? 0;
   const lethalThreshold = chernobyl?.lethalThreshold ?? 100;
@@ -60,6 +57,37 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
   const bunkerOccupants = chernobyl?.shelteredPlayerIds?.length ?? 0;
   const bunkerCapacity = chernobyl?.bunkerCapacity ?? 5;
   const bunkerHasSpace = bunkerOccupants < bunkerCapacity;
+
+  // Synchronize Geiger audio with radiation dosage / contamination level
+  React.useEffect(() => {
+    if (!chernobyl) {
+      stopGeiger();
+      return;
+    }
+    const highestDanger = Math.max(chernobyl.zoneContaminationLevel, myDosage);
+    if (highestDanger >= 50 && !isSheltered) {
+      setGeigerIntensity(highestDanger);
+    } else {
+      stopGeiger();
+    }
+    return () => {
+      stopGeiger();
+    };
+  }, [chernobyl?.zoneContaminationLevel, myDosage, isSheltered]);
+
+  // Cyberpunk Cyber-Overdrive Glitch audio trigger
+  const lastOverdriveStateRef = React.useRef<boolean>(false);
+  React.useEffect(() => {
+    if (!cyberpunk) return;
+    const isOverdrive = cyberpunk.isCyberOverdriveActive || cyberpunk.gridIntegrity <= 30;
+    if (isOverdrive && !lastOverdriveStateRef.current) {
+      playCyberGlitch();
+    }
+    lastOverdriveStateRef.current = isOverdrive;
+  }, [cyberpunk?.isCyberOverdriveActive, cyberpunk?.gridIntegrity]);
+
+  const hasAnyMinigame = Boolean(dante || earth || valkyrie || prison || catenaccio || chernobyl || cyberpunk || bermuda);
+  if (!hasAnyMinigame) return null;
 
   // Valkyrie holder
   const valkyrieHolder = valkyrie?.briefcaseLocationPlayerId

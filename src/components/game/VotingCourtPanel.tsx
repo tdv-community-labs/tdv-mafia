@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Gavel, AlertCircle,
-  Scale, EyeOff, Users, ArrowRight } from 'lucide-react';
+  Scale, EyeOff, Users, ArrowRight, Target } from 'lucide-react';
 import { LobbyState, PlayerSession } from '../../types/game';
 import { AllInDistrict } from '../../types/roles';
 import { AZ_DISTRICTS, AZ_UI } from '../../config/i18n/az';
@@ -10,6 +10,15 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { getTheme } from '../../config/themes.config';
 import { motion, AnimatePresence } from 'framer-motion';
+import { playHeartbeatTension } from '../../utils/sfx';
+
+export type VotingTensionTier = 'CALM' | 'HEATED' | 'CRITICAL_DANGER';
+
+export function getVotingTensionTier(voteCount: number, majorityThreshold: number): VotingTensionTier {
+  if (voteCount >= majorityThreshold - 1) return 'CRITICAL_DANGER';
+  if (voteCount >= Math.floor(majorityThreshold * 0.5)) return 'HEATED';
+  return 'CALM';
+}
 
 export interface VotingCourtPanelProps {
   readonly lobbyState: LobbyState;
@@ -58,6 +67,23 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
       .map(([id, count]) => ({ id, count, player: lobbyState.players[id] }));
   }, [voteCounts, lobbyState.players]);
 
+  // Audio Tension Synchronization on Voting Count Changes
+  const lastAudioTriggeredRef = React.useRef<{ count: number; tier: VotingTensionTier } | null>(null);
+  React.useEffect(() => {
+    const topCount = topSuspects[0]?.count ?? 0;
+    if (topCount <= 0) return;
+    const tier = getVotingTensionTier(topCount, majorityThreshold);
+    if (lastAudioTriggeredRef.current?.count !== topCount || lastAudioTriggeredRef.current?.tier !== tier) {
+      lastAudioTriggeredRef.current = { count: topCount, tier };
+      if (tier === 'CRITICAL_DANGER') {
+        playHeartbeatTension(130);
+      } else if (tier === 'HEATED') {
+        playHeartbeatTension(90);
+      } else {
+        playHeartbeatTension(65);
+      }
+    }
+  }, [topSuspects, majorityThreshold]);
 
   return (
     <div data-testid="voting-court-panel" className={`p-4 sm:p-6 flex flex-col gap-4 transition-colors duration-200 ${isAllIn ? 'bg-zinc-950 border border-red-500/30 rounded-[12px] shadow-[0_0_30px_rgba(239,68,68,0.1)] relative overflow-hidden ring-1 ring-red-500/10' : theme.courtContainer}`}>
@@ -144,19 +170,22 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
         </div>
       )}
 
-      
       {/* Dynamic Top Suspects Leaderboard */}
-
       {canSeeVotes && topSuspects.length > 0 && !isTreacheryBlind && (
         <div className="p-4 rounded-xl border border-zinc-200 dark:border-white/5 bg-white/50 dark:bg-zinc-950/30 backdrop-blur-md shadow-inner">
-          <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <Scale className="w-3 h-3 text-red-500" />
-            Cari Məhkəmə Liderləri (Ən çox səs toplayanlar)
+          <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Scale className="w-3.5 h-3.5 text-red-500" />
+              Cari Məhkəmə Liderləri (İttiham Şkalası)
+            </span>
+            <span className="text-[9px] text-zinc-400 font-mono">Çoxluq: {majorityThreshold} Səs</span>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {topSuspects.map((suspect, idx) => {
               const percentage = Math.min(100, (suspect.count / majorityThreshold) * 100);
-              const isDanger = suspect.count >= majorityThreshold - 1;
+              const tensionTier = getVotingTensionTier(suspect.count, majorityThreshold);
+              const isDanger = tensionTier === 'CRITICAL_DANGER';
+              const isHeated = tensionTier === 'HEATED';
               
               // Find who voted for this suspect
               const voters = Object.entries(lobbyState.liveVotes || {})
@@ -168,7 +197,12 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                       <span className="text-zinc-400 font-mono text-xs">#{idx + 1}</span>
-                      {suspect.player?.username ?? suspect.id}
+                      <span>{suspect.player?.username ?? suspect.id}</span>
+                      {isDanger && (
+                        <span className="px-1.5 py-0.5 rounded bg-red-600 text-white text-[9px] font-black uppercase tracking-wider animate-pulse shadow-sm">
+                          ⚠️ 1 SƏS QALDI
+                        </span>
+                      )}
                     </span>
                     <div className="flex items-center gap-3">
                       {/* Voters Avatars */}
@@ -186,16 +220,31 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
                           )}
                         </div>
                       )}
-                      <span className={`font-black font-mono ${isDanger ? 'text-red-500 animate-pulse' : 'text-zinc-500'}`}>
+                      <span className={`font-black font-mono ${
+                        isDanger ? 'text-red-500 animate-pulse drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' : 
+                        isHeated ? 'text-amber-500' : 'text-zinc-500'
+                      }`}>
                         {suspect.count} / {majorityThreshold}
                       </span>
                     </div>
                   </div>
-                  <div className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden relative shadow-inner">
                     <div 
-                      className={`h-full rounded-full transition-all duration-500 ease-out ${isDanger ? 'bg-red-500' : 'bg-zinc-500'}`}
+                      className={`h-full rounded-full transition-all duration-500 ease-out relative ${
+                        isDanger 
+                          ? 'bg-gradient-to-r from-red-600 via-rose-500 to-red-600 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.8)]' 
+                          : isHeated
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_0_10px_rgba(245,158,11,0.4)]'
+                          : 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                      }`}
                       style={{ width: `${percentage}%` }}
-                    />
+                    >
+                      {isDanger && (
+                        <div 
+                          className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_6px,rgba(0,0,0,0.25)_6px,rgba(0,0,0,0.25)_12px)] pointer-events-none" 
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -218,9 +267,17 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
                   Seçilmiş İttiham Hədəfi:
                 </span>
                 <div className={`font-extrabold flex items-center gap-2 flex-wrap ${isAllIn ? 'text-2xl text-white font-mono tracking-wider' : 'text-sm text-zinc-900 dark:text-zinc-100'}`}>
-                  {selectedCandidateId
-                    ? selectedPlayer?.username ?? selectedCandidateId
-                    : 'Heç bir oyunçu seçilməyib (kartlardan birinə toxunun)'}
+                  {selectedCandidateId ? (
+                    <>
+                      <span className="flex items-center gap-1.5 text-red-500 font-mono text-xs uppercase bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded-md font-black shadow-sm">
+                        <Target className="w-3.5 h-3.5 text-red-500 animate-spin [animation-duration:8s]" />
+                        [İTTİHAM HƏDƏFİ]
+                      </span>
+                      <span>{selectedPlayer?.username ?? selectedCandidateId}</span>
+                    </>
+                  ) : (
+                    'Heç bir oyunçu seçilməyib (kartlardan birinə toxunun)'
+                  )}
                   {isSelectedDead && (
                     <span className="text-xs text-red-500 font-bold bg-red-500/10 px-2 py-0.5 rounded-md">
                       ⚠️ Ələnmiş oyunçuya səs verilə bilməz
