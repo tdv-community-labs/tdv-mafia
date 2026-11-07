@@ -8,20 +8,152 @@
         "winningFaction": "MAFIA",
         "reason": "Mafia majority."
       },
-      "rounds": 8,
+      "rounds": 18,
       "roundResults": [
         {
           "round": 1,
-          "aliveCount": 37,
-          "kills": 3,
+          "aliveCount": 39,
+          "kills": 1,
           "lynch": 0,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 2,
+          "aliveCount": 36,
+          "kills": 2,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 3,
+          "aliveCount": 33,
+          "kills": 2,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 4,
+          "aliveCount": 29,
+          "kills": 3,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 5,
+          "aliveCount": 25,
+          "kills": 3,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 6,
+          "aliveCount": 23,
+          "kills": 1,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 7,
+          "aliveCount": 20,
+          "kills": 2,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 8,
+          "aliveCount": 17,
+          "kills": 2,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 9,
+          "aliveCount": 16,
+          "kills": 0,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 10,
+          "aliveCount": 13,
+          "kills": 2,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 11,
+          "aliveCount": 12,
+          "kills": 0,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 12,
+          "aliveCount": 11,
+          "kills": 0,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 13,
+          "aliveCount": 11,
+          "kills": 0,
+          "lynch": 0,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 14,
+          "aliveCount": 10,
+          "kills": 0,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 15,
+          "aliveCount": 9,
+          "kills": 0,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 16,
+          "aliveCount": 8,
+          "kills": 0,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 17,
+          "aliveCount": 7,
+          "kills": 0,
+          "lynch": 1,
+          "winCheck": "GAME_CONTINUES"
+        }
+      ],
+      "finalAlive": 6,
+      "finalDead": 34
+    },
+    {
+      "gameIdx": 2,
+      "winner": {
+        "kind": "MAFIA_MAJORITY",
+        "winningFaction": "MAFIA",
+        "reason": "Mafia majority."
+      },
+      "rounds": 7,
+      "roundResults": [
+        {
+          "round": 1,
+          "aliveCount": 36,
+          "kills": 3,
+          "lynch": 1,
           "winCheck": "GAME_CONTINUES"
         },
         {
           "round": 2,
           "aliveCount": 33,
           "kills": 3,
-          "lynch": 1,
+          "lynch": 0,
           "winCheck": "GAME_CONTINUES"
         },
         {
@@ -54,23 +186,23 @@
         },
         {
           "round": 7,
-          "aliveCount": 17,
-          "kills": 1,
+          "aliveCount": 16,
+          "kills": 2,
           "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
+          "winCheck": "MAFIA_MAJORITY"
         }
       ],
       "finalAlive": 16,
       "finalDead": 24
     },
     {
-      "gameIdx": 2,
+      "gameIdx": 3,
       "winner": {
-        "kind": "VOID_CULT_ASCENSION",
-        "winningFaction": "VOID_CULT",
-        "reason": "Void Cult majority."
+        "kind": "MAFIA_MAJORITY",
+        "winningFaction": "MAFIA",
+        "reason": "Mafia majority."
       },
-      "rounds": 12,
+      "rounds": 10,
       "roundResults": [
         {
           "round": 1,
@@ -116,174 +248,35 @@
         },
         {
           "round": 7,
-          "aliveCount": 15,
-          "kills": 2,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 8,
-          "aliveCount": 11,
-          "kills": 3,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 9,
-          "aliveCount": 8,
-          "kills": 2,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 10,
-          "aliveCount": 7,
-          "kills": 1,
-          "lynch": 0,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 11,
-          "aliveCount": 6,
-          "kills": 1,
-          "lynch": 0,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 12,
-          "aliveCount": 4,
-          "kills": 1,
-          "lynch": 1,
-          "winCheck": "VOID_CULT_ASCENSION"
-        }
-      ],
-      "finalAlive": 4,
-      "finalDead": 36
-    },
-    {
-      "gameIdx": 3,
-      "winner": {
-        "kind": "MAFIA_MAJORITY",
-        "winningFaction": "MAFIA",
-        "reason": "Mafia majority."
-      },
-      "rounds": 16,
-      "roundResults": [
-        {
-          "round": 1,
-          "aliveCount": 36,
-          "kills": 3,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 2,
-          "aliveCount": 32,
-          "kills": 3,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 3,
-          "aliveCount": 28,
-          "kills": 3,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 4,
-          "aliveCount": 26,
-          "kills": 1,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 5,
-          "aliveCount": 23,
-          "kills": 2,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 6,
-          "aliveCount": 19,
-          "kills": 3,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 7,
-          "aliveCount": 17,
-          "kills": 1,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 8,
           "aliveCount": 16,
-          "kills": 0,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 9,
-          "aliveCount": 15,
-          "kills": 0,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 10,
-          "aliveCount": 15,
-          "kills": 0,
-          "lynch": 0,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 11,
-          "aliveCount": 14,
-          "kills": 0,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 12,
-          "aliveCount": 13,
-          "kills": 0,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 13,
-          "aliveCount": 12,
-          "kills": 0,
-          "lynch": 1,
-          "winCheck": "GAME_CONTINUES"
-        },
-        {
-          "round": 14,
-          "aliveCount": 10,
           "kills": 1,
           "lynch": 1,
           "winCheck": "GAME_CONTINUES"
         },
         {
-          "round": 15,
-          "aliveCount": 7,
-          "kills": 2,
+          "round": 8,
+          "aliveCount": 12,
+          "kills": 3,
           "lynch": 1,
           "winCheck": "GAME_CONTINUES"
         },
         {
-          "round": 16,
-          "aliveCount": 4,
+          "round": 9,
+          "aliveCount": 9,
           "kills": 3,
           "lynch": 0,
+          "winCheck": "GAME_CONTINUES"
+        },
+        {
+          "round": 10,
+          "aliveCount": 6,
+          "kills": 2,
+          "lynch": 1,
           "winCheck": "MAFIA_MAJORITY"
         }
       ],
-      "finalAlive": 4,
-      "finalDead": 36
+      "finalAlive": 6,
+      "finalDead": 34
     }
   ]
 }

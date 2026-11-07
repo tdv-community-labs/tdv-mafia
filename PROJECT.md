@@ -62,6 +62,10 @@
 | M22 | Progression, Retention & UI Overhaul (R3, R1 UI) | PlayerCard badges, global UI copy, all modals, clutch XP data flow, AchievementShowcaseModal | M20 | DONE |
 | M23 | Social Engagement, Viral Match Recaps & Spectator (R4) | MVP calculator English strings, 1-click share cards, Ghost Realm prediction betting, Bailiff console | M20, M22 | DONE |
 | M24 | Final Verification, Simulation & Remote Delivery (R5) | Test suite synchronization, typecheck, tests, simulate-allin (3 games), build, commit and push to origin/main | M20-M23 | DONE |
+| M25 | Front-of-House Landing Page & Global Navbar (R6) | Complete English noir overhaul of `page.tsx` & `Navbar.tsx`, high-contrast CTA buttons, live table cards | M24 | DONE |
+| M26 | Lobby Waiting Room & Post-Game Victory Shell (R7) | Localize lobby waiting room, table config HUD, ready check, bot controls, and game over modal in `lobby/[lobbyId]/page.tsx` & `AuthModal.tsx` | M25 | DONE |
+| M27 | In-Game Noir Overlays & Interactive Modules (R8) | English copy & visual polish for `GameIntroOverlay`, `PhaseTransitionOverlay`, `MorningNewspaperModal`, `RoleActionReticle`, `MinigameStatusToolbar`, `DetectiveNotebook`, `ChatBox` | M26 | DONE |
+| M28 | Full Regression Verification & GitHub Delivery (R9) | TypeScript typecheck, 15 unit/e2e test suites, 40-player macro simulation, Next.js 14 build, push to `origin/main` | M25-M27 | DONE |
 
 ## Interface Contracts
 ### `night-action-resolver.ts` & `voting-engine.ts` ↔ Display Roles

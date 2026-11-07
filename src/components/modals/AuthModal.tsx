@@ -36,9 +36,9 @@ export interface AuthModalProps {
 }
 
 const TIER_TITLES: Record<PlayerTier, string> = {
-  TIER_1: 'Əsgər (Soldier) — Başlanğıc',
-  TIER_2: 'Kapo (Caporegime) — Təcrübəli',
-  TIER_3: 'Don (Consigliere) — Elit Usta',
+  TIER_1: 'Soldier (Initiate) — Tier 1',
+  TIER_2: 'Capo (Seasoned) — Tier 2',
+  TIER_3: 'Don (Consigliere) — Tier 3',
 };
 
 function dispatchSSOBrokerState(session: any, users: any) {
@@ -132,7 +132,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setSuccessMsg('');
     const cleanUser = usernameInput.trim();
     if (!cleanUser) {
-      setErrorMsg('Zəhmət olmasa istifadəçi adınızı və ya ləqəbinizi daxil edin.');
+      setErrorMsg('Please enter your player alias or username.');
       return;
     }
 
@@ -144,13 +144,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     );
 
     if (!matched) {
-      setErrorMsg(`<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="10"/></svg></span> '${cleanUser}' istifadəçi adı ilə qeydiyyat tapılmadı! Yalnız qeydiyyatdan keçmiş istifadəçilər daxil ola bilər.`);
+      setErrorMsg(`<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="10"/></svg></span> '${cleanUser}' is not registered! Only registered players may sign in.`);
       return;
     }
 
     if (matched.pin && String(matched.pin).trim() !== '') {
       if (!loginPin.trim() || loginPin.trim() !== String(matched.pin).trim()) {
-        setErrorMsg('Daxil edilmiş PIN kod və ya şifrə yanlışdır!');
+        setErrorMsg('Incorrect PIN code or password!');
         return;
       }
     }
@@ -190,7 +190,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       dispatchSSOBrokerState(ecoSession, registeredList);
     } catch {}
 
-    setSuccessMsg('Uğurla daxil oldunuz! Masaya qoşulur...');
+    setSuccessMsg('Signed in successfully! Joining table...');
     setTimeout(() => {
       onLogin(user);
       onClose();
@@ -202,19 +202,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setSuccessMsg('');
 
     if (!regFullName.trim()) {
-      setErrorMsg('Zəhmət olmasa ad və soyadınızı daxil edin.');
+      setErrorMsg('Please enter your full name.');
       return;
     }
     if (!regUsername.trim()) {
-      setErrorMsg('Zəhmət olmasa oyunçu ləqəbi / istifadəçi adı daxil edin.');
+      setErrorMsg('Please enter a player alias or username.');
       return;
     }
     if (!regPin.trim()) {
-      setErrorMsg('Zəhmət olmasa 4 rəqəmli PIN kod və ya şifrə təyin edin.');
+      setErrorMsg('Please create a 4-digit PIN code or password.');
       return;
     }
     if (regPin && regConfirmPin && regPin !== regConfirmPin) {
-      setErrorMsg('Daxil edilən şifrələr bir-birinə uyğun gəlmir.');
+      setErrorMsg('Passwords do not match.');
       return;
     }
 
@@ -223,7 +223,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       (u: any) => u.username && u.username.toLowerCase() === regUsername.trim().toLowerCase()
     );
     if (alreadyTaken) {
-      setErrorMsg(`<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="10"/></svg></span> '${regUsername.trim()}' ləqəbi artıq qeydiyyatdan keçib! Zəhmət olmasa başqa ləqəb seçin.`);
+      setErrorMsg(`<span className="inline-block align-middle mr-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block opacity-80"><circle cx="12" cy="12" r="10"/></svg></span> '${regUsername.trim()}' is already taken! Please choose another alias.`);
       return;
     }
 
@@ -276,7 +276,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       winRate: 100,
     };
 
-    setSuccessMsg('Vahid profiliniz yaradıldı! Masaya qoşulur...');
+    setSuccessMsg('Unified profile created! Joining table...');
     setTimeout(() => {
       onLogin(user);
       onClose();
@@ -300,12 +300,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
             <div>
               <h2 className="text-lg font-bold text-zinc-950 dark:text-white leading-tight">
-                {currentUser ? 'Oyunçu Profili' : 'TDV Vahid Giriş Portalı'}
+                {currentUser ? 'Player Profile' : 'TDV Unified Access Portal'}
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 {currentUser
-                  ? 'Profilinizin cari statusu və dərəcəniz'
-                  : 'Tək vahid profil bütün platforma üçün bəs edir.'}
+                  ? 'Current status, rank tier, and career statistics.'
+                  : 'A single unified profile across all ecosystem portals.'}
               </p>
             </div>
           </div>
@@ -329,7 +329,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       {currentUser.username}
                     </h3>
                     <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold">
-                      Titul: {currentUser.roleTitle}
+                      Title: {currentUser.roleTitle}
                     </p>
                   </div>
                 </div>
@@ -340,17 +340,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div className="p-3 rounded-[8px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
                   <div className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 mb-1">
                     <Gamepad2 className="w-3.5 h-3.5 text-zinc-400" />
-                    <span>Oyunlar</span>
+                    <span>Matches</span>
                   </div>
                   <div className="text-lg font-black text-zinc-900 dark:text-zinc-100">
-                    {currentUser.gamesPlayed} Masa
+                    {currentUser.gamesPlayed} Matches
                   </div>
                 </div>
 
                 <div className="p-3 rounded-[8px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
                   <div className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 mb-1">
                     <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Qələbə</span>
+                    <span>Win Rate</span>
                   </div>
                   <div className="text-lg font-black text-emerald-600 dark:text-emerald-400">
                     {currentUser.winRate}%
@@ -361,7 +361,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             <div className="flex items-center justify-end gap-3">
               <Button variant="secondary" size="md" onClick={onClose}>
-                Bağla
+                Close
               </Button>
               {onLogout && (
                 <Button
@@ -370,7 +370,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onClick={onLogout}
                   icon={<LogOut className="w-4 h-4" />}
                 >
-                  Hesabdan Çıx
+                  Sign Out
                 </Button>
               )}
             </div>
@@ -393,7 +393,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
-                Daxil Ol
+                Sign In
               </button>
               <button
                 type="button"
@@ -408,7 +408,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
-                Qeydiyyatdan Keç
+                Register
               </button>
             </div>
 
@@ -447,7 +447,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="flex flex-col gap-4">
                 <div>
                   <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                    Oyunçu Ləqəbi (Ad) *
+                    Player Alias (Username) *
                   </label>
                   <input
                     type="text"
@@ -461,7 +461,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                    PIN Kod / Şifrə *
+                    PIN Code / Password *
                   </label>
                   <input
                     type="password"
@@ -475,7 +475,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {/* Quick seed selection pills */}
                 <div className="flex flex-col gap-1.5">
                   <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
-                    Sürətli Test Girişi:
+                    Quick Test Accounts:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {DEFAULT_SEEDED.map((s) => (
@@ -498,7 +498,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                    Dərəcə (Tier) Seçimi
+                    Rank Tier Selection
                   </label>
                   <select
                     value={selectedTier}
@@ -510,7 +510,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <option value="TIER_3">{TIER_TITLES.TIER_3}</option>
                   </select>
                   <span className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 block">
-                    Dərəcəniz hansı paket və masalara daxil ola biləcəyinizi müəyyən edir.
+                    Your tier governs accessible modes, advanced lobbies, and features.
                   </span>
                 </div>
 
@@ -522,7 +522,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     disabled={!usernameInput.trim()}
                     onClick={handleLoginSubmit}
                   >
-                    Dərhal Daxil Ol & Masaya Başla
+                    Sign In & Enter Match
                   </Button>
                 </div>
               </div>
@@ -531,11 +531,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="flex flex-col gap-3">
                 <div>
                   <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
-                    Ad və Soyad *
+                    Full Name *
                   </label>
                   <input
                     type="text"
-                    placeholder="Məs: Elmir Qasımov"
+                    placeholder="e.g. Alex Morgan"
                     value={regFullName}
                     onChange={(e) => setRegFullName(e.target.value)}
                     className="w-full px-3 py-2 rounded-[8px] border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all"
@@ -544,11 +544,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
-                    Oyunçu Ləqəbi (Username) *
+                    Player Alias (Username) *
                   </label>
                   <input
                     type="text"
-                    placeholder="Məs: Don_Elmir"
+                    placeholder="e.g. GhostSleuth"
                     value={regUsername}
                     onChange={(e) => setRegUsername(e.target.value)}
                     className="w-full px-3 py-2 rounded-[8px] border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all"
@@ -558,34 +558,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
-                      Sinif / Status
+                      Lyceum Grade / Role
                     </label>
                     <select
                       value={regGrade}
                       onChange={(e) => setRegGrade(Number(e.target.value))}
                       className="w-full px-3 py-2 rounded-[8px] border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all"
                     >
-                      <option value={10}>10-cu Sinif</option>
-                      <option value={11}>11-ci Sinif</option>
-                      <option value={9}>9-cu Sinif</option>
-                      <option value={8}>8-ci Sinif</option>
-                      <option value={7}>7-ci Sinif</option>
-                      <option value={6}>6-cı Sinif</option>
-                      <option value={0}>Fənn Müəllimi</option>
+                      <option value={10}>10th Grade</option>
+                      <option value={11}>11th Grade</option>
+                      <option value={9}>9th Grade</option>
+                      <option value={8}>8th Grade</option>
+                      <option value={7}>7th Grade</option>
+                      <option value={6}>6th Grade</option>
+                      <option value={0}>Faculty / Teacher</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
-                      Başlanğıc Dərəcə
+                      Starting Tier
                     </label>
                     <select
                       value={regTier}
                       onChange={(e) => setRegTier(e.target.value as PlayerTier)}
                       className="w-full px-3 py-2 rounded-[8px] border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all"
                     >
-                      <option value="TIER_1">Əsgər (Tier 1)</option>
-                      <option value="TIER_2">Kapo (Tier 2)</option>
+                      <option value="TIER_1">Soldier (Tier 1)</option>
+                      <option value="TIER_2">Capo (Tier 2)</option>
                       <option value="TIER_3">Don (Tier 3)</option>
                     </select>
                   </div>
@@ -594,7 +594,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
-                      Şifrə / PİN
+                      PIN / Password
                     </label>
                     <input
                       type="password"
@@ -606,7 +606,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">
-                      Təkrarı
+                      Confirm PIN
                     </label>
                     <input
                       type="password"
@@ -625,7 +625,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     fullWidth
                     onClick={handleRegisterSubmit}
                   >
-                    Vahid Profil Yarat & Masaya Başla
+                    Create Profile & Enter Match
                   </Button>
                 </div>
               </div>

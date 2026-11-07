@@ -63,7 +63,7 @@ export const Navbar: React.FC = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userId: storedUser?.userId || 'guest-anon',
-            username: storedUser?.username || 'Anonim Oyunçu',
+            username: storedUser?.username || 'Anonymous Guest',
             tier: storedUser?.tier || 'TIER_1',
           }),
         });
@@ -143,10 +143,10 @@ export const Navbar: React.FC = () => {
               tier: 'TIER_1',
               roleTitle:
                 decoded.role === 'teacher'
-                  ? 'Müəllim'
+                  ? 'Faculty / Teacher'
                   : decoded.schoolClass
-                  ? `${decoded.schoolClass} Oyunçusu`
-                  : 'Klub Oyunçusu',
+                  ? `${decoded.schoolClass} Player`
+                  : 'Club Member',
               gamesPlayed: 14,
               winRate: 75,
             });
@@ -192,7 +192,7 @@ export const Navbar: React.FC = () => {
               ecoSess.role === 'teacher'
                 ? 'Müəllim'
                 : ecoSess.schoolClass
-                ? `${ecoSess.schoolClass} Oyunçusu`
+                ? `${ecoSess.schoolClass} Player`
                 : 'Klub Oyunçusu',
             gamesPlayed: 14,
             winRate: 75,
@@ -303,7 +303,7 @@ export const Navbar: React.FC = () => {
           {/* Live Node Indicators */}
           <div className="hidden lg:flex items-center gap-2 pl-2 border-l border-zinc-200 dark:border-zinc-800 text-xs">
             <div
-              title="Bakı Server Klasteri Gecikməsi"
+              title="Baku Server Cluster Latency"
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 font-semibold text-[11px]"
             >
               <span className="relative flex h-2 w-2">
@@ -317,15 +317,15 @@ export const Navbar: React.FC = () => {
 
             {/* Live Online Presence Indicator */}
             <div
-              title="Hal-hazırda Aktiv Oyunçular"
+              title="Active Players Online"
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/25 font-semibold text-[11px]"
             >
               <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-              <span>{onlineCount} Onlayn</span>
+              <span>{onlineCount} Online</span>
             </div>
 
             <div
-              title="Anti-AFK və Ağıllı Bot Mühafizəsi"
+              title="Dynamic Anti-AFK & AI Bot Security"
               className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 font-semibold text-[11px]"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
@@ -346,9 +346,9 @@ export const Navbar: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-all duration-150 cursor-pointer"
           >
             <Layers className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-            <span>Formatlar</span>
+            <span>Game Modes</span>
             <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-purple-600/15 text-purple-700 dark:text-purple-300 border border-purple-500/25">
-              15 Rejim
+              15 Modes
             </span>
           </button>
 
@@ -362,9 +362,9 @@ export const Navbar: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-all duration-150 cursor-pointer"
           >
             <BookOpen className="w-3.5 h-3.5 text-red-500" />
-            <span>Qaydalar</span>
+            <span>Rules Codex</span>
             <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/20">
-              24 Rol
+              24 Roles
             </span>
           </button>
 
@@ -378,7 +378,7 @@ export const Navbar: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-all duration-150 cursor-pointer"
           >
             <Trophy className="w-3.5 h-3.5 text-amber-500" />
-            <span>Canlı Reytinq</span>
+            <span>Live Rankings</span>
           </button>
 
           {/* Achievements Button */}
@@ -391,7 +391,7 @@ export const Navbar: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-all duration-150 cursor-pointer"
           >
             <Medal className="w-3.5 h-3.5 text-amber-500" />
-            <span>Nailiyyətlər</span>
+            <span>Achievements</span>
             <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
               72
             </span>
@@ -409,7 +409,7 @@ export const Navbar: React.FC = () => {
                   : 'bg-transparent text-zinc-700 dark:text-zinc-300 border-zinc-200/80 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
               }`}
             >
-              <span>TDV Ekosistemi</span>
+              <span>TDV Ecosystem</span>
               <ChevronDown
                 className={`w-3.5 h-3.5 transition-transform duration-200 ${
                   isEcoDropdownOpen ? 'rotate-180 text-red-500' : 'text-zinc-400'
@@ -424,7 +424,7 @@ export const Navbar: React.FC = () => {
                 className="absolute top-full left-0 mt-2 w-72 p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl shadow-2xl z-50 animate-fadeIn flex flex-col gap-1"
               >
                 <div className="px-3 py-1.5 border-b border-zinc-100 dark:border-zinc-800/80 text-[10px] font-extrabold uppercase tracking-wider text-zinc-400">
-                  Bakı Türk Liseyi Portalları
+                  Baku Turkish Lyceum Ecosystem
                 </div>
 
                 {/* Hub */}
@@ -440,12 +440,12 @@ export const Navbar: React.FC = () => {
                   <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                        TDV Mərkəz
+                        TDV Hub
                       </span>
                       <ExternalLink className="w-3 h-3 text-zinc-400 group-hover:text-purple-500 opacity-60" />
                     </div>
                     <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">
-                      Bütün lisey tətbiqləri və SSO vahid profil
+                      All Lyceum apps & unified SSO profile
                     </span>
                   </div>
                 </a>
@@ -468,7 +468,7 @@ export const Navbar: React.FC = () => {
                       <ExternalLink className="w-3 h-3 text-zinc-400 group-hover:text-emerald-500 opacity-60" />
                     </div>
                     <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">
-                      Şagird & Müəllim elektron təhsil portalı
+                      Student & Teacher e-learning portal
                     </span>
                   </div>
                 </a>
@@ -491,7 +491,7 @@ export const Navbar: React.FC = () => {
                       <ExternalLink className="w-3 h-3 text-zinc-400 group-hover:text-amber-500 opacity-60" />
                     </div>
                     <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">
-                      Lisey çempionatları & futbol turnirləri
+                      Lyceum championships & football tournament
                     </span>
                   </div>
                 </a>
@@ -516,7 +516,7 @@ export const Navbar: React.FC = () => {
                       </span>
                     </div>
                     <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">
-                      Lisey intellektual oyun mərkəzi
+                      Intellectual deduction & gaming center
                     </span>
                   </div>
                 </a>
@@ -538,15 +538,15 @@ export const Navbar: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-black text-white bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:to-rose-500 shadow-md shadow-red-600/30 hover:shadow-red-600/50 hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer border border-red-400/30"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
-            <span className="tracking-wide hidden xs:inline">Masa Yarat</span>
+            <span className="tracking-wide hidden xs:inline">Host Game</span>
           </button>
 
           {/* Sound Toggle (Web Audio API) */}
           <button
             type="button"
             onClick={handleSoundToggle}
-            title={soundMuted ? 'Səsi Aç (Web Audio SFX)' : 'Səsi Bağla'}
-            aria-label={soundMuted ? 'Səsi Aç' : 'Səsi Bağla'}
+            title={soundMuted ? 'Unmute Audio (Web Audio SFX)' : 'Mute Audio'}
+            aria-label={soundMuted ? 'Unmute Audio' : 'Mute Audio'}
             className={`hidden sm:inline-flex p-2 rounded-xl border transition-all duration-200 cursor-pointer ${
               soundMuted
                 ? 'border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-zinc-400 hover:text-red-500'
@@ -603,8 +603,8 @@ export const Navbar: React.FC = () => {
                 className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all duration-150 cursor-pointer"
               >
                 <UserIcon className="w-3.5 h-3.5 text-zinc-500" />
-                <span className="hidden xs:inline">Daxil Ol</span>
-                <span className="xs:hidden text-xs">Giriş</span>
+                <span className="hidden xs:inline">Sign In</span>
+                <span className="xs:hidden text-xs">Sign In</span>
               </button>
               <button
                 type="button"
@@ -614,7 +614,7 @@ export const Navbar: React.FC = () => {
                 }}
                 className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 transition-all duration-150 cursor-pointer"
               >
-                <span>Qeydiyyat</span>
+                <span>Register</span>
               </button>
             </div>
           )}

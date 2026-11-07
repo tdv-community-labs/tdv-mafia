@@ -20,6 +20,7 @@ import { MinigameSubStates } from '../../types/minigames';
 import { PlayerSession } from '../../types/game';
 import { ScrubbedPlayerView } from '../../types/engine';
 import { AZ_DANTE_CIRCLES, AZ_UI } from '../../config/i18n/az';
+import { EN_DANTE_CIRCLES, EN_UI } from '../../config/i18n/en';
 import { playCard, setGeigerIntensity, stopGeiger, playCyberGlitch } from '../../utils/sfx';
 
 export interface MinigameStatusToolbarProps {
@@ -111,10 +112,10 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
               }`}
             >
               <Biohazard className="w-3.5 h-3.5 shrink-0 animate-pulse text-amber-400" />
-              <span>Çernobıl: {chernobyl.zoneContaminationLevel} mSv</span>
+              <span>Chernobyl: {chernobyl.zoneContaminationLevel} mSv</span>
               <span className="opacity-50">|</span>
               <span className={myDosage >= 80 ? 'text-red-400 font-extrabold animate-pulse' : ''}>
-                Dozanız: {myDosage}/{lethalThreshold} mSv
+                Dosage: {myDosage}/{lethalThreshold} mSv
               </span>
               <span className="opacity-50">|</span>
               <span>
@@ -131,12 +132,12 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
                   }}
                   className="ml-1 px-2 py-0.5 rounded-md bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black text-[10px] uppercase tracking-wider transition-transform active:scale-95 cursor-pointer shadow-sm"
                 >
-                  Sığınacağa Gir
+                  Enter Bunker
                 </button>
               )}
               {isSheltered && (
                 <span className="ml-1 px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-black border border-emerald-500/40">
-                  🛡️ Bunkerdəsiniz
+                  🛡️ In Bunker
                 </span>
               )}
             </div>
@@ -152,10 +153,10 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
               }`}
             >
               <Clock className="w-3.5 h-3.5 shrink-0 text-blue-400" />
-              <span>Qiyamət Saatı: {earth.doomsdayClockHours}/12 Saat</span>
+              <span>Doomsday Clock: {earth.doomsdayClockHours}/12 Saat</span>
               {earth.doomsdayClockHours >= 12 && (
                 <span className="text-[10px] bg-red-600 text-white px-1.5 py-0.2 rounded font-black">
-                  PLANETAR MƏHV
+                  PLANETARY PURGE
                 </span>
               )}
 
@@ -168,7 +169,7 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
                   }}
                   className="ml-1 px-2 py-0.5 rounded-md bg-blue-500 hover:bg-blue-400 text-white font-black text-[10px] uppercase tracking-wider transition-transform active:scale-95 cursor-pointer shadow-sm"
                 >
-                  Dondur
+                  Freeze World
                 </button>
               )}
             </div>
@@ -184,10 +185,10 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
               }`}
             >
               <Briefcase className="w-3.5 h-3.5 shrink-0 text-amber-400" />
-              <span>Valkiriya: {valkyrieHolder}</span>
+              <span>Valkyrie: {valkyrieHolder}</span>
               <span className="opacity-50">|</span>
               <span className="font-mono">
-                {valkyrie.briefcaseDetonated ? '💥 PARTLADI' : `${valkyrie.fuseTimerDaysRemaining} Gün`}
+                {valkyrie.briefcaseDetonated ? '💥 DETONATED' : `${valkyrie.fuseTimerDaysRemaining} Days`}
               </span>
             </div>
           )}
@@ -201,7 +202,7 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
                   : 'bg-zinc-900 text-zinc-300 border-zinc-700'
               }`}
             >
-              <span className="text-zinc-400">⛓️ Qiyam Riski:</span>
+              <span className="text-zinc-400">⛓️ Riot Risk:</span>
               <div className="w-10 h-2 bg-zinc-800 rounded-full overflow-hidden shrink-0">
                 <div
                   className={`h-full ${prison.revoltMeter >= 75 ? 'bg-red-500' : 'bg-amber-500'}`}
@@ -211,7 +212,7 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
               <span>{prison.revoltMeter}%</span>
               {prison.riotTriggered && (
                 <span className="text-[10px] bg-red-600 text-white px-1 py-0.2 rounded font-black">
-                  QİYAM
+                  RIOT
                 </span>
               )}
             </div>
@@ -234,14 +235,14 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
           {catenaccio && (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border bg-zinc-900 text-zinc-300 border-zinc-700">
               <Shield className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
-              <span>Sədd: {catenaccio.defensiveWallPlayerIds.length} Qalxan</span>
+              <span>Wall: {catenaccio.defensiveWallPlayerIds.length} Shields</span>
               {catenaccio.wallBreached ? (
                 <span className="text-[10px] bg-red-500/20 text-red-400 px-1 py-0.2 rounded font-black">
-                  YARILDI
+                  BREACHED
                 </span>
               ) : (
                 <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1 py-0.2 rounded font-bold">
-                  BÖLÜNMƏZ
+                  UNBROKEN
                 </span>
               )}
             </div>
@@ -261,7 +262,7 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
               }`}
             >
               <Zap className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
-              <span>Xəzər Şəbəkəsi: {cyberpunk.gridIntegrity}%</span>
+              <span>Grid Integrity: {cyberpunk.gridIntegrity}%</span>
               {cyberpunk.isCyberOverdriveActive && (
                 <span className="px-1.5 py-0.2 rounded bg-rose-500 text-white text-[10px] font-black uppercase tracking-wider">
                   ⚡ Overdrive (15s)
@@ -269,12 +270,12 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
               )}
               {cyberpunk.isSystemBlackout && (
                 <span className="px-1.5 py-0.2 rounded bg-red-600 text-white text-[10px] font-black uppercase">
-                  Qara Dəlik (0%)
+                  Blackout (0%)
                 </span>
               )}
               {cyberpunk.activeGlitchEvent !== 'NONE' && (
                 <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/40">
-                  {cyberpunk.activeGlitchEvent === 'SIGNAL_SCRAMBLE' ? 'Qarışıq Siqnal' : cyberpunk.activeGlitchEvent === 'FIREWALL_BREACH' ? 'Qoruyucu Sızması' : 'Qaranlıq Gecə'}
+                  {cyberpunk.activeGlitchEvent === 'SIGNAL_SCRAMBLE' ? 'Signal Scramble' : cyberpunk.activeGlitchEvent === 'FIREWALL_BREACH' ? 'Firewall Breach' : 'Blackout Night'}
                 </span>
               )}
             </div>
@@ -295,20 +296,20 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
             >
               <Waves className="w-3.5 h-3.5 shrink-0 text-blue-400" />
               <span>
-                {bermuda.currentWeather === 'CALM_SEA' ? 'Sakit Dəniz' : bermuda.currentWeather === 'FOG_OF_THE_VOID' ? 'Qara Duman' : bermuda.currentWeather === 'ELECTROMAGNETIC_STORM' ? 'E-Maqnit Fırtınası' : 'Nəhəng Dalğa'}
+                {bermuda.currentWeather === 'CALM_SEA' ? 'Calm Waters' : bermuda.currentWeather === 'FOG_OF_THE_VOID' ? 'Void Fog' : bermuda.currentWeather === 'ELECTROMAGNETIC_STORM' ? 'EMP Storm' : 'Rogue Wave'}
               </span>
               <span className="opacity-50">|</span>
               <span className={bermuda.shipHullIntegrity <= 30 ? 'text-red-400 font-extrabold animate-pulse' : ''}>
-                Gövdə: {bermuda.shipHullIntegrity}%
+                Hull: {bermuda.shipHullIntegrity}%
               </span>
               {bermuda.vanishedPlayerIds.length > 0 && (
                 <span className="px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 text-[10px] font-mono">
-                  {bermuda.vanishedPlayerIds.length} İtkin
+                  {bermuda.vanishedPlayerIds.length} Lost at Sea
                 </span>
               )}
               {bermuda.cursedDrowningPlayerIds.includes(currentUserId) && (
                 <span className="px-1.5 py-0.2 rounded bg-red-600 text-white text-[10px] font-black animate-pulse">
-                  ⚠️ Ciyərlər Su Dolur
+                  ⚠️ Cursed Drowning
                 </span>
               )}
             </div>
@@ -323,10 +324,10 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
             setIsExpanded((prev) => !prev);
           }}
           className="px-2 py-1 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700/60 text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
-          title="Mini-oyun qaydaları və ətraflı məlumat"
+          title="Scenario directives and live telemetry"
         >
           <Info className="w-3.5 h-3.5 text-blue-400" />
-          <span className="hidden sm:inline">Qaydalar</span>
+          <span className="hidden sm:inline">Scenario Directives</span>
           {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </button>
       </div>
@@ -335,7 +336,7 @@ export const MinigameStatusToolbar: React.FC<MinigameStatusToolbarProps> = ({
       {isExpanded && (
         <div className="p-4 rounded-2xl bg-zinc-950/95 border border-zinc-800/80 shadow-2xl flex flex-col gap-3 text-xs animate-fadeIn">
           <div className="flex items-center justify-between pb-2 border-b border-zinc-800 text-zinc-400 font-bold uppercase tracking-wider text-[11px]">
-            <span>Aktiv Mini-Oyun Təlimatları</span>
+            <span>Active Scenario Directives</span>
             <span>TDV Mafia Battleground Engine</span>
           </div>
 

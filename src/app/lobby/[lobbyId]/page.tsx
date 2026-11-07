@@ -57,6 +57,7 @@ import { formatRoleDisplay } from '../../../types/roles';
 import { GamePhase, LobbyState, NightActionType, PlayerSession, ChatChannel } from '../../../types/game';
 import { MorningNewspaper } from '../../../types/engine';
 import { AZ_PHASES, AZ_UI } from '../../../config/i18n/az';
+import { EN_PHASES, EN_UI } from '../../../config/i18n/en';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { PACKS_CONFIG, deriveModeFromLobbyId } from '../../../config/packs.config';
@@ -74,7 +75,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
 
   // Persistent user identity from localStorage
   const [currentUserId, setCurrentUserId] = useState<string>('usr-guest');
-  const [currentUsername, setCurrentUsername] = useState<string>('Oyunçu');
+  const [currentUsername, setCurrentUsername] = useState<string>('Player');
   const [currentUserTier, setCurrentUserTier] = useState<string>('TIER_1');
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [showAdminTools, setShowAdminTools] = useState<boolean>(false);
@@ -346,7 +347,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
   const handleStartGame = () => {
     if (totalPlayersCount < 3) {
       showToast(
-        'Mafiya oyununa başlamaq üçün ən azı 3-4 oyunçu lazımdır. "⚡ İştirakçıya Tamamla" düyməsinə klikləyərək AI botları masaya əlavə edə bilərsiniz!',
+        'Mafiya oyununa başlamaq üçün ən azı 3-4 oyunçu lazımdır. "⚡ Playersya Tamamla" düyməsinə klikləyərək AI botları masaya əlavə edə bilərsiniz!',
         'warning'
       );
       return;
@@ -662,7 +663,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
               }`}
             />
             <h1 data-testid={`phase-badge-${lobbyState.phase}`} className="text-xl sm:text-2xl font-black text-zinc-950 dark:text-white tracking-tight">
-              {isLobbyPhase ? 'Gözləmə Otağı (Lobby)' : AZ_PHASES[lobbyState.phase] ?? lobbyState.phase}{' '}
+              {isLobbyPhase ? 'Lobby Waiting Room' : EN_PHASES[lobbyState.phase] ?? AZ_PHASES[lobbyState.phase] ?? lobbyState.phase}{' '}
               <span className="text-sm font-semibold text-zinc-400 font-mono">— {lobbyId}</span>
             </h1>
           </div>
@@ -671,17 +672,17 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             <Badge tone="purple">{currentPack?.name || lobbyState.mode.replace(/_/g, ' ')}</Badge>
             <span>•</span>
             <span>
-              Masada:{' '}
-              <strong data-testid="player-count-badge" className="text-zinc-900 dark:text-zinc-100">{totalPlayersCount} Oyunçu</strong>
+              At Table:{' '}
+              <strong data-testid="player-count-badge" className="text-zinc-900 dark:text-zinc-100">{totalPlayersCount} Players</strong>
             </span>
             <span>•</span>
             <button
               type="button"
               onClick={() => setIsProfileOpen(true)}
               className="inline-flex items-center gap-1.5 hover:text-purple-400 transition-colors cursor-pointer group text-left"
-              title="Profil və Ləqəb Düzəlişi"
+              title="Profile & Identity"
             >
-              <span>Siz:</span>
+              <span>You:</span>
               <strong className="text-zinc-900 dark:text-zinc-100 group-hover:underline underline-offset-2">{currentUsername}</strong>
               <User className="w-3.5 h-3.5 text-zinc-400 group-hover:text-purple-400" />
             </button>
@@ -697,7 +698,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             onClick={handleCopyLink}
             icon={copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <LinkIcon className="w-4 h-4" />}
           >
-            {copiedLink ? 'Link Kopyalandı' : 'Dəvət Linkini Kopyala'}
+            {copiedLink ? 'Link Copied!' : 'Copy Invite Link'}
           </Button>
 
           <Button
@@ -706,7 +707,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             onClick={() => setIsRulesOpen(true)}
             icon={<BookOpen className="w-4 h-4 text-purple-400" />}
           >
-            Qaydalar
+            Rules Codex
           </Button>
 
           {/* Sound Toggle in Lobby */}
@@ -717,7 +718,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
               setSoundMuted(next);
               if (!next) playCard();
             }}
-            title={soundMuted ? 'Səsi Aç' : 'Səsi Bağla'}
+            title={soundMuted ? 'Unmute Audio' : 'Mute Audio'}
             className={`p-2 rounded-xl border transition-all duration-200 cursor-pointer ${
               soundMuted
                 ? 'border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-zinc-400'
@@ -734,7 +735,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
               onClick={handleToggleReady}
               icon={isReadyLocal ? <Check className="w-4 h-4 text-emerald-600" /> : <Clock className="w-4 h-4" />}
             >
-              {isReadyLocal ? 'Mən Hazıram' : 'Hazır Ol'}
+              {isReadyLocal ? "I'm Ready" : 'Ready Up'}
             </Button>
           )}
 
@@ -754,7 +755,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                 onClick={handleFillBots}
                 icon={<Zap className="w-4 h-4 text-amber-500" />}
               >
-                {currentPack?.minPlayers ?? 5} Botla Doldur
+                Fill {currentPack?.minPlayers ?? 5} Bots
               </Button>
               <Button data-testid="btn-start-game"
                 variant="primary"
@@ -762,7 +763,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                 onClick={handleStartGame}
                 icon={<Play className="w-4 h-4" />}
               >
-                Oyunu Başlat
+                Start Match
               </Button>
             </>
           )}
@@ -776,7 +777,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                 dispatchAction({ action: 'PROGRESS_PHASE' });
               }}
             >
-              {lobbyState.phase === 'NIGHT_BUFFER' ? '🌅 Gecəni Bitir → Səhər' : '⚖️ Səsləri Hesabla'}
+              {lobbyState.phase === 'NIGHT_BUFFER' ? '🌅 End Night → Dawn' : '⚖️ Tally Votes'}
             </Button>
           )}
         </div>
@@ -790,11 +791,11 @@ export default function LobbyPage({ params }: LobbyPageProps) {
               <Check className="w-4 h-4 stroke-[3]" />
             </span>
             <span>
-              <strong>Dəvət Linki Panoya Kopyalandı!</strong> Dostlarınıza göndərin — daxil olduqda dərhal bu masada görünəcəklər.
+              <strong>Invite Link Copied to Clipboard!</strong> Share with your circle — they will immediately appear at this table upon clicking.
             </span>
           </div>
           <span className="text-xs bg-emerald-500/20 px-2 py-0.5 rounded-full font-mono">
-            URL Hazırdır
+            Link Ready
           </span>
         </div>
       )}
@@ -808,7 +809,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
               <div className="flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-red-500" />
                 <h3 className="font-extrabold text-sm sm:text-base text-zinc-950 dark:text-white">
-                  Masa Konfiqurasiyası və Qaydalar Xülasəsi
+                  Room Configuration & Rule Breakdown
                 </h3>
               </div>
               <Badge tone="purple">{currentPack?.minTier || 'TIER_1'}</Badge>
@@ -817,50 +818,50 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
               <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800">
                 <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">
-                  Oyun Rejimi
+                  Game Mode
                 </span>
                 <span className="font-extrabold text-zinc-900 dark:text-zinc-100 text-sm">
                   {currentPack?.name || lobbyState.mode.replace(/_/g, ' ')}
                 </span>
                 <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block mt-0.5">
-                  {currentPack?.isMinigame ? 'Xüsusi Mini-oyun Formatı' : 'Klassik Sosial Deduksiya'}
+                  {currentPack?.isMinigame ? 'Special Scenario Minigame' : 'Classic Social Deduction'}
                 </span>
               </div>
 
               <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800">
                 <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">
-                  Oyunçu Limiti
+                  Player Limit
                 </span>
                 <span className="font-extrabold text-zinc-900 dark:text-zinc-100 text-sm">
                   {currentPack?.minPlayers ?? 5} - {currentPack?.maxPlayers ?? 7} İştirakçı
                 </span>
                 <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block mt-0.5">
-                  Hazırda: <strong>{totalPlayersCount} oyunçu</strong> qoşulub
+                  Connected: <strong>{totalPlayersCount} players</strong>
                 </span>
               </div>
 
               <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800">
                 <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">
-                  Fazaların Müddəti
+                  Phase Durations
                 </span>
                 <span className="font-extrabold text-zinc-900 dark:text-zinc-100 text-sm">
-                  Gündüz: {currentPack?.defaultTimings.dayCentralAssemblySeconds ?? 180}s | Gecə: {currentPack?.defaultTimings.nightBufferSeconds ?? 45}s
+                  Day: {currentPack?.defaultTimings.dayCentralAssemblySeconds ?? 180}s | Night: {currentPack?.defaultTimings.nightBufferSeconds ?? 45}s
                 </span>
                 <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block mt-0.5">
-                  Səsvermə: {currentPack?.defaultTimings.dayVotingSeconds ?? 60}s
+                  Court Voting: {currentPack?.defaultTimings.dayVotingSeconds ?? 60}s
                 </span>
               </div>
 
               <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800">
                 <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block mb-1">
-                  Mühafizə & Audio
+                  Security & Voice
                 </span>
                 <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm flex items-center gap-1">
                   <Shield className="w-3.5 h-3.5" />
                   Anti-AFK Gemini 3.8
                 </span>
                 <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block mt-0.5">
-                  WebRTC P2P Canlı Səsli Rabitə
+                  WebRTC P2P Spatial Voice Chat
                 </span>
               </div>
             </div>
@@ -870,7 +871,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                 <Sparkles className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                 <div>
                   <strong className="font-black text-red-600 dark:text-red-400 uppercase tracking-wide">
-                    Bu Masanın Rol Bölgüsü:
+                    Role Breakdown for this Room:
                   </strong>
                   <p className="mt-0.5 font-medium leading-relaxed">
                     {currentPack.roleBreakdown}
@@ -885,12 +886,12 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-extrabold text-zinc-950 dark:text-white">
-                  Masadakı Oyunçular
+                  Connected Citizens & Suspects
                 </h2>
                 <Badge tone="neutral">{totalPlayersCount}</Badge>
               </div>
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                Dostlarınız linklə daxil olduqca avtomatik bura əlavə olunurlar
+                Friends join automatically once they open the invite link
               </span>
             </div>
 
@@ -912,12 +913,12 @@ export default function LobbyPage({ params }: LobbyPageProps) {
           <div className="p-6 rounded-[24px] border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
             <div>
               <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100">
-                {isHost ? 'Siz bu masanın rəhbərisiniz (Host)' : 'Masa Rəhbərinin oyunu başlatması gözlənilir'}
+                {isHost ? 'You are the Room Host' : 'Waiting for Host to launch the game'}
               </h3>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 {isHost
-                  ? 'Bütün dostlarınız masaya toplaşdıqdan sonra oyunu başlada bilərsiniz.'
-                  : 'Hazır olduğunuzu bildirmək üçün "Hazır Ol" düyməsinə klikləyin.'}
+                  ? 'Once your circle is assembled, launch the match to assign classified roles.'
+                  : 'Click "Ready Up" to signal you are prepared for the game to begin.'}
               </p>
             </div>
 
@@ -929,7 +930,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                   onClick={handleStartGame}
                   icon={<Play className="w-4 h-4" />}
                 >
-                  Oyunu İndi Başlat
+                  Launch Match Now
                 </Button>
               ) : (
                 <Button data-testid="btn-ready-toggle"
@@ -953,7 +954,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                 className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 inline-flex items-center gap-1.5 cursor-pointer transition-colors"
               >
                 {showAdminTools ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                <span>{showAdminTools ? 'İnzibati Alətləri Gizlət' : 'Qabaqcıl İnzibati Alətlər (Admin Paneli)'}</span>
+                <span>{showAdminTools ? 'Hide Admin Console' : 'Advanced Host Admin Console'}</span>
               </button>
 
               {showAdminTools && (
@@ -1047,7 +1048,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
               <div data-testid="secret-role-banner" 
                 onClick={() => setIsRoleRevealed(!isRoleRevealed)}
                 className={`p-5 rounded-2xl border ${borderColor} ${containerBg} ${shadowColor} flex items-center justify-between gap-4 transition-all duration-300 cursor-pointer hover:-translate-y-0.5 active:translate-y-0`}
-                title="Rolunuzu görmək/gizlətmək üçün klikləyin"
+                title="Tap to reveal/hide classified role"
               >
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-xl ${iconBg} text-white flex items-center justify-center shadow-lg ${iconShadow} transition-colors duration-300`}>
@@ -1055,7 +1056,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                   </div>
                   <div>
                     <span className={`text-[11px] font-extrabold uppercase tracking-[0.2em] block ${textTop} transition-colors duration-300`}>
-                      {isRoleRevealed ? 'SİZİN GİZLİ KİMLİYİNİZ' : 'MƏXFİ DOSYE (Gizlidir)'}
+                      {isRoleRevealed ? 'YOUR CLASSIFIED DOSSIER' : 'TOP SECRET DOSSIER (Classified)'}
                     </span>
                     <div data-testid="secret-role-text" className={`text-2xl font-black tracking-tight mt-0.5 transition-colors duration-300 ${!isRoleRevealed ? 'text-zinc-400 dark:text-zinc-600 select-none blur-[4px]' : 'text-zinc-950 dark:text-white'}`}>
                       {roleStr || `${currentUsername} (Vətəndaş)`}
@@ -1064,7 +1065,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                 </div>
 
                 <div data-testid="btn-toggle-secret-role" className={`px-3 py-1.5 rounded-md text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-md ${badgeBg} ${badgeShadow} hidden sm:flex items-center gap-2 transition-colors duration-300`}>
-                  {isRoleRevealed ? 'GİZLƏT' : 'GÖSTƏR'}
+                  {isRoleRevealed ? 'HIDE' : 'REVEAL'}
                 </div>
               </div>
             );
@@ -1149,7 +1150,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
           }}
           className="fixed top-24 left-1/2 -translate-x-1/2 z-40 bg-zinc-900/90 hover:bg-zinc-800 text-white px-4 py-2 rounded-full shadow-lg border border-zinc-700 font-bold tracking-widest text-xs uppercase animate-bounce"
         >
-          YEKUN NƏTİCƏNİ GÖSTƏR
+          SHOW FINAL VERDICT
         </button>
       )}
       {/* ─── GAME OVER / VICTORY MODAL ───────────────────────────────── */}
@@ -1174,25 +1175,25 @@ export default function LobbyPage({ params }: LobbyPageProps) {
 
             <div>
               <span className={`text-sm font-black uppercase tracking-[0.3em] ${isTownVictory ? 'text-emerald-400' : isMafiaVictory ? 'text-red-400' : 'text-purple-400'}`}>
-                YEKUN NƏTİCƏ
+                FINAL VERDICT
               </span>
               <h2 className="text-4xl sm:text-5xl font-black mt-3 tracking-tight drop-shadow-md">
                 {isTownVictory
-                  ? 'ŞƏHƏR QALİB GƏLDİ!'
+                  ? 'TOWN TRIUMPHANT: PURGED ALL SCUM!'
                   : isMafiaVictory
-                  ? 'MAFİYA ŞƏHƏRİ ƏLƏ KEÇİRDİ!'
-                  : 'OYUN BAŞA ÇATDI!'}
+                  ? 'MAFIA TAKEOVER: SHADOWS REIGN!'
+                  : 'MATCH CONCLUDED!'}
               </h2>
               <p className="text-base text-zinc-600 dark:text-zinc-300 mt-4 max-w-lg mx-auto font-medium leading-relaxed opacity-80">
                 {lobbyState.winnerResult?.reason ||
-                  'Bütün rəqiblər aradan qaldırıldı və qələbə şərti tam təmin olundu.'}
+                  'All adversaries eliminated. Victory condition successfully secured.'}
               </p>
             </div>
 
             {winnerNames.length > 0 && (
               <div className={`w-full p-6 rounded-[20px] bg-black/20 border ${isTownVictory ? 'border-emerald-500/20' : isMafiaVictory ? 'border-red-500/20' : 'border-purple-500/20'} text-left`}>
                 <div className={`text-xs font-black uppercase tracking-[0.2em] mb-4 ${isTownVictory ? 'text-emerald-500' : isMafiaVictory ? 'text-red-500' : 'text-purple-500'}`}>
-                  QALİB HEYƏT:
+                  VICTORIOUS COALITION:
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {winnerNames.map((name, i) => (
@@ -1207,7 +1208,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             {/* Post-Game True Roles Reveal Table */}
             <div className="w-full mt-2 mb-2 p-1">
               <div className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 mb-3 ml-2">
-                Tam İfşa (Bütün Rollar)
+                Full Dossier Reveal (All Roles)
               </div>
               <div className="flex flex-col gap-2 max-h-[35vh] overflow-y-auto custom-scrollbar pr-2">
                 {Object.values(lobbyState.players).map(p => {
@@ -1225,9 +1226,9 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                       </div>
                       <div className="flex items-center gap-2">
                         {p.isAlive ? (
-                          <span className="px-2 py-1 rounded bg-green-500/20 text-green-400 text-[10px] font-bold uppercase tracking-wider">Sağdır</span>
+                          <span className="px-2 py-1 rounded bg-green-500/20 text-green-400 text-[10px] font-bold uppercase tracking-wider">Alive</span>
                         ) : (
-                          <span className="px-2 py-1 rounded bg-zinc-500/20 text-zinc-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1"><Skull className="w-3 h-3"/> Ölü</span>
+                          <span className="px-2 py-1 rounded bg-zinc-500/20 text-zinc-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1"><Skull className="w-3 h-3"/> Deceased</span>
                         )}
                       </div>
                     </div>
@@ -1247,7 +1248,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                 }}
                 icon={<RotateCcw className="w-5 h-5 mr-2" />}
               >
-                YENİDƏN BAŞLA
+                PLAY AGAIN
               </Button>
             </div>
           </div>
@@ -1261,7 +1262,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         <>
           <button
             onClick={() => setIsNotebookOpen(true)}
-            title="Detektiv Qeydləri"
+            title="Detective's Journal"
             className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-2xl bg-indigo-900/90 text-indigo-100 shadow-[0_0_20px_rgba(49,46,129,0.5)] flex items-center justify-center hover:bg-indigo-800 hover:scale-105 active:scale-95 transition-all border border-indigo-500/30"
           >
             <PenTool className="w-6 h-6" />
@@ -1359,7 +1360,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
       {myPlayerSession && myPlayerSession.isAlive && lobbyState.phase !== 'ENDED' && (
         <button
           onClick={() => setIsLastWillOpen(true)}
-          title="Son Vəsiyyət"
+          title="Last Will & Testament"
           className="fixed bottom-6 left-6 z-40 p-3 rounded-full bg-amber-900/90 hover:bg-amber-800 text-amber-100 shadow-[0_0_20px_rgba(120,53,15,0.5)] border border-amber-500/30 transition-transform hover:scale-110 active:scale-95"
         >
           <PenTool className="w-5 h-5" />
@@ -1370,7 +1371,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
       {myPlayerSession && lobbyState.pastNewspapers && lobbyState.pastNewspapers.length > 0 && (
         <button
           onClick={() => setIsArchiveOpen(true)}
-          title="Qəzet Arxivi"
+          title="Gazette Archives"
           className="fixed bottom-6 left-24 z-40 p-3 rounded-full bg-amber-600 hover:bg-amber-500 text-white shadow-[0_0_20px_rgba(217,119,6,0.5)] border border-amber-500/30 transition-transform hover:scale-110 active:scale-95"
         >
           <BookOpen className="w-5 h-5" />
@@ -1381,7 +1382,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
       {playersList.some(p => !p.isAlive) && (
         <button
           onClick={() => setIsGraveyardOpen(true)}
-          title="Qəbiristanlıq"
+          title="Cemetery"
           className="fixed bottom-6 left-40 z-40 p-3 rounded-full bg-zinc-900 hover:bg-zinc-800 text-purple-400 shadow-[0_0_20px_rgba(147,51,234,0.3)] border border-purple-500/30 transition-transform hover:scale-110 active:scale-95"
         >
           <Skull className="w-5 h-5" />
@@ -1397,7 +1398,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
           localStorage.setItem(`mafia_lastwill_${currentUserId}_${lobbyId}`, text);
           dispatchAction({ action: 'SUBMIT_LAST_WILL', text: text });
           setIsLastWillOpen(false);
-          showToast('Son Vəsiyyət qeydə alındı.', 'success');
+          showToast('Last Will saved successfully.', 'success');
         }}
       />
 

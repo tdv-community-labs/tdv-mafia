@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MorningNewspaper, InvestigationResult } from '../../types/engine';
 import { MinigameSubStates } from '../../types/minigames';
 import { AZ_DEATH_CAUSES, AZ_UI, AZ_DANTE_CIRCLES } from '../../config/i18n/az';
+import { EN_DEATH_CAUSES, EN_UI, EN_DANTE_CIRCLES } from '../../config/i18n/en';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { getTheme } from '../../config/themes.config';
@@ -74,7 +75,7 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
         {/* Top-Right Close Button */}
         <button
           onClick={onClose}
-          title="Bağla (Esc)"
+          title="Close (Esc)"
           className="absolute top-4 right-4 p-2 rounded-full text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors z-10 cursor-pointer"
         >
           <X className="w-5 h-5" />
@@ -82,14 +83,14 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
         {/* Newspaper Masthead */}
         <div className={`py-6 text-center mb-4 flex flex-col gap-2 ${isAllIn ? 'border-y-2 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.3)]' : theme.newspaperMasthead}`}>
           <div className="text-[11px] tracking-widest uppercase text-stone-600 dark:text-stone-400 font-sans font-bold">
-            TDV MAFIA • Səhər Xüsusi Buraxılışı
+            THE DAILY GAZETTE • MORNING EDITION
           </div>
           <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tight my-2 text-zinc-900 dark:text-zinc-100 font-serif leading-tight">
             {newspaper.headline || AZ_UI.morningBulletin}
           </h1>
           <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 border-t border-zinc-500/20 pt-3 mt-2 font-mono uppercase tabular-nums font-bold tracking-widest">
             <span>Raund #{roundNumber}</span>
-            <span>Gecə Əməliyyatlarının Nəticələri</span>
+            <span>Nocturnal Dispatches</span>
             <span>Jitter: {(newspaper.jitterAppliedMs / 1000).toFixed(1)}s</span>
           </div>
         </div>
@@ -105,12 +106,12 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
         {lastLynchedPlayerName && (
           <div className="p-4 rounded-[8px] border border-rose-300 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 font-sans">
             <div className="text-[11px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400 mb-1">
-              Məhkəmə İttihamı Nəticəsi
+              Courtroom Execution Bulletin
             </div>
             <div className="text-sm text-stone-800 dark:text-stone-200">
-              Vətəndaşların səs çoxluğu ilə ittiham olunan{' '}
+              By citizens majority vote, convicted suspect{' '}
               <strong className="text-rose-600 dark:text-rose-400">{lastLynchedPlayerName}</strong>{' '}
-              edam edildi.
+              was sent to the gallows.
             </div>
           </div>
         )}
@@ -121,7 +122,7 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
             <div className="flex items-center gap-2 border-b border-emerald-300/50 dark:border-emerald-800/50 pb-2 mb-3">
               <Shield className="w-5 h-5 text-emerald-600" />
               <h2 className="text-base font-extrabold uppercase tracking-wide text-emerald-800 dark:text-emerald-500">
-                Gecə İnsidentləri
+                Nocturnal Interventions
               </h2>
             </div>
             <div className="flex flex-col gap-2">
@@ -131,7 +132,7 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
                     <Heart className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
                   </div>
                   <div className="text-sm text-emerald-900 dark:text-emerald-300 leading-relaxed">
-                    <strong className="font-bold">{playerNames[id] || 'Kimsə'}</strong> gecə amansız hücuma məruz qaldı, lakin son anda <span className="font-bold underline decoration-emerald-500/50 underline-offset-2">Mühafizəçi</span> tərəfindən ölümdən xilas edildi!
+                    <strong className="font-bold">{playerNames[id] || 'Kimsə'}</strong> was targeted in a deadly midnight assault, but narrowly protected by the Bodyguard!
                   </div>
                 </div>
               ))}
@@ -144,7 +145,7 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
             <div className="flex items-center gap-2 border-b border-amber-300 dark:border-amber-800 pb-2 mb-3">
               <Shield className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               <h2 className="text-base font-extrabold uppercase tracking-wide text-amber-800 dark:text-amber-400">
-                Qırılan Zirehlər (Dəmir İradə)
+                Shattered Armor (Iron Will)
               </h2>
             </div>
             <div className="flex flex-col gap-2">
@@ -154,7 +155,7 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
                     <Shield className="w-4 h-4 text-amber-700 dark:text-amber-400" />
                   </div>
                   <div className="text-sm text-amber-900 dark:text-amber-300 leading-relaxed">
-                    <strong className="font-bold">{playerNames[id] || 'Kimsə'}</strong> gecə ölümcül hücuma məruz qaldı, lakin <span className="font-bold underline decoration-amber-500/50 underline-offset-2">Dəmir İradə</span> sayəsində sağ qaldı! (Zireh qırıldı)
+                    <strong className="font-bold">{playerNames[id] || 'Kimsə'}</strong> suffered a lethal strike, but survived through sheer Iron Will! (Armor shattered)
                   </div>
                 </div>
               ))}
@@ -167,13 +168,13 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
           <div className="flex items-center gap-2 border-b border-stone-300 dark:border-stone-800 pb-2 mb-3">
             <Skull className="w-5 h-5 text-rose-600" />
             <h2 className="text-base font-extrabold uppercase tracking-wide text-stone-900 dark:text-stone-100">
-              {AZ_UI.newspaperHeadlineDeaths} ({newspaper.publicDeaths.length})
+              Casualties of the Night ({newspaper.publicDeaths.length})
             </h2>
           </div>
 
           {newspaper.publicDeaths.length === 0 ? (
             <p className="text-sm italic text-stone-600 dark:text-stone-400 py-2">
-              {AZ_UI.newspaperNoDeaths} Şəhər bu gecə sakit qaldı.
+              No casualties reported. The city survived the night in peace.
             </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -186,9 +187,9 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-sm text-stone-900 dark:text-stone-100">
-                        Qurban: {playerNames[death.victimPlayerId] ?? death.victimPlayerId}
+                        Victim: {playerNames[death.victimPlayerId] ?? death.victimPlayerId}
                       </span>
-                      <Badge tone="red">{AZ_DEATH_CAUSES[death.cause] ?? death.cause}</Badge>
+                      <Badge tone="red">{EN_DEATH_CAUSES[death.cause] ?? death.cause}</Badge>
                     </div>
 
                     {death.isCleaned ? (
@@ -197,7 +198,7 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
                       </div>
                     ) : (
                       <div className="text-xs text-stone-600 dark:text-stone-400">
-                        Ölüm Səbəbi: {AZ_DEATH_CAUSES[death.cause] ?? death.cause}
+                        Cause of Death: {AZ_DEATH_CAUSES[death.cause] ?? death.cause}
                         {death.killerFaction && ` (${death.killerFaction})`}
                       </div>
                     )}
@@ -207,7 +208,7 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
                       <div className="mt-2 p-2.5 rounded-md border border-amber-300/60 dark:border-amber-700/50 bg-amber-50/80 dark:bg-amber-950/30 flex flex-col gap-1">
                         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-amber-700 dark:text-amber-400">
                           <Mail className="w-3 h-3 shrink-0" />
-                          Son Vəsiyyət
+                          Last Will & Testament
                         </div>
                         <p className="text-xs italic text-amber-900 dark:text-amber-200 leading-relaxed">
                           &ldquo;{lastWill}&rdquo;
@@ -226,7 +227,7 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
           <div className="p-4 rounded-[8px] border border-blue-400/50 dark:border-blue-700/60 bg-blue-50/90 dark:bg-blue-950/40 font-sans flex flex-col gap-2.5 shadow-sm">
             <div className="flex items-center gap-2 text-xs font-black text-blue-900 dark:text-blue-300 uppercase tracking-wider">
               <Search className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <span>Şəxsi Gecə İstintaq Nəticəniz (Yalnız Sizə Görünür)</span>
+              <span>Classified Investigation Report (Eyes Only)</span>
             </div>
             {privateInvestigations.map((inv, idx) => (
               <div
@@ -234,13 +235,13 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
                 className="p-3 rounded-lg bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-800/80 flex items-center justify-between gap-3 text-xs sm:text-sm"
               >
                 <div>
-                  <span className="text-zinc-500 dark:text-zinc-400">Şübhəli Hədəf:</span>{' '}
+                  <span className="text-zinc-500 dark:text-zinc-400">Suspect Dossier:</span>{' '}
                   <strong className="text-zinc-900 dark:text-zinc-100 font-bold">
                     {playerNames[inv.targetPlayerId] ?? inv.targetPlayerId}
                   </strong>
                 </div>
                 <Badge tone={inv.revealedFaction === 'MAFIA' ? 'red' : 'emerald'}>
-                  {inv.revealedFaction === 'MAFIA' ? 'MAFİYA ŞÜBHƏLİSİ' : 'MƏSUM VƏTƏNDAŞ'}
+                  {inv.revealedFaction === 'MAFIA' ? 'MAFIA SUSPECT' : 'INNOCENT CITIZEN'}
                 </Badge>
               </div>
             ))}
@@ -265,14 +266,14 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
             <div className="flex items-center gap-2 mb-1.5">
               <span className="text-lg">⚡</span>
               <div className="text-xs font-black uppercase tracking-[0.2em] text-orange-700 dark:text-orange-400">
-                Xüsusi Kəşfiyyat Xəbəri
+                Classified Wire Tap Alert
               </div>
             </div>
             <div className="text-sm font-bold text-orange-900 dark:text-orange-200">
-              Gecə ərzində şəhərin alt dünyasında daxili bir ixtilaf qeydə alındı.
+              An internal mutiny within the criminal underworld was detected overnight.
             </div>
             <div className="text-xs text-orange-700 dark:text-orange-300 mt-1 opacity-80 italic">
-              Mənbə məxfi saxlanılır. Kəşfiyyatçılar yuxarı idarəyə hesabat verdi.
+              Source classified. Field informants dispatched report to headquarters.
             </div>
           </div>
         )}
@@ -281,10 +282,10 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
         {dante && (
           <div className="p-3.5 rounded-[8px] border border-red-300 dark:border-red-900 bg-red-50 dark:bg-red-950/20 font-sans">
             <div className="text-xs font-bold text-red-700 dark:text-red-400">
-              Dante Cəhənnəmi: {AZ_DANTE_CIRCLES[dante.currentCircle]?.name ?? dante.currentCircle}
+              Dante's Inferno: {EN_DANTE_CIRCLES[dante.currentCircle]?.name ?? dante.currentCircle}
             </div>
             <div className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
-              {AZ_DANTE_CIRCLES[dante.currentCircle]?.rule}
+              {EN_DANTE_CIRCLES[dante.currentCircle]?.rule}
             </div>
           </div>
         )}
@@ -292,10 +293,10 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
         {earth && (
           <div className="p-3.5 rounded-[8px] border border-blue-300 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20 font-sans">
             <div className="text-xs font-bold text-blue-700 dark:text-blue-400">
-              {AZ_UI.doomsdayClock}: {earth.doomsdayClockHours} / 12 Saat
+              Doomsday Clock: {earth.doomsdayClockHours} / 12 Hours
             </div>
             <div className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
-              {earth.doomsdayClockHours >= 12 ? 'Qortun planetar məhv silahı işə düşdü!' : 'Hər günahsız edam saatı 1 saat irəli aparır.'}
+              {earth.doomsdayClockHours >= 12 ? 'Klaatu & Gort planetary purge initiated!' : 'Each wrongful execution advances the clock by 1 hour.'}
             </div>
           </div>
         )}
@@ -303,10 +304,10 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
         {valkyrie && valkyrie.briefcaseLocationPlayerId && (
           <div className="p-3.5 rounded-[8px] border border-amber-300 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/20 font-sans">
             <div className="text-xs font-bold text-amber-700 dark:text-amber-400">
-              Valkiriya Əməliyyatı: Portfel {playerNames[valkyrie.briefcaseLocationPlayerId] ?? valkyrie.briefcaseLocationPlayerId} əlindədir
+              Operation Valkyrie: Briefcase in possession of {playerNames[valkyrie.briefcaseLocationPlayerId] ?? valkyrie.briefcaseLocationPlayerId}
             </div>
             <div className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
-              Partlayıcı portfelin vaxtına {valkyrie.fuseTimerDaysRemaining} gün qalır.
+              Briefcase detonation fuse: {valkyrie.fuseTimerDaysRemaining} days remaining.
             </div>
           </div>
         )}
@@ -314,10 +315,10 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
         {prison && (
           <div className="p-3.5 rounded-[8px] border border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800/40 font-sans">
             <div className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-              Stanford Həbsxanası: Üsyan göstəricisi {prison.revoltMeter}%
+              Stanford Prison Experiment: Revolt Risk {prison.revoltMeter}%
             </div>
             <div className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
-              {prison.riotTriggered ? 'Qiyam başladı! Mühafizəçilər hakimiyyəti itirdi.' : 'Həbsxana nəzarət altındadır.'}
+              {prison.riotTriggered ? 'Prison riot triggered! Wardens lost control.' : 'Prison facility currently contained.'}
             </div>
           </div>
         )}
@@ -325,7 +326,7 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
         {catenaccio && (
           <div className="p-3.5 rounded-[8px] border border-emerald-300 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/20 font-sans">
             <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
-              Katenatçio: {catenaccio.wallBreached ? 'Müdafiə səddi dağıdıldı!' : `${catenaccio.defensiveWallPlayerIds.length} qalxanlıq müdafiə səddi aktivdir.`}
+              Catenaccio: {catenaccio.wallBreached ? 'Defensive wall breached!' : `${catenaccio.defensiveWallPlayerIds.length}-shield defensive barricade intact.`}
             </div>
           </div>
         )}
@@ -334,10 +335,10 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
           <div className="p-3.5 rounded-[8px] border border-amber-300 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/20 font-sans">
             <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400">
               <Biohazard className="w-4 h-4 text-amber-500 shrink-0" />
-              <span>Çernobıl Təcrid Zonası: Radiasiya {chernobyl.zoneContaminationLevel} mSv/raund</span>
+              <span>Chernobyl Exclusion Zone: Radiation {chernobyl.zoneContaminationLevel} mSv/round</span>
             </div>
             <div className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
-              Sığınacaq: {chernobyl.shelteredPlayerIds?.length ?? 0}/{chernobyl.bunkerCapacity} nəfər qorunur. Ölümcül hədd: {chernobyl.lethalThreshold} mSv.
+              Bunker: {chernobyl.shelteredPlayerIds?.length ?? 0}/{chernobyl.bunkerCapacity} sheltered. Lethal threshold: {chernobyl.lethalThreshold} mSv.
             </div>
           </div>
         )}
@@ -346,14 +347,10 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
           <div className="p-3.5 rounded-[8px] border border-cyan-400/50 dark:border-cyan-800 bg-cyan-50/80 dark:bg-cyan-950/20 font-sans">
             <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-700 dark:text-cyan-400">
               <Zap className="w-4 h-4 text-cyan-500 shrink-0" />
-              <span>Cyberpunk: Xəzər Şəbəkəsi {cyberpunk.gridIntegrity}% {cyberpunk.isCyberOverdriveActive ? '⚡ (Overdrive Aktivdir!)' : ''}</span>
+              <span>Cyberpunk: Grid Integrity {cyberpunk.gridIntegrity}% {cyberpunk.isCyberOverdriveActive ? '⚡ (Overdrive Active!)' : ''}</span>
             </div>
             <div className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
-              {cyberpunk.isSystemBlackout
-                ? 'Tam Qara Dəlik: Şəbəkə iflicdir və anarxiya sayğacı başladı!'
-                : cyberpunk.activeGlitchEvent !== 'NONE'
-                ? `Aktiv Xəta Hadisəsi: ${cyberpunk.activeGlitchEvent}`
-                : 'Şəbəkə telemetriyası sabit rejimdə işləyir.'}
+              {cyberpunk.isSystemBlackout ? 'System Blackout: Grid paralyzed and anarchy countdown started!' : cyberpunk.activeGlitchEvent !== 'NONE' ? `Active Glitch Event: ${cyberpunk.activeGlitchEvent}` : 'Grid telemetry operational.'}
             </div>
           </div>
         )}
@@ -362,11 +359,11 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
           <div className="p-3.5 rounded-[8px] border border-blue-400/50 dark:border-blue-800 bg-blue-50/80 dark:bg-blue-950/20 font-sans">
             <div className="flex items-center gap-1.5 text-xs font-bold text-blue-700 dark:text-blue-400">
               <Waves className="w-4 h-4 text-blue-500 shrink-0" />
-              <span>Bermud Üçbucağı: Hava — {bermuda.currentWeather} | Gövdə: {bermuda.shipHullIntegrity}%</span>
+              <span>Bermuda Triangle: Weather — {bermuda.currentWeather} | Hull: {bermuda.shipHullIntegrity}%</span>
             </div>
             {bermuda.ghostTelegramClues.length > 0 && (
               <div className="mt-1.5 text-xs font-mono font-bold text-blue-900 dark:text-blue-200 bg-blue-100/70 dark:bg-blue-900/40 p-2 rounded border border-blue-300 dark:border-blue-700">
-                📡 Ruhlar Donanmasından Sonar Teleqramı: [ {bermuda.ghostTelegramClues.join(' • ')} ]
+                📡 Sonar Telegram from Ghost Fleet: [ {bermuda.ghostTelegramClues.join(' • ')} ]
               </div>
             )}
           </div>
@@ -375,7 +372,7 @@ const MorningNewspaperModalComponent: React.FC<MorningNewspaperModalProps> = ({
         {/* Footer Dismiss Button */}
         <div className="pt-2 font-sans">
           <Button variant="secondary" size="md" onClick={onClose} fullWidth>
-            Oxundu &amp; Məhkəməyə Qayıt
+            Dismiss & Return to Courtroom
           </Button>
         </div>
       </div>

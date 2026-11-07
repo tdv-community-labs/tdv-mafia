@@ -104,7 +104,7 @@ const GameIntroOverlayComponent: React.FC<GameIntroOverlayProps> = ({ phase, rol
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border border-zinc-800/80 flex items-center justify-center bg-black/50 shadow-[inset_0_0_20px_rgba(255,255,255,0.05)]">
              <i className="fas fa-question text-5xl text-zinc-700"></i>
           </div>
-          <span className="absolute bottom-8 text-xs font-mono text-zinc-600 tracking-[0.3em] uppercase">Gzl Kmlk</span>
+          <span className="absolute bottom-8 text-xs font-mono text-zinc-600 tracking-[0.3em] uppercase">CLASSIFIED DOSSIER</span>
         </div>
 
         {/* Card Front (Revealed Role) */}
@@ -115,13 +115,13 @@ const GameIntroOverlayComponent: React.FC<GameIntroOverlayProps> = ({ phase, rol
            
            <div className="flex-1 flex flex-col items-center justify-center w-full relative z-10">
               <i className={`fas ${theme.icon} text-6xl sm:text-7xl ${theme.text} drop-shadow-[0_0_15px_currentColor] mb-6 transform hover:scale-110 transition-transform duration-500`}></i>
-              <span className="text-[10px] font-black tracking-[0.5em] text-white/50 uppercase mb-2">Szn Rolunuz</span>
+              <span className="text-[10px] font-black tracking-[0.5em] text-white/50 uppercase mb-2">YOUR CLASSIFIED ROLE</span>
               <h1 className={`text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] text-center leading-none`}>
                 {roleName}
               </h1>
               <div className={`mt-6 px-4 py-1.5 rounded-full border ${theme.border} bg-black/50 backdrop-blur-md`}>
                  <span className={`text-[10px] font-black tracking-widest ${theme.text} uppercase`}>
-                   {roleFaction === 'MAFIA' ? 'MAFİYA FRAKSİYASI' : roleFaction === 'TOWN' ? 'ŞƏHƏR ƏHALİSİ' : 'BİTƏRƏF'}
+                   {roleFaction === 'MAFIA' ? 'MAFIA SYNDICATE' : roleFaction === 'TOWN' ? 'TOWN COALITION' : 'NEUTRAL AGENT'}
                  </span>
               </div>
            </div>
@@ -129,7 +129,7 @@ const GameIntroOverlayComponent: React.FC<GameIntroOverlayProps> = ({ phase, rol
       </div>
 
       <span className="fixed bottom-12 text-[10px] text-white/40 uppercase tracking-[0.3em] animate-pulse">
-        {isFlipped ? 'Davam etmk n toxunun' : 'Rolunuzu grmk n toxunun'}
+        {isFlipped ? 'Tap anywhere to dismiss' : 'Tap card to reveal classified role'}
       </span>
       
       <style dangerouslySetInnerHTML={{__html: `

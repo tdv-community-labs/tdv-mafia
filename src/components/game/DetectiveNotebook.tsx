@@ -70,7 +70,7 @@ export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({
   };
 
   const handleClear = () => {
-    if (window.confirm('Bütün qeydləri silmək istədiyinizə əminsiniz?')) {
+    if (window.confirm('Are you sure you want to clear all notes?')) {
       setNotes('');
       setAiAnalysis(null);
       localStorage.removeItem(`mafia_notes_${userId}`);
@@ -94,13 +94,13 @@ export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({
               <PenTool className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-black tracking-tight text-zinc-900 dark:text-white">Xəfiyyə Dəftəri</h3>
-              <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Şəxsi Qeydlər</p>
+              <h3 className="font-black tracking-tight text-zinc-900 dark:text-white">Detective's Classified Journal</h3>
+              <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Confidential Field Notes</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            title="Bağla (Esc)"
+            title="Close (Esc)"
             className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -114,7 +114,7 @@ export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Şübhəliləri, iddiaları və yalanları buraya qeyd edin...&#10;&#10;Məsələn:&#10;1-ci gün: Orxan Həkim olduğunu iddia etdi.&#10;2-ci gün: Əli səsvermədə aqressiv idi."
+            placeholder="Log suspect claims, contradictions, and deductions here...&#10;&#10;e.g.:&#10;Night 1: Orxan claimed Doctor, guarded player 3.&#10;Day 2: Ali voted aggressively without justification."
             className="w-full flex-1 min-h-[160px] relative z-10 resize-none bg-transparent outline-none text-zinc-800 dark:text-zinc-300 placeholder:text-zinc-400/70 font-medium text-sm leading-relaxed"
             style={{
               lineHeight: '2rem',
@@ -130,7 +130,7 @@ export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-400">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Sherlock AI Təhlili</span>
+                  <span>Sherlock AI Deduction Analysis</span>
                 </div>
                 <button
                   type="button"
@@ -150,7 +150,7 @@ export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({
           <div className="px-4 py-2.5 border-t border-zinc-100 dark:border-zinc-900 bg-amber-50/50 dark:bg-amber-950/20 flex items-center justify-between gap-2">
             <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
               <Bot className="w-3.5 h-3.5" />
-              Gemini Analitiki
+              Gemini Detective Intelligence
             </span>
             <Button
               variant="outline"
@@ -166,7 +166,7 @@ export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({
               }
               className="text-xs font-bold border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10 disabled:opacity-50"
             >
-              {isAnalyzing ? 'Təhlil Edilir...' : 'AI Analiz Et'}
+              {isAnalyzing ? 'Analyzing Claims...' : 'Run AI Deduction'}
             </Button>
           </div>
         )}
@@ -180,7 +180,7 @@ export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({
             className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
             icon={<Trash2 className="w-4 h-4" />}
           >
-            Təmizlə
+            Clear
           </Button>
 
           <Button
@@ -194,7 +194,7 @@ export const DetectiveNotebook: React.FC<DetectiveNotebookProps> = ({
                 : 'bg-amber-500 hover:bg-amber-600 ring-amber-500/20 text-white'
             }
           >
-            {saved ? 'Yadda Saxlanıldı' : 'Yadda Saxla'}
+            {saved ? 'Saved' : 'Save Notes'}
           </Button>
         </div>
       </div>

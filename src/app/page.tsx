@@ -102,11 +102,11 @@ export default function HomePage() {
               alt="TDV Logo"
               className="w-4 h-4 rounded-full border border-purple-400 object-cover"
             />
-            <span>TDV Community Labs • Mafia Klubu</span>
+            <span>TDV Community Labs • Mafia Syndicate</span>
             <span className="opacity-40">•</span>
             <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Mövsüm #1
+              Season #1
             </span>
           </div>
 
@@ -117,7 +117,7 @@ export default function HomePage() {
 
           {/* Subtitle description (WCAG AA compliant contrast) */}
           <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 max-w-2xl leading-relaxed">
-            Kölgələrin idarə etdiyi şəhərdə həqiqət ən təhlükəli silahdır. Masa yarat, linki dostlarına göndər və intellektual psixoloji mübarizəyə dərhal başla.
+            Where shadows govern the city, truth is the deadliest weapon. Host a room, invite your circle, and plunge into high-stakes psychological warfare.
           </p>
 
           {/* Action CTAs */}
@@ -128,7 +128,7 @@ export default function HomePage() {
               onClick={() => openCreateModal()}
               icon={<Dices className="w-5 h-5" />}
             >
-              Masa Yarat
+              Host Game
             </Button>
 
             <Button
@@ -137,7 +137,7 @@ export default function HomePage() {
               onClick={() => setIsJoinByCodeOpen(true)}
               icon={<Key className="w-5 h-5" />}
             >
-              Kodu Daxil Et
+              Enter Code
             </Button>
 
             <Button
@@ -146,7 +146,7 @@ export default function HomePage() {
               onClick={() => setIsRulesOpen(true)}
               icon={<BookOpen className="w-4 h-4 text-red-500" />}
             >
-              24 Rol Ensiklopediyası
+              24 Roles Codex
             </Button>
 
             <Button
@@ -155,7 +155,7 @@ export default function HomePage() {
               onClick={() => setIsAchievementsOpen(true)}
               icon={<Award className="w-4 h-4 text-amber-500" />}
             >
-              72 Nailiyyət & XP
+              72 Achievements & XP
             </Button>
 
             <Button
@@ -164,7 +164,7 @@ export default function HomePage() {
               onClick={() => setIsCatalogOpen(true)}
               icon={<Layers className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
             >
-              15 Rejim Kataloqu
+              15 Game Modes
             </Button>
           </div>
         </div>
@@ -179,8 +179,8 @@ export default function HomePage() {
               <Layers className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">15 Oyun Formatı</div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">Kataloqa bax ➔</div>
+              <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">15 Game Formats</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">Explore modes ➔</div>
             </div>
           </div>
 
@@ -189,8 +189,8 @@ export default function HomePage() {
               <Clock className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">75s Canlı Faza</div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">Dinamik Anti-AFK rejimi</div>
+              <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">75s Live Phases</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">Dynamic Anti-AFK engine</div>
             </div>
           </div>
 
@@ -199,8 +199,8 @@ export default function HomePage() {
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Sıfır-Məlumat Mühafizəsi</div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">Şifrəli rol idarəetməsi</div>
+              <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Zero-Knowledge Privacy</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">Encrypted role security</div>
             </div>
           </div>
 
@@ -212,8 +212,8 @@ export default function HomePage() {
               <Trophy className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Reytinq Cədvəli</div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">Liderlərə bax ➔</div>
+              <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Live Leaderboard</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">View rankings ➔</div>
             </div>
           </div>
         </div>
@@ -228,14 +228,14 @@ export default function HomePage() {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base font-extrabold text-zinc-950 dark:text-white">
-                TDV Vahid Giriş & Ekosistem Profili
+                TDV Unified Access & Ecosystem Profile
               </h3>
               <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-700 dark:text-purple-300 text-[10px] font-black uppercase tracking-wider">
                 SSO v1
               </span>
             </div>
             <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 max-w-xl">
-              1 vahid hesabla TDV Mafia, TDV Games, TDV Hub və Lisey Futbol Turnirinə dərhal qoşulun. Qeydiyyatınız bütün portallarda avtomatik tanınır.
+              Access TDV Mafia, TDV Games, TDV Hub, and the High School Football Championship with a single unified profile. Recognized across all portals.
             </p>
           </div>
         </div>
@@ -251,7 +251,7 @@ export default function HomePage() {
               }
             }}
           >
-            Daxil Ol
+            Sign In
           </Button>
           <Button
             variant="primary"
@@ -263,7 +263,7 @@ export default function HomePage() {
               }
             }}
           >
-            Vahid Qeydiyyat
+            Unified Register
           </Button>
         </div>
       </section>
@@ -273,14 +273,14 @@ export default function HomePage() {
         <div className="border-l-4 border-red-600 pl-3">
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
-              Açıq Canlı Masalar
+              Live Public Tables
             </h2>
             <Badge tone="red" className="text-xs font-bold">
               {activeRooms.length}
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-            Aktiv masalardan birinə qoşulun və ya dostlarınız üçün yeni masa başladın.
+            Join an ongoing match or host a new table for your syndicate.
           </p>
         </div>
 
@@ -314,13 +314,13 @@ export default function HomePage() {
                 <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800/80">
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 tabular-nums">
                     <Users className="w-3.5 h-3.5" />
-                    {room.playerCount} / {room.maxPlayers} Oyunçu
+                    {room.playerCount} / {room.maxPlayers} Players
                   </span>
                   <Link
                     href={`/lobby/${room.lobbyId}`}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all duration-200 hover:-translate-y-0.5"
                   >
-                    <span>Qoşul</span>
+                    <span>Join</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -330,9 +330,9 @@ export default function HomePage() {
         ) : (
           <EmptyState
             icon={Dices}
-            title="Hazırda heç bir aktiv masa yoxdur"
-            description="İlk masanı yaradaraq dostlarınızı dəvət edin və ya formatlar kataloqundan xüsusi ssenari seçin."
-            actionLabel="İlk Masanı Yarat"
+            title="No Active Tables Found"
+            description="Host the first table and invite your friends, or choose a special scenario from our mode catalog."
+            actionLabel="Host First Table"
             onAction={() => openCreateModal()}
           />
         )}
@@ -348,12 +348,12 @@ export default function HomePage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-extrabold text-lg text-zinc-900 dark:text-zinc-100">
-                Oyun Formatları & 24 Rol Kataloqu
+                Game Formats & 24 Roles Codex
               </h3>
-              <Badge tone="red">15 Rejim</Badge>
+              <Badge tone="red">15 Modes</Badge>
             </div>
             <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Dante&apos;s Inferno (9 Dairə Əzabları), Çernobıl, Cyberpunk, Baker Street, Stanford Prison və 40–50 nəfərlik All-In rejimi daxil olmaqla bütün 24 rolu və xüsusi qabiliyyətləri araşdırın.
+              Explore all 24 classified roles and asymmetric mechanics across Dante&apos;s Inferno (9 Circles of Hell), Chernobyl, Cyberpunk 2077, Baker Street, Stanford Prison, and 40–50 player All-In showdowns.
             </p>
           </div>
         </div>
@@ -365,7 +365,7 @@ export default function HomePage() {
           iconRight={<ArrowRight className="w-4 h-4" />}
           className="shrink-0"
         >
-          Kataloqa Bax
+          Browse Catalog
         </Button>
       </section>
 
@@ -385,7 +385,7 @@ export default function HomePage() {
                   <Key className="w-4 h-4" />
                 </div>
                 <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100">
-                  Otaq Kodu ilə Qoşul
+                  Join via Room Code
                 </h3>
               </div>
               <button
@@ -398,12 +398,12 @@ export default function HomePage() {
             </div>
 
             <p className="text-xs text-zinc-600 dark:text-zinc-400">
-              Dostunuzun və ya təşkilatçının paylaşdığı masa kodunu və ya identifikatorunu daxil edin:
+              Enter the room code or lobby identifier shared by your host:
             </p>
 
             <input
               type="text"
-              placeholder="Məs: se7en-deadly-sins-baku-1234"
+              placeholder="e.g. noir-syndicate-london-4491"
               value={roomCodeInput}
               onChange={(e) => setRoomCodeInput(e.target.value)}
               autoFocus
@@ -415,7 +415,7 @@ export default function HomePage() {
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <Button variant="secondary" size="md" onClick={() => setIsJoinByCodeOpen(false)}>
-                Bağla
+                Cancel
               </Button>
               <Button
                 variant="primary"
@@ -424,7 +424,7 @@ export default function HomePage() {
                 onClick={handleJoinByCode}
                 iconRight={<ArrowRight className="w-4 h-4" />}
               >
-                Masaya Gir
+                Enter Room
               </Button>
             </div>
           </div>

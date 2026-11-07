@@ -57,33 +57,33 @@ const PhaseTransitionOverlayComponent: React.FC<PhaseTransitionOverlayProps> = (
   if (!isRendered) return null;
 
   let Icon = Sun;
-  let title = 'Yeni Gün';
+  let title = 'NEW DAWN';
   let subtitle = '';
   let bgClass = 'bg-amber-500/10';
   let textClass = 'text-amber-500';
 
   if (phase.includes('DAY_DISCUSSION') || phase.includes('DAY_CENTRAL_ASSEMBLY') || phase.includes('DAY_REGIONAL_CAUCUS')) {
     Icon = Sun;
-    title = phase === 'DAY_REGIONAL_CAUCUS' ? 'Regional Kvartal Toplantısı' : 'Səhər Açılır';
-    subtitle = phase === 'DAY_REGIONAL_CAUCUS' ? 'Kvartal sakinləri toplaşır və finalçıları müəyyənləşdirir.' : 'Şəhər oyanır. Hadisələri müzakirə etmək vaxtıdır.';
+    title = phase === 'DAY_REGIONAL_CAUCUS' ? 'DISTRICT CAUCUS' : 'DAWN BREAKS';
+    subtitle = phase === 'DAY_REGIONAL_CAUCUS' ? 'District citizens convene to indict primary suspects.' : 'The city awakens. Deliberate and uncover the conspirators.';
     bgClass = 'bg-amber-500/10';
     textClass = 'text-amber-500';
   } else if (phase === 'TRIAL_DEFENSE') {
     Icon = Scale;
-    title = 'Müdafiə Kürsüsü';
-    subtitle = 'İttiham olunan şəxs özünü müdafiə edir. Hökm verməyə hazırlaşın.';
+    title = 'STAND TRIAL';
+    subtitle = 'The suspect takes the stand. Prepare to cast your verdict.';
     bgClass = 'bg-amber-950/40';
     textClass = 'text-amber-400';
   } else if (phase.includes('DAY_VOTING')) {
     Icon = Scale;
-    title = 'Məhkəmə Başlayır';
-    subtitle = 'Günahkarları mühakimə etmək üçün son şansınızdır.';
+    title = 'COURT IN SESSION';
+    subtitle = 'Weigh the evidence. Cast your votes to indict suspects.';
     bgClass = 'bg-zinc-500/20';
     textClass = 'text-zinc-200';
   } else if (phase.includes('NIGHT_ACTION') || phase.includes('NIGHT_BUFFER')) {
     Icon = Moon;
-    title = 'Gecə Çökür';
-    subtitle = 'Məsumlar yatır, cinayətkarlar və müdafiəçilər hərəkətə keçir.';
+    title = 'NIGHTFALL DESCENDS';
+    subtitle = 'Innocents slumber while killers prowl and guardians take their watch.';
     bgClass = 'bg-blue-950/40';
     textClass = 'text-blue-400';
   }
