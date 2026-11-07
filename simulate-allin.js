@@ -307,10 +307,12 @@ function resolveLynch(game) {
 
   // Tally weighted votes
   const tally = {};
+  const leadingPool = alive.slice(0, Math.min(alive.length, 4));
   for (const voter of alive) {
     const candidates = alive.filter(p => p.userId !== voter.userId);
     if (candidates.length === 0) continue;
-    const target = pick(candidates);
+    const focusCandidates = candidates.filter(c => leadingPool.some(lp => lp.userId === c.userId));
+    const target = (focusCandidates.length > 0 && Math.random() < 0.65) ? pick(focusCandidates) : pick(candidates);
     if (!tally[target.userId]) tally[target.userId] = 0;
     tally[target.userId] += voter.voteWeight;
   }
@@ -418,7 +420,7 @@ async function runGame(gameIdx) {
 
   // ── Game loop
   let round = 0;
-  const maxRounds = 20;
+  const maxRounds = 30;
   let winner = null;
   const roundResults = [];
 

@@ -7,8 +7,8 @@ import { ScrubbedPlayerView } from '../../types/engine';
 import { AllInDistrict, CivicOfficeType } from '../../types/roles';
 import { Badge, BadgeTone } from '../ui/Badge';
 import { AZ_CIVIC_OFFICES, AZ_DISTRICTS, AZ_UI } from '../../config/i18n/az';
-import { motion } from 'framer-motion';
-import { playCard } from '../../utils/sfx';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { playCard, triggerHaptic, playMicroClick } from '../../utils/sfx';
 import { RoleActionReticle, ActionReticleType } from './RoleActionReticle';
 import { TombstoneModal } from './TombstoneModal';
 
@@ -98,6 +98,38 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
 
   const effectiveActionType = (actionType ?? targetIntent) as ActionReticleType | undefined;
 
+  // 3D Perspective Tilt & Spring Motion (WCAG 2.1 AA / Touch-aware)
+  const cardRef = React.useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), { stiffness: 300, damping: 25 });
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), { stiffness: 300, damping: 25 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    if (typeof window !== 'undefined') {
+      const isTouch = window.matchMedia?.('(pointer: coarse)').matches;
+      const isReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      if (isTouch || isReduced) return;
+    }
+    const rect = cardRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    x.set(mouseX / rect.width - 0.5);
+    y.set(mouseY / rect.height - 0.5);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  React.useEffect(() => {
+    if (isAccused && isSelf) {
+      triggerHaptic('accused');
+    }
+  }, [isAccused, isSelf]);
+
   let roleTitle = player.username;
   let roleSubtitle = isLobbyPhase
     ? isHost
@@ -132,6 +164,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
 
   const handleClick = () => {
     playCard();
+    triggerHaptic("click");
     if (!isAlive && !isLobbyPhase) {
       setIsTombstoneOpen(true);
     }
@@ -177,7 +210,8 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
     : 'cursor-default';
 
   return (
-    <div
+    <motion.div
+      ref={cardRef}
       data-testid={`player-card-${player.userId}`}
       onClick={handleClick}
       onKeyDown={(e) => {
@@ -188,8 +222,12 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
       }}
       role={onSelect ? 'button' : undefined}
       tabIndex={onSelect ? 0 : undefined}
-      style={style}
-      className={`group relative rounded-[20px] ${isCompact ? "p-2 min-h-[60px]" : "p-4 min-h-[120px]"} border transition-all duration-300 flex flex-col justify-between gap-3 overflow-hidden select-none outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${cursorClass} ${containerClasses}`}
+      style={{ ...style, perspective: 1000, rotateX, rotateY, transformStyle: "preserve-3d" as const }}
+      whileHover={{ y: -4 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onMouseEnter={() => playMicroClick()}
+      className={`group relative rounded-[20px] ${isCompact ? "p-2 min-h-[60px]" : "p-4 min-h-[120px]"} border transition-all duration-300 flex flex-col justify-between gap-3 overflow-hidden select-none outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${cursorClass} ${containerClasses} ${isAccused ? "animate-border-shimmer" : ""}`}
     >
       {/* Accused Podium Spotlight Beam & Ambient Glow */}
       {isAccused && (
@@ -423,7 +461,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
           lastWill={player.lastWill || null}
         />
       )}
-    </div>
+    </motion.div>
   );
 };
 

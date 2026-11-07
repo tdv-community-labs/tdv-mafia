@@ -287,6 +287,54 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const isVotingPhase = phase === 'DAY_VOTING' || phase === 'TRIAL_DEFENSE';
   const hasCastVote = Boolean(lobbyState.liveVotes[currentUserId]);
   const canSeeVotes = true;
+  // Screen Reader Accessibility Announcements (WCAG 2.1 AA)
+  const [politeAnnouncement, setPoliteAnnouncement] = useState<string>('');
+  const [assertiveAnnouncement, setAssertiveAnnouncement] = useState<string>('');
+
+  useEffect(() => {
+    const phaseName = AZ_PHASES[lobbyState.phase] ?? lobbyState.phase;
+    setPoliteAnnouncement(`Faza dəyişdi: ${phaseName}, Raund ${lobbyState.roundNumber}`);
+  }, [lobbyState.phase, lobbyState.roundNumber]);
+
+  useEffect(() => {
+    if (lobbyState.phase === 'TRIAL_DEFENSE' && lobbyState.accusedPlayerId) {
+      const accused = lobbyState.players[lobbyState.accusedPlayerId]?.username ?? 'Bilinməyən';
+      if (lobbyState.accusedPlayerId === currentUserId) {
+        setAssertiveAnnouncement('DİQQƏT: Siz məhkəmə kürsüsünə çıxarıldınız! 30 saniyə müdafiə vaxtınız var.');
+      } else {
+        setAssertiveAnnouncement(`Məhkəmə başladı: ${accused} müdafiə kürsüsündədir.`);
+      }
+    }
+  }, [lobbyState.phase, lobbyState.accusedPlayerId, currentUserId]);
+
+  // Desktop Keyboard Accessibility (Space/Enter, V, M, Escape, 1-9)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        document.activeElement?.tagName === 'INPUT' ||
+        document.activeElement?.tagName === 'TEXTAREA'
+      ) {
+        return;
+      }
+      if (e.key === 'm' || e.key === 'M') {
+        const next = toggleSound();
+        setSoundMuted(next);
+      } else if (e.key === 'Escape') {
+        setSelectedPlayerId(null);
+      } else if ((e.key === 'v' || e.key === 'V') && selectedPlayerId && isVotingPhase) {
+        onCastVote?.(selectedPlayerId);
+      } else if (e.key >= '1' && e.key <= '9') {
+        const index = parseInt(e.key, 10) - 1;
+        if (index < displayedPlayers.length) {
+          const target = displayedPlayers[index];
+          handleCardClick(target);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedPlayerId, isVotingPhase, displayedPlayers]);
+
   const isDayDiscussion =
     phase === 'DAY_CENTRAL_ASSEMBLY' ||
     phase === 'DAY_REGIONAL_CAUCUS';
@@ -303,6 +351,24 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             : ''
         }`}
     >
+            {/* ─── WCAG 2.1 AA ACCESSIBILITY SCREEN READER LIVE REGIONS ── */}
+      <div
+        data-testid="sr-announcement-polite"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {politeAnnouncement}
+      </div>
+      <div
+        data-testid="sr-announcement-assertive"
+        aria-live="assertive"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {assertiveAnnouncement}
+      </div>
+
       {/* ─── NIGHT PULSING WARNING BANNER ─────────────────────────── */}
       {isNightPhase && (
         <div className="w-full py-3 px-4 rounded-[20px] bg-gradient-to-r from-red-950/90 via-purple-950/90 to-red-950/90 border border-red-500/40 shadow-[0_0_35px_rgba(239,68,68,0.3)] flex items-center justify-center gap-3 animate-pulse select-none">

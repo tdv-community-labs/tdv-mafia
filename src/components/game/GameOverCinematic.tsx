@@ -1,3 +1,5 @@
+import confetti from 'canvas-confetti';
+import { triggerHaptic } from '../../utils/sfx';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Crown, Skull } from 'lucide-react';
@@ -30,6 +32,33 @@ export const GameOverCinematic: React.FC<GameOverCinematicProps> = ({
   
   const winnerIds = winnerResult.winnerPlayerIds || [];
   const iAmWinner = winnerIds.includes(currentUserId);
+
+  React.useEffect(() => {
+    if (!isOpen || !winnerResult) return;
+
+    if (iAmWinner) {
+      triggerHaptic('victory');
+    }
+
+    if (typeof window !== 'undefined') {
+      const isReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      if (isReduced) return;
+
+      const colors = isTownVictory
+        ? ['#10B981', '#34D399', '#059669', '#6EE7B7']
+        : isMafiaVictory
+        ? ['#EF4444', '#DC2626', '#B91C1C', '#F87171']
+        : ['#A855F7', '#9333EA', '#7E22CE', '#C084FC'];
+
+      confetti({
+        particleCount: 100,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors,
+        disableForReducedMotion: true,
+      });
+    }
+  }, [isOpen, winnerResult, isTownVictory, isMafiaVictory, iAmWinner]);
 
   const victorySubtitle = isTownVictory
     ? "ŞƏHƏR QAZANDI"

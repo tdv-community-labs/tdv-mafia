@@ -6,7 +6,8 @@ import { LobbyState, PlayerSession } from '../../types/game';
 import { ScrubbedPlayerView } from '../../types/engine';
 import { AZ_DISTRICTS } from '../../config/i18n/az';
 import { Badge } from '../ui/Badge';
-import { playCard } from '../../utils/sfx';
+import { playCard, triggerHaptic, playMicroClick } from '../../utils/sfx';
+import { motion } from 'framer-motion';
 
 export interface TrialDefensePanelProps {
   readonly lobbyState: LobbyState;
@@ -76,6 +77,12 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
   const innocentPercent = totalVerdictVotes > 0 ? (innocentCount / totalVerdictVotes) * 100 : 50;
 
   const district = accusedPlayer?.currentDistrict;
+  // Haptic alert on podium
+  React.useEffect(() => {
+    if (isAccused) {
+      triggerHaptic('accused');
+    }
+  }, [isAccused]);
 
   return (
     <div className="relative rounded-3xl bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950 border border-amber-500/40 p-5 sm:p-6 shadow-[0_0_50px_rgba(245,158,11,0.2)] overflow-hidden flex flex-col gap-5">
@@ -83,6 +90,10 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
       <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-64 bg-amber-500/15 blur-3xl pointer-events-none" />
       <div className="absolute -top-12 left-1/4 w-48 h-56 bg-gradient-to-b from-amber-400/25 via-amber-500/5 to-transparent blur-xl transform -rotate-12 pointer-events-none" />
       <div className="absolute -top-12 right-1/4 w-48 h-56 bg-gradient-to-b from-amber-400/25 via-amber-500/5 to-transparent blur-xl transform rotate-12 pointer-events-none" />
+      {/* Volumetric dust particles */}
+      <div className="absolute top-6 left-1/3 w-1.5 h-1.5 rounded-full bg-amber-300/40 animate-dust-float pointer-events-none" />
+      <div className="absolute top-12 right-1/3 w-2 h-2 rounded-full bg-amber-400/30 animate-dust-float [animation-delay:1.5s] pointer-events-none" />
+      <div className="absolute top-20 left-1/2 w-1 h-1 rounded-full bg-amber-200/50 animate-dust-float [animation-delay:0.7s] pointer-events-none" />
 
       {/* ─── HEADER: TITLE & 30S COUNTDOWN TIMER ──────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
@@ -99,38 +110,62 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
           </h2>
         </div>
 
-        {/* 30s Countdown Timer HUD */}
+        {/* Circular SVG Progress Ring Countdown HUD */}
         <div
-          className={`px-4 py-2 rounded-2xl border transition-all duration-300 flex items-center gap-3 shrink-0 ${
+          data-testid="courtroom-timer-hud"
+          className={`relative px-4 py-2.5 rounded-2xl border transition-all duration-300 flex items-center gap-4 shrink-0 ${
             isUrgent
-              ? 'bg-red-950/80 border-red-500 ring-4 ring-red-500/60 text-red-400 animate-pulse shadow-[0_0_25px_rgba(239,68,68,0.5)]'
-              : 'bg-zinc-900/90 border-amber-500/40 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+              ? 'bg-red-950/90 border-red-500 ring-4 ring-red-500/60 text-red-400 animate-pulse shadow-[0_0_30px_rgba(239,68,68,0.6)]'
+              : timeRemaining <= 15
+              ? 'bg-zinc-900/90 border-orange-500/50 text-orange-300 shadow-[0_0_20px_rgba(249,115,22,0.3)]'
+              : 'bg-zinc-900/90 border-amber-500/40 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
           }`}
         >
-          <Clock className={`w-5 h-5 ${isUrgent ? 'text-red-400 animate-spin' : 'text-amber-400'}`} />
-          <div className="flex flex-col items-end">
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">
-                {isUrgent ? '⚠️ HÖKM ANI!' : 'Müdafiə Vaxtı'}
+          {/* Circular SVG Ring */}
+          <div className="relative w-14 h-14 flex items-center justify-center shrink-0">
+            <svg className="w-14 h-14 -rotate-90 transform" viewBox="0 0 56 56">
+              {/* Background Ring Track */}
+              <circle
+                cx="28"
+                cy="28"
+                r="22"
+                className="stroke-zinc-800"
+                strokeWidth="4"
+                fill="none"
+              />
+              {/* Animated Progress Ring */}
+              <circle
+                cx="28"
+                cy="28"
+                r="22"
+                stroke={isUrgent ? '#ef4444' : timeRemaining <= 15 ? '#f97316' : '#f59e0b'}
+                strokeWidth="4"
+                strokeDasharray={138.23}
+                strokeDashoffset={138.23 - (progressPercent / 100) * 138.23}
+                strokeLinecap="round"
+                fill="none"
+                className="transition-all duration-300 ease-linear"
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-sm font-black tabular-nums tracking-tight">
+                {timeRemaining}
               </span>
             </div>
-            <span className="text-2xl font-black tabular-nums tracking-tight leading-none">
-              {timeRemaining}s
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80 flex items-center gap-1">
+              <Clock className={`w-3 h-3 ${isUrgent ? 'text-red-400 animate-spin' : 'text-amber-400'}`} />
+              {isUrgent ? '⚠️ HÖKM ANI!' : 'Müdafiə Vaxtı'}
+            </span>
+            <span className="text-xs font-semibold text-zinc-400">
+              {timeRemaining} saniyə qaldı
             </span>
           </div>
         </div>
       </div>
-
-      {/* Timer Progress Bar */}
-      <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden relative z-10">
-        <div
-          className={`h-full transition-all duration-300 ${
-            isUrgent ? 'bg-gradient-to-r from-red-600 to-amber-500' : 'bg-gradient-to-r from-amber-500 to-yellow-400'
-          }`}
-          style={{ width: `${progressPercent}%` }}
-        />
-      </div>
-
+      
       {/* ─── ACCUSED SHOWCASE PODIUM HERO CARD ─────────────────────── */}
       <div className="relative z-10 rounded-2xl bg-gradient-to-r from-amber-950/40 via-zinc-900/80 to-amber-950/40 border border-amber-500/40 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[0_0_30px_rgba(245,158,11,0.15)]">
         <div className="flex items-center gap-3.5">
@@ -243,6 +278,7 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
               type="button"
               onClick={() => {
                 playCard();
+                triggerHaptic('click');
                 onCastVerdictVote?.('GUILTY');
               }}
               className={`px-5 py-3 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 transition-all duration-200 cursor-pointer shadow-lg active:scale-95 ${
@@ -261,6 +297,7 @@ export const TrialDefensePanel: React.FC<TrialDefensePanelProps> = ({
               type="button"
               onClick={() => {
                 playCard();
+                triggerHaptic('click');
                 onCastVerdictVote?.('INNOCENT');
               }}
               className={`px-5 py-3 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 transition-all duration-200 cursor-pointer shadow-lg active:scale-95 ${

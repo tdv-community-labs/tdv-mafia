@@ -190,3 +190,76 @@ html { scroll-behavior: smooth; }
     button, .btn {
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
+
+
+/* ─── WCAG 2.1 AA ACCESSIBILITY & MOTION GUIDELINES (M14 / M15) ────────────── */
+
+/* High-contrast accessible keyboard focus outlines (WCAG 2.1 AA) */
+:focus-visible {
+  outline: 2px solid #38bdf8 !important;
+  outline-offset: 2px !important;
+}
+
+/* Reduced Motion Override for vestibular / motion sensitivity */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 360° Radar sweeping beam */
+@keyframes radar-sweep {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-radar-sweep {
+  animation: radar-sweep 4s linear infinite;
+  transform-origin: center;
+}
+
+/* Accusation / Gold border shimmer */
+@keyframes border-shimmer {
+  0%, 100% {
+    border-color: rgba(245, 158, 11, 0.4);
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    border-color: rgba(251, 191, 36, 1);
+    box-shadow: 0 0 35px rgba(245, 158, 11, 0.6);
+  }
+}
+
+.animate-border-shimmer {
+  animation: border-shimmer 2s ease-in-out infinite;
+}
+
+/* Volumetric dust particle floating */
+@keyframes dust-float {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translateY(-8px) translateX(4px);
+    opacity: 0.6;
+  }
+}
+
+.animate-dust-float {
+  animation: dust-float 3s ease-in-out infinite;
+}
+
+/* Mobile tap target conformance (minimum 44px - 48px on touch) */
+@media (pointer: coarse) {
+  button, [role="button"], input, select, textarea {
+    min-height: 44px;
+  }
+}

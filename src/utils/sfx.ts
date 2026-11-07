@@ -8,7 +8,7 @@ const STORAGE_KEY = 'tdv_mafia_sound_muted';
 const SOUND_EVENT_KEY = 'tdv_mafia_sound_change';
 
 /** Standardized comfortable Master Volume (35%) */
-const MASTER_VOLUME = 0.35;
+export const MASTER_VOLUME = 0.35;
 
 let audioCtx: AudioContext | null = null;
 const audioCache: Record<string, HTMLAudioElement> = {};
@@ -854,5 +854,133 @@ export function startAmbient(type: 'LOBBY' | 'DAY' | 'NIGHT' | 'ENDED'): void {
   } else if (type === 'LOBBY' || type === 'ENDED') {
     // Silence for now
     stopAmbient();
+  }
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 14. UI/UX MICRO-INTERACTION SOUNDS & HAPTICS (M14)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * 12ms acoustic micro-click bandpass filtered at 1200 Hz for button hover / focus.
+ */
+export function playMicroClick(): void {
+  if (isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(1200, now);
+
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1200, now);
+    filter.Q.setValueAtTime(3.0, now);
+
+    gain.gain.setValueAtTime(0.08 * MASTER_VOLUME, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.012);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.015);
+  } catch {
+    // Silently ignore
+  }
+}
+
+/**
+ * Submarine Sonar Ping: 220 Hz pure sine wave with high Q factor and 3.2-second natural reverberation decay.
+ */
+export function playBermudaSonar(pan: number = 0.0): void {
+  if (isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(220, now);
+
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(220, now);
+    filter.Q.setValueAtTime(8.0, now);
+
+    gain.gain.setValueAtTime(0.5 * MASTER_VOLUME, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.2);
+
+    osc.connect(filter);
+    filter.connect(gain);
+
+    if (pan !== 0.0 && typeof ctx.createStereoPanner === 'function') {
+      const panner = ctx.createStereoPanner();
+      panner.pan.setValueAtTime(Math.max(-1.0, Math.min(1.0, pan)), now);
+      gain.connect(panner);
+      panner.connect(ctx.destination);
+    } else {
+      gain.connect(ctx.destination);
+    }
+
+    osc.start(now);
+    osc.stop(now + 3.25);
+  } catch {
+    // Silently ignore
+  }
+}
+
+/**
+ * Cyberpunk Digital Chirp: High-frequency digital chirp and relay snap (1800 Hz -> 2400 Hz linear chirp over 80ms).
+ */
+export function playCyberChirp(): void {
+  if (isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(1800, now);
+    osc.frequency.linearRampToValueAtTime(2400, now + 0.08);
+
+    gain.gain.setValueAtTime(0.25 * MASTER_VOLUME, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.085);
+  } catch {
+    // Silently ignore
+  }
+}
+
+/**
+ * Safe haptic vibration wrapper for mobile touch devices.
+ */
+export function triggerHaptic(type: 'click' | 'accused' | 'victory'): void {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined' || !navigator.vibrate) return;
+  try {
+    if (type === 'click') {
+      navigator.vibrate(15);
+    } else if (type === 'accused') {
+      navigator.vibrate([40, 60, 40]);
+    } else if (type === 'victory') {
+      navigator.vibrate([30, 50, 30, 50, 60]);
+    }
+  } catch {
+    // Silently ignore
   }
 }

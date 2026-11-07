@@ -26,6 +26,13 @@ export const RoleActionReticle: React.FC<RoleActionReticleProps> = ({
         isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-75'
       }`}
     >
+      {/* 360° Animated Sweeping Radar Beam */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="w-full h-full max-w-[120px] max-h-[120px] rounded-full overflow-hidden animate-radar-sweep opacity-25 pointer-events-none">
+          <div className="w-full h-full bg-[conic-gradient(from_0deg,_transparent_0deg,_transparent_270deg,_rgba(255,255,255,0.5)_360deg)]" />
+        </div>
+      </div>
+
       {/* ─── 1. KILL RETICLE (Tactical Red Crosshairs) ────────────────────── */}
       {actionType === 'KILL' && (
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_35%,_rgba(239,68,68,0.22)_100%)] flex items-center justify-center">
