@@ -118,7 +118,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
     : !isAlive
     ? isFullSession(player) && player.displayRole?.originalRoleName !== 'Secret' && player.displayRole?.originalRoleName !== 'Pending'
       ? player.displayRole.localizedRoleName || player.displayRole.originalRoleName
-      : '✝️ Ələnmiş İştirakçı'
+      : (player as any).displayRole?.localizedRoleName === 'DƏNİZDƏ İTİB' ? 'DƏNİZDƏ İTİB' : '✝️ Ələnmiş İştirakçı'
     : isViewerMafia && isFullSession(player) && player.allInIdentity?.layer1Faction === 'MAFIA'
     ? '🕶️ Mafiya Ortağı'
     : '';
@@ -178,6 +178,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
 
   return (
     <div
+      data-testid={`player-card-${player.userId}`}
       onClick={handleClick}
       onKeyDown={(e) => {
         if (onSelect && (e.key === 'Enter' || e.key === ' ')) {
@@ -203,7 +204,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
 
       {/* Accused Podium Ribbon Badge */}
       {isAccused && (
-        <div className="absolute top-2 left-2 z-30 px-2 py-0.5 rounded-full bg-amber-500 text-zinc-950 text-[10px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(245,158,11,0.8)] flex items-center gap-1">
+        <div data-testid={`badge-accused-${player.userId}`} className="absolute top-2 left-2 z-30 px-2 py-0.5 rounded-full bg-amber-500 text-zinc-950 text-[10px] font-black uppercase tracking-wider shadow-[0_0_12px_rgba(245,158,11,0.8)] flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-zinc-950 animate-ping" />
           <span>KÜRSÜDƏ</span>
         </div>
@@ -239,19 +240,21 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
       )}
       {/* Eliminated Stamp */}
       {!isLobbyPhase && !isAlive && (
-        <div className="absolute top-3 right-[-10px] rotate-12 bg-red-600 text-white px-5 py-0.5 text-[10px] font-black tracking-widest uppercase border border-red-400 shadow-lg z-10 pointer-events-none">
-          <div className="flex items-center gap-1"><Gavel className="w-3 h-3"/> {AZ_UI.eliminated}</div>
+        <div data-testid={roleSubtitle === 'DƏNİZDƏ İTİB' || (player as any).displayRole?.localizedRoleName === 'DƏNİZDƏ İTİB' ? 'card-vanished-at-sea' : undefined} className={`absolute top-3 right-[-10px] rotate-12 ${roleSubtitle === 'DƏNİZDƏ İTİB' || (player as any).displayRole?.localizedRoleName === 'DƏNİZDƏ İTİB' ? 'bg-blue-700 border-blue-400' : 'bg-red-600 border-red-400'} text-white px-5 py-0.5 text-[10px] font-black tracking-widest uppercase border shadow-lg z-10 pointer-events-none`}>
+          <div className="flex items-center gap-1">{roleSubtitle === 'DƏNİZDƏ İTİB' || (player as any).displayRole?.localizedRoleName === 'DƏNİZDƏ İTİB' ? '🌊 DƏNİZDƏ İTİB' : <><Gavel className="w-3 h-3"/> {AZ_UI.eliminated}</>}</div>
         </div>
       )}
 
       {/* Dynamic Role Action Reticle */}
       {effectiveActionType && (
+        <div data-testid="role-action-reticle">
         <RoleActionReticle
           actionType={effectiveActionType}
           isSelected={isSelected}
           isTargetable={isTargetable}
           isCompact={isCompact}
         />
+        </div>
       )}
       
       {/* Cinematic Death Watermark & Blood Overlay */}
@@ -293,13 +296,13 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
 
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-extrabold text-sm text-zinc-950 dark:text-white truncate">
+              <span data-testid={`player-username-${player.userId}`} className="font-extrabold text-sm text-zinc-950 dark:text-white truncate">
                 {roleTitle}
               </span>
 
               {/* Bold "SƏN" Badge */}
               {isSelf && (
-                <span className="inline-flex items-center gap-1 text-[10px] bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black px-2 py-0.2 rounded-full tracking-wider uppercase shadow-sm shadow-purple-500/30 shrink-0">
+                <span data-testid={`badge-self-${player.userId}`} className="inline-flex items-center gap-1 text-[10px] bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black px-2 py-0.2 rounded-full tracking-wider uppercase shadow-sm shadow-purple-500/30 shrink-0">
                   <Sparkles className="w-2.5 h-2.5" />
                   SƏN
                 </span>
@@ -307,13 +310,13 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
 
               {/* Refined 🤖 Gemini AI Badge */}
               {isBot && (
-                <span className="inline-flex items-center gap-1 text-[10px] bg-purple-500/15 dark:bg-purple-500/25 text-purple-700 dark:text-purple-300 font-extrabold px-1.5 py-0.2 rounded-md border border-purple-500/30 shrink-0">
+                <span data-testid={`badge-bot-${player.userId}`} className="inline-flex items-center gap-1 text-[10px] bg-purple-500/15 dark:bg-purple-500/25 text-purple-700 dark:text-purple-300 font-extrabold px-1.5 py-0.2 rounded-md border border-purple-500/30 shrink-0">
                   🤖 Gemini AI
                 </span>
               )}
 
               {isAfk && !isBot && (
-                <span className="inline-flex items-center gap-1 text-[10px] bg-zinc-500/15 text-zinc-500 dark:text-zinc-400 font-semibold px-1.5 py-0.2 rounded-md border border-zinc-500/20 shrink-0" title="Əlaqə kəsilib və ya passivdir">
+                <span data-testid={`player-offline-${player.userId}`} className="inline-flex items-center gap-1 text-[10px] bg-zinc-500/15 text-zinc-500 dark:text-zinc-400 font-semibold px-1.5 py-0.2 rounded-md border border-zinc-500/20 shrink-0" title="Əlaqə kəsilib və ya passivdir">
                   <WifiOff className="w-2.5 h-2.5" />
                   Oflayn
                 </span>
@@ -332,7 +335,7 @@ const PlayerCardComponent: React.FC<PlayerCardProps> = ({
               )}
             </div>
 
-            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+            <span data-testid={`player-role-subtitle-${player.userId}`} className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
               {roleSubtitle}
             </span>
           </div>

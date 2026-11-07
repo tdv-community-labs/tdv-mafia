@@ -187,7 +187,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         const parsedEco = JSON.parse(ecoRaw);
         if (parsedEco?.username || parsedEco?.fullName) {
           resolvedName = parsedEco.fullName || parsedEco.username;
-          resolvedId = `usr-${(parsedEco.username || parsedEco.fullName).toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+          resolvedId = parsedEco.userId || `usr-${(parsedEco.username || parsedEco.fullName).toLowerCase().replace(/[^a-z0-9]/g, '')}`;
           resolvedTier = parsedEco.tier || 'TIER_1';
         }
       } else {
@@ -284,7 +284,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
       } catch {
         // Ignore
       }
-    }, 2500);
+    }, (typeof window !== 'undefined' && (window as any).__TDV_POLL_INTERVAL__) || 2500);
 
     return () => clearInterval(pollInterval);
   }, [lobbyId]);
@@ -661,7 +661,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                 isLobbyPhase ? 'bg-blue-500 ring-2 ring-blue-500/20' : 'bg-emerald-500 ring-2 ring-emerald-500/20 animate-pulse'
               }`}
             />
-            <h1 className="text-xl sm:text-2xl font-black text-zinc-950 dark:text-white tracking-tight">
+            <h1 data-testid={`phase-badge-${lobbyState.phase}`} className="text-xl sm:text-2xl font-black text-zinc-950 dark:text-white tracking-tight">
               {isLobbyPhase ? 'Gözləmə Otağı (Lobby)' : AZ_PHASES[lobbyState.phase] ?? lobbyState.phase}{' '}
               <span className="text-sm font-semibold text-zinc-400 font-mono">— {lobbyId}</span>
             </h1>
@@ -672,7 +672,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             <span>•</span>
             <span>
               Masada:{' '}
-              <strong className="text-zinc-900 dark:text-zinc-100">{totalPlayersCount} Oyunçu</strong>
+              <strong data-testid="player-count-badge" className="text-zinc-900 dark:text-zinc-100">{totalPlayersCount} Oyunçu</strong>
             </span>
             <span>•</span>
             <button
@@ -728,7 +728,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
           </button>
 
           {isLobbyPhase && (
-            <Button
+            <Button data-testid="btn-ready-toggle"
               variant={isReadyLocal ? 'secondary' : 'warning'}
               size="sm"
               onClick={handleToggleReady}
@@ -740,7 +740,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
 
           {isLobbyPhase && isHost && (
             <>
-              <Button
+              <Button data-testid="btn-add-bot"
                 variant="secondary"
                 size="sm"
                 onClick={handleAddBot}
@@ -748,7 +748,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
               >
                 +1 AI Bot
               </Button>
-              <Button
+              <Button data-testid="btn-fill-bots"
                 variant="secondary"
                 size="sm"
                 onClick={handleFillBots}
@@ -756,7 +756,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
               >
                 {currentPack?.minPlayers ?? 5} Botla Doldur
               </Button>
-              <Button
+              <Button data-testid="btn-start-game"
                 variant="primary"
                 size="sm"
                 onClick={handleStartGame}
@@ -923,7 +923,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
 
             <div className="flex items-center gap-3">
               {isHost ? (
-                <Button
+                <Button data-testid="btn-start-game"
                   variant="primary"
                   size="md"
                   onClick={handleStartGame}
@@ -932,7 +932,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                   Oyunu İndi Başlat
                 </Button>
               ) : (
-                <Button
+                <Button data-testid="btn-ready-toggle"
                   variant={isReadyLocal ? 'secondary' : 'warning'}
                   size="md"
                   onClick={handleToggleReady}
@@ -1044,7 +1044,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
             }
 
             return (
-              <div 
+              <div data-testid="secret-role-banner" 
                 onClick={() => setIsRoleRevealed(!isRoleRevealed)}
                 className={`p-5 rounded-2xl border ${borderColor} ${containerBg} ${shadowColor} flex items-center justify-between gap-4 transition-all duration-300 cursor-pointer hover:-translate-y-0.5 active:translate-y-0`}
                 title="Rolunuzu görmək/gizlətmək üçün klikləyin"
@@ -1057,13 +1057,13 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                     <span className={`text-[11px] font-extrabold uppercase tracking-[0.2em] block ${textTop} transition-colors duration-300`}>
                       {isRoleRevealed ? 'SİZİN GİZLİ KİMLİYİNİZ' : 'MƏXFİ DOSYE (Gizlidir)'}
                     </span>
-                    <div className={`text-2xl font-black tracking-tight mt-0.5 transition-colors duration-300 ${!isRoleRevealed ? 'text-zinc-400 dark:text-zinc-600 select-none blur-[4px]' : 'text-zinc-950 dark:text-white'}`}>
+                    <div data-testid="secret-role-text" className={`text-2xl font-black tracking-tight mt-0.5 transition-colors duration-300 ${!isRoleRevealed ? 'text-zinc-400 dark:text-zinc-600 select-none blur-[4px]' : 'text-zinc-950 dark:text-white'}`}>
                       {roleStr || `${currentUsername} (Vətəndaş)`}
                     </div>
                   </div>
                 </div>
 
-                <div className={`px-3 py-1.5 rounded-md text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-md ${badgeBg} ${badgeShadow} hidden sm:flex items-center gap-2 transition-colors duration-300`}>
+                <div data-testid="btn-toggle-secret-role" className={`px-3 py-1.5 rounded-md text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-md ${badgeBg} ${badgeShadow} hidden sm:flex items-center gap-2 transition-colors duration-300`}>
                   {isRoleRevealed ? 'GİZLƏT' : 'GÖSTƏR'}
                 </div>
               </div>

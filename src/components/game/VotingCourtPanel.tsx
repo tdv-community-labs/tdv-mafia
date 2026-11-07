@@ -60,7 +60,7 @@ export const VotingCourtPanel: React.FC<VotingCourtPanelProps> = ({
 
 
   return (
-    <div className={`p-4 sm:p-6 flex flex-col gap-4 transition-colors duration-200 ${isAllIn ? 'bg-zinc-950 border border-red-500/30 rounded-[12px] shadow-[0_0_30px_rgba(239,68,68,0.1)] relative overflow-hidden ring-1 ring-red-500/10' : theme.courtContainer}`}>
+    <div data-testid="voting-court-panel" className={`p-4 sm:p-6 flex flex-col gap-4 transition-colors duration-200 ${isAllIn ? 'bg-zinc-950 border border-red-500/30 rounded-[12px] shadow-[0_0_30px_rgba(239,68,68,0.1)] relative overflow-hidden ring-1 ring-red-500/10' : theme.courtContainer}`}>
       {/* Court Header */}
       {isAllIn && <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 pointer-events-none" />}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
