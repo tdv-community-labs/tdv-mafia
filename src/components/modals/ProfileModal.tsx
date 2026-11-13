@@ -71,7 +71,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     className="bg-zinc-900 text-white rounded-lg px-3 py-1.5 outline-none border border-zinc-700 w-40 text-sm font-bold"
                     autoFocus
                     onKeyDown={e => {
-                      if (e.key === 'Enter') handleSave();
+                      if (e.key === 'Enter' && !e.nativeEvent.isComposing) handleSave();
                       if (e.key === 'Escape') setIsEditing(false);
                     }}
                   />

@@ -59,9 +59,13 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
           rel="stylesheet"
         />
+        <meta name="color-scheme" content="light dark" />
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha384-t0mVD1TL5x9fVw+Lq9L2gq8sQ/j0r9d9N1M3xQxT9m4T2f5h4m7u5w=="
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
         />
         <script
           dangerouslySetInnerHTML={{

@@ -31,6 +31,10 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const applyTheme = (t: Theme) => {
     if (typeof document !== 'undefined') {
       const root = document.documentElement;
+      const meta = document.querySelector('meta[name="color-scheme"]') as HTMLMetaElement | null;
+      if (meta) {
+        meta.content = t;
+      }
       if (t === 'dark') {
         root.classList.add('dark');
         root.classList.remove('light');

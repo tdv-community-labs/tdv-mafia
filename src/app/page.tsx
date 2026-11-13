@@ -408,7 +408,7 @@ export default function HomePage() {
               onChange={(e) => setRoomCodeInput(e.target.value)}
               autoFocus
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleJoinByCode();
+                if (e.key === 'Enter' && !e.nativeEvent.isComposing) handleJoinByCode();
               }}
               className="w-full px-4 py-2.5 rounded-[8px] border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all"
             />
